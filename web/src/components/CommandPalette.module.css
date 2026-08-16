@@ -1,0 +1,125 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 15vh;
+}
+
+.modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.searchIcon {
+  color: var(--color-ink-muted);
+  font-size: 16px;
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--color-ink);
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: var(--color-ink-muted);
+}
+
+.shortcutBadge {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-muted);
+}
+
+.resultsList {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.groupHeader {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-muted);
+  padding: var(--space-2) var(--space-3) var(--space-1) var(--space-3);
+}
+
+.resultItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--color-ink);
+  font-size: 13px;
+}
+
+.resultItemActive {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+.itemLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.itemCategory {
+  font-size: 11px;
+  color: var(--color-ink-muted);
+  font-family: var(--font-mono);
+}
+
+.emptyState {
+  padding: var(--space-5);
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-ink-muted);
+}
+
+.footer {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-raised);
+  display: flex;
+  gap: var(--space-4);
+  font-size: 11px;
+  color: var(--color-ink-muted);
+}
