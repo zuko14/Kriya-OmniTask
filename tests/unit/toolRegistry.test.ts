@@ -64,4 +64,33 @@ describe('Tool Registry & System Tools Unit Tests', () => {
     expect(dbSlugs).toContain('crm_customer_lookup');
     expect(dbSlugs).toContain('financial_issue_refund');
   });
+
+  it('should register without errors in production mode and verify read-back', async () => {
+    const originalEnv = process.env.APP_MODE;
+    try {
+      process.env.APP_MODE = 'production';
+      // Registering tools in production mode requires verify() on HIGH / CRITICAL tools
+      const refundTool = registry.getTool('financial_issue_refund');
+      expect(refundTool?.verify).toBeDefined();
+      const refundVerification = await refundTool!.verify!(
+        { customerId: 'c1', transactionId: 't1', amountUsd: 10, reason: 'overcharged' },
+        { refundId: 'ref_123', status: 'processed' },
+        { tenantId: 'tenant_test', vault: {} as any }
+      );
+      expect(refundVerification.state).toBe('verified');
+      expect(refundVerification.observed).toEqual({ refundId: 'ref_123', status: 'processed' });
+
+      const webhookTool = registry.getTool('custom_http_webhook');
+      expect(webhookTool?.verify).toBeDefined();
+      const webhookVerification = await webhookTool!.verify!(
+        { endpointUrl: 'https://example.com/hook', payload: {} },
+        { statusCode: 200, delivered: true },
+        { tenantId: 'tenant_test', vault: {} as any }
+      );
+      expect(webhookVerification.state).toBe('verified');
+      expect(webhookVerification.observed).toEqual({ statusCode: 200, delivered: true });
+    } finally {
+      process.env.APP_MODE = originalEnv;
+    }
+  });
 });

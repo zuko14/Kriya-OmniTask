@@ -275,6 +275,10 @@ export class ToolRegistryService {
           processedAt: new Date().toISOString(),
         };
       }),
+      verify: async (_input, output) => ({
+        state: output && output.refundId ? 'verified' : 'pending',
+        observed: { refundId: output?.refundId, status: output?.status },
+      }),
     });
 
     // 6. Custom HTTP Webhook (HIGH Risk)
@@ -301,6 +305,10 @@ export class ToolRegistryService {
           endpointUrl: input.endpointUrl,
           dispatchedAt: new Date().toISOString(),
         };
+      }),
+      verify: async (_input, output) => ({
+        state: output && output.statusCode ? 'verified' : 'pending',
+        observed: { statusCode: output?.statusCode, delivered: output?.delivered },
       }),
     });
 
