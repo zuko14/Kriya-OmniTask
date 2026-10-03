@@ -20,7 +20,7 @@ COPY package*.json ./
 COPY web/package*.json ./web/
 
 # Install full dependencies (including devDependencies required for build)
-RUN npm ci
+RUN npm ci || npm install
 
 # Copy configuration files and source code
 COPY tsconfig*.json ./
