@@ -52,6 +52,15 @@ describe('Platform operator isolation (/owner vs /admin)', () => {
     expect(res.statusCode).toBe(200);
   });
 
+  it('self-heals an owner left without its role by an earlier crashed boot (prod incident)', async () => {
+    await client.execute('DELETE FROM user_roles WHERE tenant_id = ?;', ['tnt_platform']);
+    const before = await app.inject({ method: 'POST', url: '/api/v1/auth/platform-login', payload: OWNER });
+    expect(before.statusCode).toBe(401); // signs in to the platform tenant but has no platform role
+
+    expect(await ensurePlatformOwner()).toBe('unchanged');
+    await ownerToken(); // role restored → owner console works again
+  });
+
   it('rejects wrong owner credentials with a generic 401', async () => {
     const res = await app.inject({
       method: 'POST',

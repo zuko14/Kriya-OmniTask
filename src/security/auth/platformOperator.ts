@@ -51,36 +51,49 @@ export async function ensurePlatformOwner(): Promise<'created' | 'password_reset
     (await tenantRepo.findBySlug(slug)) ??
     (await tenantRepo.create({ id: `tnt_platform`, name: 'Kriya Platform', slug, plan_tier: 'enterprise' }));
 
-  return TenantContextManager.withTenant(tenant.id, 'platform', async () => {
-    const users = new UserRepository();
-    const existing = await users.findByEmail(email);
-    let outcome: 'created' | 'password_reset' | 'unchanged';
+  // One transaction: a failure can never leave an owner user without its role (which used to
+  // survive a crash-restart as an 'unchanged' user that could sign in but had no permissions).
+  return db.getClient().transaction(() =>
+    TenantContextManager.withTenant(tenant.id, 'platform', async () => {
+      const users = new UserRepository();
+      const existing = await users.findByEmail(email);
+      let outcome: 'created' | 'password_reset' | 'unchanged';
+      let userId: string;
 
-    if (!existing) {
-      const user = await users.createWithPassword({ email, password, full_name: 'Platform Owner' });
-      await users.assignRoleByName(user.id, 'super_admin');
-      outcome = 'created';
-    } else if (!CryptoUtils.verifyPassword(password, existing.password_hash)) {
-      await db.getClient().execute('UPDATE users SET password_hash = ?, status = ?, updated_at = ? WHERE id = ?;', [
-        CryptoUtils.hashPassword(password),
-        'active',
-        new Date().toISOString(),
-        existing.id,
-      ]);
-      outcome = 'password_reset';
-    } else {
-      outcome = 'unchanged';
-    }
+      if (!existing) {
+        userId = (await users.createWithPassword({ email, password, full_name: 'Platform Owner' })).id;
+        outcome = 'created';
+      } else if (!CryptoUtils.verifyPassword(password, existing.password_hash)) {
+        await db.getClient().execute('UPDATE users SET password_hash = ?, status = ?, updated_at = ? WHERE id = ?;', [
+          CryptoUtils.hashPassword(password),
+          'active',
+          new Date().toISOString(),
+          existing.id,
+        ]);
+        userId = existing.id;
+        outcome = 'password_reset';
+      } else {
+        userId = existing.id;
+        outcome = 'unchanged';
+      }
 
-    if (outcome !== 'unchanged') {
-      await auditLogger.logEvent({
-        action: `platform.owner_${outcome}`,
-        resourceType: 'user',
-        resourceId: email,
-        details: { source: 'env_bootstrap' },
-      });
-    }
-    logger.info(`Platform owner bootstrap: ${outcome} (${email})`);
-    return outcome;
-  }, { userId: 'system', roles: ['system'] });
+      // Re-asserted on every boot (idempotent), so a missing role self-heals.
+      const roles = (await users.getUserRoles(userId)).map((r) => r.name);
+      if (!roles.includes('super_admin')) {
+        await users.assignRoleByName(userId, 'super_admin');
+        if (outcome === 'unchanged') logger.warn(`Platform owner ${email} was missing super_admin — role restored.`);
+      }
+
+      if (outcome !== 'unchanged') {
+        await auditLogger.logEvent({
+          action: `platform.owner_${outcome}`,
+          resourceType: 'user',
+          resourceId: email,
+          details: { source: 'env_bootstrap' },
+        });
+      }
+      logger.info(`Platform owner bootstrap: ${outcome} (${email})`);
+      return outcome;
+    }, { userId: 'system', roles: ['system'] })
+  );
 }

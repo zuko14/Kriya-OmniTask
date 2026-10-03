@@ -1,0 +1,10 @@
+-- 059: Repair user_roles on Postgres databases where the table pre-dated migration 001.
+-- 001 uses CREATE TABLE IF NOT EXISTS, so an older user_roles (without tenant_id) was kept as-is,
+-- breaking role lookup (column ur.tenant_id does not exist) and role assignment at login/bootstrap.
+-- Idempotent and a no-op on databases that already match 001. SQLite (tests/sandbox) is always built fresh.
+-- PG: ALTER TABLE user_roles ADD COLUMN IF NOT EXISTS tenant_id TEXT;
+-- PG: ALTER TABLE user_roles ADD COLUMN IF NOT EXISTS created_at TEXT;
+-- PG: UPDATE user_roles SET tenant_id = users.tenant_id FROM users WHERE user_roles.user_id = users.id AND user_roles.tenant_id IS NULL;
+-- PG: UPDATE user_roles SET created_at = to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') WHERE created_at IS NULL;
+-- PG: CREATE UNIQUE INDEX IF NOT EXISTS idx_user_roles_user_role ON user_roles(user_id, role_id);
+-- PG: CREATE INDEX IF NOT EXISTS idx_user_roles_tenant ON user_roles(tenant_id);
