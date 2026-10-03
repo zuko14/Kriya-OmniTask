@@ -266,7 +266,10 @@ export class KriyaPlatform {
       const applied = await migrator.applyMigrations();
       logger.info(`Schema migrations checked. Applied: ${applied.length} new migrations.`);
 
-      await ensurePlatformOwner();
+      // The owner login must not take client workspaces down with it: log loudly and keep serving.
+      await ensurePlatformOwner().catch((err) =>
+        logger.error('Platform owner bootstrap FAILED — /owner sign-in will not work until this is fixed', err)
+      );
 
       logger.info('Kriya AI Platform Foundation successfully initialized.');
     } catch (err) {
