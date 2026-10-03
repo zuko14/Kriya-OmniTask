@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tool Gateway Circuit Breaker
+ * Kriya AI — Tool Gateway Circuit Breaker
  * Protects downstream services and prevents cascade failures (§18 of CLAUDE.md).
  */
 

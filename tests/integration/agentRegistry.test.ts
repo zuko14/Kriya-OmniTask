@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Registry Integration Tests
+ * Kriya AI — Agent Registry Integration Tests
  * Verifies Fastify REST endpoints for agent specification CRUD, system templates bootstrap,
  * quota validation, and state machine transitions.
  */

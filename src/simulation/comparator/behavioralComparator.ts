@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Behavioral Comparison & Regression Evaluator
+ * Kriya AI — Behavioral Comparison & Regression Evaluator
  * Evaluates simulated sandbox runs against expected scenario outcomes (§14, §17 of CLAUDE.md).
  */
 

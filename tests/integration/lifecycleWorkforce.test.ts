@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Lifecycle Workforce REST Integration Tests
+ * Kriya AI — Customer Lifecycle Workforce REST Integration Tests
  * Verifies Fastify REST endpoints for Lead Qualification, Calendar Booking, Support, Reactivation, and Stage Transitions (§23-§28 of CLAUDE.md).
  */
 

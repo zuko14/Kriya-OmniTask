@@ -55,10 +55,10 @@ export function PlatformOverview() {
           {tenants.status !== 'success' && (
             <AsyncState status={tenants.status === 'loading' ? 'loading' : 'error'} error={tenants.error} />
           )}
-          {tenants.status === 'success' && tenants.data.tenants.length === 0 && (
+          {tenants.status === 'success' && (tenants.data?.tenants?.length ?? 0) === 0 && (
             <AsyncState status="empty" emptyMessage="No tenants provisioned yet." />
           )}
-          {tenants.status === 'success' && tenants.data.tenants.length > 0 && (
+          {tenants.status === 'success' && (tenants.data?.tenants?.length ?? 0) > 0 && (
             <table className={styles.table}>
               <thead>
                 <tr>

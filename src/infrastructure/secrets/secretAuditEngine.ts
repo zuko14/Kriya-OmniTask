@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Secret Inventory & Entropy Audit Engine
+ * Kriya AI — Secret Inventory & Entropy Audit Engine
  * Evaluates environment configuration and credentials using Shannon entropy and known signature heuristics.
  */
 

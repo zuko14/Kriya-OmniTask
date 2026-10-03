@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Safety Firewall Unit Tests
+ * Kriya AI — Agent Safety Firewall Unit Tests
  * Verifies deterministic detection of prompt injection, jailbreak attempts, PII/secret leaks,
  * and risk-based autonomy validation (§15, §26 of CLAUDE.md).
  */

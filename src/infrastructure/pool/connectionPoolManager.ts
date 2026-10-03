@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Database Connection Pool Monitor & Throttler
+ * Kriya AI — Database Connection Pool Monitor & Throttler
  * Real-time connection pool diagnostics, saturation tracking, and acquisition throttling.
  */
 

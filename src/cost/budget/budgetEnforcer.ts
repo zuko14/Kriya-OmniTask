@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tenant Budget Enforcer & Circuit Breaker
+ * Kriya AI — Tenant Budget Enforcer & Circuit Breaker
  * Real-time budget monitoring, threshold warning generation, and hard ceiling circuit breaking.
  */
 

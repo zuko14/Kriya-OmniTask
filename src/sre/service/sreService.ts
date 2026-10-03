@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Site Reliability Engineering (SRE) Service
+ * Kriya AI — Site Reliability Engineering (SRE) Service
  * Orchestrates waterfall trace rendering, SLO evaluations, burn rate tracking, and incident alerting.
  */
 

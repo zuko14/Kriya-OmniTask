@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Maintenance & Announcement Manager
+ * Kriya AI — Maintenance & Announcement Manager
  * Manages global maintenance mode, read-only gating, emergency kill switch, and targeted announcements.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — OpenTelemetry-Style Distributed Execution Tracer
+ * Kriya AI — OpenTelemetry-Style Distributed Execution Tracer
  * Builds hierarchical waterfall spans, computes token cost attribution, and formats trace views (§14, §16 of CLAUDE.md).
  */
 

@@ -1,9 +1,10 @@
 /**
- * Xylarc AI — Tool Definition Registry & Built-in System Tools
+ * Kriya AI — Tool Definition Registry & Built-in System Tools
  * Provides typed tool contracts, validation schemas, risk classification, and handlers (§18 of CLAUDE.md).
  */
 
 import { z } from 'zod';
+import { createHash } from 'node:crypto';
 import { ToolDefinition, ToolCategory, ToolDefinitionRecord } from '../types/toolTypes.js';
 import { RiskTier } from '../../agents/types/agentTypes.js';
 import { ToolDefinitionRepository } from '../repositories/toolRepository.js';
@@ -12,12 +13,27 @@ import { OutboundQueueService } from '../../channels/queue/outboundQueueService.
 import { CredentialVault } from '../vault/credentialVault.js';
 import { ValidationError, NotFoundError } from '../../core/errors/errors.js';
 import { logger } from '../../core/logger/logger.js';
+import { isSandboxMode, NotConfiguredError } from '../../core/config/runtimeMode.js';
+
+import { schedulingTools } from '../../scheduling/appointmentBook.js';
+import { attentionTools } from '../../attention/service/attentionTools.js';
+import { verificationTools } from '../../attention/service/verificationJobService.js';
+import { documentTools } from '../../document/service/documentTools.js';
+import { paymentTools } from '../../billing/service/paymentTools.js';
 
 export interface ToolExecutionContext {
   tenantId: string;
   agentId?: string;
   correlationId?: string;
+  /** Pass to the external system so a retried/resumed call cannot act twice (docs/kriya WP-2.2, WP-3.6). */
+  idempotencyKey?: string;
   vault: CredentialVault;
+}
+
+/** Read-back result from the target system (docs/kriya WP-3.4). */
+export interface ToolVerification {
+  state: 'verified' | 'pending' | 'mismatch';
+  observed?: Record<string, unknown>;
 }
 
 export type ToolHandler = (
@@ -29,6 +45,23 @@ export interface RegisteredTool {
   definition: ToolDefinition;
   inputValidator: z.ZodType<any>;
   handler: ToolHandler;
+  /** Reads the target system back after the action; required for T2/T3 tools outside sandbox. */
+  verify?: (input: Record<string, unknown>, output: Record<string, unknown>, context: ToolExecutionContext) => Promise<ToolVerification>;
+  /** Reverses the action when a later step fails (saga, docs/kriya WP-3.5). */
+  compensate?: (input: Record<string, unknown>, output: Record<string, unknown>, context: ToolExecutionContext) => Promise<void>;
+}
+
+/**
+ * Wraps a tool whose real connector doesn't exist yet. In sandbox/test it returns simulated
+ * output tagged `sandbox: true`; anywhere else it refuses instead of fabricating a result
+ * (docs/kriya S7). Replace with a real connector, then drop the wrapper.
+ */
+function sandboxOnly(capability: string, hint: string, handler: ToolHandler): ToolHandler {
+  return async (input, ctx) => {
+    if (!isSandboxMode()) throw new NotConfiguredError(capability, hint);
+    const output = await handler(input, ctx);
+    return { ...output, sandbox: true };
+  };
 }
 
 export class ToolRegistryService {
@@ -44,6 +77,11 @@ export class ToolRegistryService {
    * Registers or overrides a tool in runtime registry.
    */
   public registerTool(tool: RegisteredTool): void {
+    // Tool contract (docs/kriya WP-3.6): a consequential tool must be able to prove what it did.
+    const tier = tool.definition.riskTier;
+    if ((tier === 'HIGH' || tier === 'CRITICAL') && !tool.verify && !isSandboxMode()) {
+      throw new ValidationError(`Tool '${tool.definition.slug}' is ${tier} risk but has no verify() read-back; refusing to register it.`);
+    }
     ToolRegistryService.handlers.set(tool.definition.slug, tool);
   }
 
@@ -132,15 +170,14 @@ export class ToolRegistryService {
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         durationMinutes: z.number().int().positive().default(30),
       }),
-      handler: async (input) => {
-        // Deterministic availability generator
+      handler: sandboxOnly('calendar_check_availability', 'connect a calendar/booking system (docs/kriya WP-5.4).', async (input) => {
         const slots = ['09:00', '10:30', '14:00', '16:00'].map((time) => ({
           startTime: `${input.date}T${time}:00Z`,
           durationMinutes: input.durationMinutes,
           available: true,
         }));
         return { availableSlots: slots, date: input.date };
-      },
+      }),
     });
 
     // 3. Calendar Book Slot (MEDIUM Risk)
@@ -161,17 +198,16 @@ export class ToolRegistryService {
         slotTime: z.string().min(1),
         title: z.string().default('Consultation Booking'),
       }),
-      handler: async (input, ctx) => {
-        const bookingId = `book-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      handler: sandboxOnly('calendar_book_slot', 'connect a calendar/booking system (docs/kriya WP-5.4).', async (input) => {
         return {
-          bookingId,
+          bookingId: `sandbox-book-${Date.now()}`,
           customerId: input.customerId,
           slotTime: input.slotTime,
           title: input.title,
           status: 'confirmed',
           confirmedAt: new Date().toISOString(),
         };
-      },
+      }),
     });
 
     // 4. WhatsApp Send Message (MEDIUM Risk)
@@ -194,7 +230,11 @@ export class ToolRegistryService {
       }),
       handler: async (input, ctx) => {
         const queueService = new OutboundQueueService();
-        const idempotencyKey = `wa-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+        // Deterministic per (run, recipient, content) so a retried tool call can't double-send.
+        const idempotencyKey = `wa-${createHash('sha256')
+          .update(`${ctx.tenantId}|${ctx.correlationId ?? ''}|${input.recipientPhone}|${input.messageContent}`)
+          .digest('hex')
+          .slice(0, 32)}`;
         const dispatch = await queueService.dispatch({
           channel: 'whatsapp',
           recipient: input.recipientPhone as string,
@@ -226,15 +266,15 @@ export class ToolRegistryService {
         amountUsd: z.number().positive(),
         reason: z.string().min(5),
       }),
-      handler: async (input) => {
+      handler: sandboxOnly('financial_issue_refund', 'connect a payment provider (docs/kriya WP-5.3).', async (input) => {
         return {
-          refundId: `ref-${Date.now()}`,
+          refundId: `sandbox-ref-${Date.now()}`,
           transactionId: input.transactionId,
           amountUsd: input.amountUsd,
           status: 'processed',
           processedAt: new Date().toISOString(),
         };
-      },
+      }),
     });
 
     // 6. Custom HTTP Webhook (HIGH Risk)
@@ -254,14 +294,29 @@ export class ToolRegistryService {
         endpointUrl: z.string().url(),
         payload: z.record(z.unknown()),
       }),
-      handler: async (input) => {
+      handler: sandboxOnly('custom_http_webhook', 'outbound webhooks need a per-tenant domain allowlist + SSRF guard (docs/kriya WP-5.4).', async (input) => {
         return {
           statusCode: 200,
           delivered: true,
           endpointUrl: input.endpointUrl,
           dispatchedAt: new Date().toISOString(),
         };
-      },
+      }),
     });
+
+    // Scheduling (docs/kriya WP-4.3): the appointment book is a real system of record, not a sandbox stub.
+    for (const tool of schedulingTools()) this.registerTool(tool);
+
+    // Attention & Escalation Center (docs/kriya WP-4.6)
+    for (const tool of attentionTools()) this.registerTool(tool);
+
+    // Verification Agent (docs/kriya WP-4.6, WP-3.4)
+    for (const tool of verificationTools()) this.registerTool(tool);
+
+    // Document (Lens) Agent (docs/kriya WP-4.5)
+    for (const tool of documentTools()) this.registerTool(tool);
+
+    // Payment & Refund Operations (docs/kriya WP-4.4, WP-4.7)
+    for (const tool of paymentTools()) this.registerTool(tool);
   }
 }

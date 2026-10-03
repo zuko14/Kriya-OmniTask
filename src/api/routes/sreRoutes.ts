@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Site Reliability Engineering (SRE) REST Routes
+ * Kriya AI — Site Reliability Engineering (SRE) REST Routes
  * API endpoints for waterfall trace rendering, SLO tracking, burn rates, and multi-channel alerts.
  */
 

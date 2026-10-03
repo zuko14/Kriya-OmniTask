@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Simulation Scenarios & Runs Relational Repository
+ * Kriya AI — Simulation Scenarios & Runs Relational Repository
  * Persistence for sandbox test scenarios and execution runs (§14, §17 of CLAUDE.md).
  */
 

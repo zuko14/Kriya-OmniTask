@@ -1,0 +1,130 @@
+/* Shared layout for the WP-7.5 screens: Run Trace, Proof Receipts, Mandates, Cost per Outcome. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--text2);
+  max-width: 760px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+
+.note {
+  color: var(--text3);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 0.8rem;
+  color: var(--text2);
+}
+
+.field input {
+  padding: 9px 12px;
+  background: var(--surface2);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text);
+}
+
+/* Run graph: one node per executed step, joined by the edge actually taken. */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+}
+
+.node {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface2);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+}
+
+.edge {
+  width: 2px;
+  height: 18px;
+  margin-left: 37px;
+  background: var(--border2);
+}
+
+.step {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text3);
+}
+
+.nodeTitle {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.nodeMeta {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .node {
+    grid-template-columns: 32px 1fr;
+  }
+
+  .nodeMeta {
+    grid-column: 2;
+    text-align: left;
+  }
+
+  .edge {
+    margin-left: 31px;
+  }
+}

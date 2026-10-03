@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Frequency Governor Unit Tests
+ * Kriya AI — Frequency Governor Unit Tests
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';

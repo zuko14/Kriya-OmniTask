@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Support Specialist Unit Tests
+ * Kriya AI — Customer Support Specialist Unit Tests
  * Verifies Tier-1 issue resolution, sentiment & churn risk scoring, and human escalation (§25 of CLAUDE.md).
  */
 

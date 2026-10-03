@@ -1,0 +1,296 @@
+/**
+ * Kriya component recipes (KRIYA_AI_DESIGN_SYSTEM.md §7, §9). Plain global classes so primitives
+ * and pages (WP-7.4) share one definition: .btn*, .card, .stat, .badge*, .modal*, .alert*,
+ * .segmented, .search-input, .usage-*, scrollbar, motion keyframes.
+ * Brand gradient appears only in .btn-accent, .stat::before and .usage-fill (DS §1.2).
+ */
+
+/* ── Buttons (§7.1) ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px 24px;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-control);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out), background-color var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out);
+}
+.btn:hover { text-decoration: none; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+
+/* Primary CTA. Label is navy, not white: white on the gradient measures 2.5–3.3:1 (S43, D15). */
+.btn-accent {
+  background: var(--brand-grad);
+  color: #040A11;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.2), 0 2px 10px rgba(61, 139, 253, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+.btn-accent:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.28), 0 3px 14px rgba(61, 139, 253, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.btn-ghost {
+  background: var(--surface2);
+  color: var(--text2);
+  border-color: var(--border);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.btn-ghost:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent2);
+  background: var(--accent-glow);
+}
+
+.btn-danger { background: var(--red-bg); color: var(--red-text); border-color: var(--red-border); }
+.btn-danger:hover:not(:disabled) { border-color: var(--red-border-strong); }
+.btn-success { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+.btn-success:hover:not(:disabled) { border-color: var(--green-border-strong); }
+
+/* Inline text action (e.g. "View evidence ›"). */
+.btn-link {
+  padding: 4px 8px;
+  background: none;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.btn-link:hover:not(:disabled) { color: var(--accent2); background: var(--accent-soft); }
+
+.btn-sm { padding: 7px 16px; font-size: 0.78rem; border-radius: var(--radius-sm); }
+.btn-icon { padding: 0; width: 36px; height: 36px; }
+
+/* ── Cards (§7.3) ───────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(155%);
+  backdrop-filter: blur(var(--blur)) saturate(155%);
+  box-shadow: inset 0 1px 0 var(--rim), var(--shadow);
+  transition: border-color var(--motion-fast) var(--ease-out);
+}
+.card:hover { border-color: var(--border2); }
+.card-compact { padding: 12px 14px; }
+
+.stat {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 22px;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(155%);
+  backdrop-filter: blur(var(--blur)) saturate(155%);
+  box-shadow: inset 0 1px 0 var(--rim), var(--shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform var(--motion-base) var(--ease-out), border-color var(--motion-fast) var(--ease-out);
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: var(--brand-grad);
+  opacity: 0.5;
+}
+.stat:hover { transform: translateY(-3px); border-color: var(--border2); }
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.stat-num {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ── Badges (§7.5) ──────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: var(--radius-badge);
+  font-size: 0.73rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  white-space: nowrap;
+  background: rgba(110, 135, 148, 0.12);
+  color: var(--text3);
+}
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.badge-sm { padding: 3px 8px; font-size: 0.68rem; }
+.badge-nodot::before { display: none; } /* when a StateDot supplies the dot */
+.badge-green  { background: var(--green-bg);  color: var(--green); }
+.badge-red    { background: var(--red-bg);    color: var(--red-text); }
+.badge-blue   { background: var(--blue-bg);   color: var(--blue-text); }
+.badge-amber  { background: var(--amber-bg);  color: var(--amber); }
+.badge-purple { background: var(--purple-bg); color: var(--purple); }
+.badge-cyan   { background: var(--cyan-bg);   color: var(--cyan-text); }
+.badge-muted  { background: rgba(110, 135, 148, 0.12); color: var(--text3); }
+
+/* ── Modals (§7.6) ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(2, 6, 12, 0.62);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.modal {
+  width: 100%;
+  max-width: var(--modal-max);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px;
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-xl);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(155%);
+  backdrop-filter: blur(var(--blur)) saturate(155%);
+  box-shadow: inset 0 1px 0 var(--rim), var(--shadow-lg);
+  animation: fadeUp 0.3s var(--ease-out) both;
+}
+.modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  color: var(--text-strong);
+  margin: 0;
+}
+
+/* ── Alerts (§7.10) ─────────────────────────────────────────────── */
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius-control);
+  font-size: 0.85rem;
+  border: var(--border-width) solid var(--border);
+}
+.alert-ok   { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+.alert-err  { background: var(--red-bg);   color: var(--red-text);   border-color: var(--red-border); }
+.alert-warn { background: var(--amber-bg); color: var(--amber); border-color: rgba(245, 165, 36, 0.3); }
+
+/* ── Segmented control (§7.8) ───────────────────────────────────── */
+.segmented {
+  display: inline-flex;
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+.segmented > button {
+  padding: 8px 18px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text2);
+  background: none;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+.segmented > button[aria-pressed="true"],
+.segmented > button[aria-selected="true"] {
+  background: var(--accent-soft2);
+  color: var(--text-strong);
+}
+
+/* ── Search (§7.9) ──────────────────────────────────────────────── */
+.search-input {
+  width: 100%;
+  padding: 12px 18px;
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text);
+  font-size: 0.92rem;
+}
+.search-input::placeholder { color: var(--text3); }
+.search-input:hover { border-color: var(--border2); }
+.search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+/* ── Progress (§7.11) ───────────────────────────────────────────── */
+.usage-track { height: 12px; background: var(--surface3); border-radius: 8px; overflow: hidden; }
+.usage-fill { height: 100%; background: var(--brand-grad); border-radius: 8px; transition: width 0.8s var(--ease-out); }
+.usage-fill.over { background: linear-gradient(90deg, var(--red), var(--amber)); }
+
+/* ── Scrollbar (§7.12) ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Motion (§9.2) ──────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes staggerFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* `pulse` is what StateDot references; it was never defined before WP-7.3. */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.stagger > * { animation: staggerFadeUp var(--motion-base) var(--ease-out) both; }
+.stagger > *:nth-child(2) { animation-delay: 40ms; }
+.stagger > *:nth-child(3) { animation-delay: 80ms; }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; }
+.stagger > *:nth-child(n + 6) { animation-delay: 200ms; }
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}

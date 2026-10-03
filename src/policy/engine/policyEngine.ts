@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Deterministic Policy-as-Code Engine
+ * Kriya AI — Deterministic Policy-as-Code Engine
  * Evaluates business policies, enforces compliance boundaries, and records verifiable audit trails (§14, §16 of CLAUDE.md).
  */
 
@@ -19,6 +19,8 @@ import {
 import { TenantContextManager } from '../../core/context/tenantContext.js';
 import { logger } from '../../core/logger/logger.js';
 
+import { DatabaseClient } from '../../storage/db.js';
+
 export interface EvaluatePolicyRequest {
   actionType: 'tool_execution' | 'agent_output' | 'outbound_message' | 'financial_transaction' | 'consent_check' | 'custom';
   context: Record<string, unknown>;
@@ -33,11 +35,17 @@ export class PolicyEngine {
   private evalRepo: PolicyEvaluationRepository;
 
   constructor(
-    ruleRepo?: PolicyRuleRepository,
+    ruleRepoOrClient?: PolicyRuleRepository | DatabaseClient,
     evalRepo?: PolicyEvaluationRepository
   ) {
-    this.ruleRepo = ruleRepo || new PolicyRuleRepository();
-    this.evalRepo = evalRepo || new PolicyEvaluationRepository();
+    if (ruleRepoOrClient && 'query' in ruleRepoOrClient && typeof (ruleRepoOrClient as any).query === 'function') {
+      const client = ruleRepoOrClient as DatabaseClient;
+      this.ruleRepo = new PolicyRuleRepository(client);
+      this.evalRepo = evalRepo || new PolicyEvaluationRepository(client);
+    } else {
+      this.ruleRepo = (ruleRepoOrClient as PolicyRuleRepository) || new PolicyRuleRepository();
+      this.evalRepo = evalRepo || new PolicyEvaluationRepository();
+    }
   }
 
   /**

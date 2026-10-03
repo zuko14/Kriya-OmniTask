@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Asynchronous Worker Queue Manager
+ * Kriya AI — Asynchronous Worker Queue Manager
  * Priority-driven, multi-queue job dispatcher with exponential retry backoff and dead-letter handling.
  */
 

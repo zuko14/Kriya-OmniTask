@@ -1,0 +1,229 @@
+.streamContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.filterChip {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  color: var(--text2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--motion-fast) var(--ease-out);
+}
+
+.filterChip:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.filterChipActive {
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.streamList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.streamRow {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--row-height-compact);
+  padding: var(--space-1) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-out);
+  animation: slideFadeIn var(--motion-fast) var(--ease-out);
+}
+
+.streamRow:hover {
+  background: var(--surface2);
+}
+
+.streamRow:focus-visible {
+  outline: 2px solid var(--border2);
+}
+
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rowMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+}
+
+.timestamp {
+  font-family: var(--font-mono);
+  color: var(--text3);
+  font-size: var(--text-2xs);
+  min-width: 65px;
+}
+
+.agentName {
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--text);
+  min-width: 100px;
+}
+
+.outcomeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  padding: 1px var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.outcomeLive {
+  color: var(--green);
+}
+
+.outcomeAttention {
+  color: var(--amber);
+}
+
+.outcomeHalt {
+  color: var(--red);
+}
+
+.outcomeExternal {
+  color: var(--cyan);
+}
+
+.outcomeLearning {
+  color: var(--purple);
+}
+
+.subject {
+  font-family: var(--font-body);
+  color: var(--text2);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.externalMarker {
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  margin-right: 2px;
+}
+
+.rowEvidence {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text3);
+  padding-left: 77px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.resumePill {
+  position: absolute;
+  bottom: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-full);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-4);
+  cursor: pointer;
+  box-shadow: var(--elev-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  z-index: 10;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.resumePill:hover {
+  background: var(--surface);
+  border-color: var(--green);
+}
+
+.idleStateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text2);
+}
+
+.idleTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: var(--space-2);
+}
+
+.idleDescription {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text3);
+  max-width: 360px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streamRow {
+    animation: none !important;
+  }
+}

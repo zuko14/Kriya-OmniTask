@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Model Provider Resilience Types & Contracts
+ * Kriya AI — Model Provider Resilience Types & Contracts
  * Provider abstraction, capability matching, fallback chains, and model governance (§10–§14).
  */
 

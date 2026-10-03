@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: kriya-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kriya_admin
+      POSTGRES_PASSWORD: kriya_production_password_change_me
+      POSTGRES_DB: kriya_production
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kriya_admin -d kriya_production"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kriya-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: kriya-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kriya-network
+
+  kriya-runtime:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kriya-runtime
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_MODE: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      DB_DRIVER: postgres
+      DATABASE_URL: postgresql://kriya_admin:kriya_production_password_change_me@postgres:5432/kriya_production
+      REDIS_URL: redis://redis:6379
+      HOSTING_REGION: ap-south-1
+      SECONDARY_HOSTING_REGION: ap-south-2
+      JWT_SECRET: kriya_production_super_secure_jwt_secret_32_chars_min
+      ENCRYPTION_KEY: kriya_production_encryption_key_32_bytes_length
+      SESSION_SECRET: kriya_production_session_secret_32_bytes_len
+      COOKIE_SECRET: kriya_production_cookie_secret_32_bytes_key
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - kriya-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  kriya-network:
+    driver: bridge

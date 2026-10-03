@@ -27,7 +27,7 @@ describe('Platform Administration REST Integration Tests', () => {
     operatorToken = JwtService.sign({
       userId: 'usr_super_operator',
       tenantId: operatorTenantId,
-      email: 'operator@xylarc.ai',
+      email: 'operator@kriya.ai',
       roles: ['system'],
     });
   });

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Enterprise Governance Repository
+ * Kriya AI — Enterprise Governance Repository
  * Persistence for org units, enterprise SSO configs, retention policies, and purge audit logs.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Deterministic Invariant Verifier Unit Tests
+ * Kriya AI — Deterministic Invariant Verifier Unit Tests
  * Verifies mathematical, privacy, communication, autonomy, and structured output invariants (§14, §16 of CLAUDE.md).
  */
 

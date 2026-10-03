@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Tool Gateway & Credential Isolation Security Tests
+ * Kriya AI — Adversarial Tool Gateway & Credential Isolation Security Tests
  * Verifies cross-tenant credential isolation, execution ledger boundaries, and permission tamper resistance (§8.4, §18 of CLAUDE.md).
  */
 

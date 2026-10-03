@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — User Management & Invitation Routes
+ * Kriya AI — User Management & Invitation Routes
  */
 
 import { FastifyInstance } from 'fastify';

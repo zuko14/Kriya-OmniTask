@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Quality Reviews Relational Repository
+ * Kriya AI — Quality Reviews Relational Repository
  * Persistence and aggregation for pre-flight and quality evaluations (§14, §15 of CLAUDE.md).
  */
 

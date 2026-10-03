@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tenant Lifecycle Engine
+ * Kriya AI — Tenant Lifecycle Engine
  * State transition validation, operational gating, and tenant provisioning logic.
  */
 
@@ -7,9 +7,11 @@ import { TenantLifecycleStatus } from '../types/adminTypes.js';
 
 export class TenantLifecycleEngine {
   private static readonly ALLOWED_TRANSITIONS: Record<TenantLifecycleStatus, TenantLifecycleStatus[]> = {
-    trial: ['active', 'suspended', 'pending_deletion'],
-    active: ['suspended', 'pending_deletion'],
-    suspended: ['active', 'pending_deletion'],
+    trial: ['active', 'suspended', 'pending_deletion', 'degraded', 'disabled'],
+    active: ['suspended', 'pending_deletion', 'degraded', 'disabled'],
+    degraded: ['active', 'suspended', 'pending_deletion', 'disabled'],
+    suspended: ['active', 'pending_deletion', 'disabled'],
+    disabled: ['active', 'suspended', 'pending_deletion'],
     pending_deletion: ['suspended', 'active'], // Can abort deletion within grace period
   };
 

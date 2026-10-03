@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Deterministic Pre-flight Output Verifier
+ * Kriya AI — Deterministic Pre-flight Output Verifier
  * High-speed deterministic rules enforcing zero unauthorized guarantees, ungrounded pricing, or unverified confirmations (§14, §15 of CLAUDE.md).
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Policy Engine REST Gateway Integration Tests
+ * Kriya AI — Policy Engine REST Gateway Integration Tests
  * Verifies Fastify REST endpoints for policy evaluations, tenant-scoped rule management, and audit inspection.
  */
 

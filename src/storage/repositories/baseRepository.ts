@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tenant-Scoped Base Repository
+ * Kriya AI — Tenant-Scoped Base Repository
  * Enforces automatic tenant boundary filtering on all read/write/delete operations.
  */
 

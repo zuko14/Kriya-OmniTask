@@ -73,13 +73,13 @@ export function PlatformAudit() {
       key: 'createdAt',
       header: 'Timestamp',
       width: '160px',
-      render: (l) => <span style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>{new Date(l.createdAt).toLocaleString()}</span>,
+      render: (l) => <span style={{ fontSize: '11px', color: 'var(--text2)' }}>{new Date(l.createdAt).toLocaleString()}</span>,
     },
     {
       key: 'actionType',
       header: 'Action Type',
       render: (l) => (
-        <span className={styles.badge} style={{ background: 'rgba(76, 134, 214, 0.1)', color: 'var(--color-signal)' }}>
+        <span className={styles.badge} style={{ background: 'rgba(76, 134, 214, 0.1)', color: 'var(--accent)' }}>
           {l.actionType}
         </span>
       ),
@@ -108,7 +108,7 @@ export function PlatformAudit() {
       header: 'Payload',
       width: '100px',
       render: (l) => (
-        <button className={styles.btnSecondary} onClick={() => setSelectedLog(l)}>
+        <button className="btn btn-ghost btn-sm" onClick={() => setSelectedLog(l)}>
           Inspect
         </button>
       ),
@@ -123,20 +123,20 @@ export function PlatformAudit() {
           <p className={styles.subtitle}>Immutable tamper-evident record of all operator actions, tenant provisions, and security events.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnPrimary} onClick={() => setIsLogging(true)}>
+          <button className="btn btn-accent" onClick={() => setIsLogging(true)}>
             + Log Security Event
           </button>
         </div>
       </header>
 
-      {actionError && <div style={{ color: 'var(--color-critical)', background: 'rgba(216,87,75,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>⚠️ {actionError}</div>}
-      {actionSuccess && <div style={{ color: 'var(--color-verify)', background: 'rgba(63,166,107,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       <div className={styles.sectionCard}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
           <h2 className={styles.sectionTitle}>Audit Event Logs ({filteredLogs.length} of {logs.length})</h2>
           <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
-            <label htmlFor="action-filter-select" style={{ fontSize: '12px', color: 'var(--color-ink-muted)' }}>Action:</label>
+            <label htmlFor="action-filter-select" style={{ fontSize: '12px', color: 'var(--text2)' }}>Action:</label>
             <select
               id="action-filter-select"
               className={styles.select}
@@ -183,7 +183,7 @@ export function PlatformAudit() {
               />
             </div>
             <div className={styles.modalActions}>
-              <button className={styles.btnSecondary} onClick={() => setSelectedLog(null)}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setSelectedLog(null)}>
                 Close
               </button>
             </div>
@@ -234,10 +234,10 @@ export function PlatformAudit() {
               </div>
 
               <div className={styles.modalActions}>
-                <button type="button" className={styles.btnSecondary} onClick={() => setIsLogging(false)} disabled={isSubmitting}>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIsLogging(false)} disabled={isSubmitting}>
                   Cancel
                 </button>
-                <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
+                <button type="submit" className="btn btn-accent" disabled={isSubmitting}>
                   {isSubmitting ? 'Logging...' : 'Record Hash Event'}
                 </button>
               </div>

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Infrastructure Types & Contracts
+ * Kriya AI — Production Infrastructure Types & Contracts
  * Definitions for worker queues, connection pool metrics, scheduled jobs, and secret audits.
  */
 
@@ -19,8 +19,14 @@ export const AsyncJobSchema = z.object({
   maxRetries: z.number().int().nonnegative().default(3),
   retryCount: z.number().int().nonnegative().default(0),
   runAt: z.string(),
+  correlationId: z.string().optional(),
+  idempotencyKey: z.string().optional(),
+  timezone: z.string().optional(),
+  quietHoursPolicy: z.enum(['none', 'skip', 'postpone']).optional(),
   lockedByWorker: z.string().optional(),
   lockedUntil: z.string().optional(),
+  lastHeartbeatAt: z.string().optional(),
+  executionDurationMs: z.number().int().optional(),
   errorMessage: z.string().optional(),
   result: z.record(z.string(), z.any()).optional(),
   createdAt: z.string(),

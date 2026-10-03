@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Workflow Data Interpolator Unit Tests
+ * Kriya AI — Workflow Data Interpolator Unit Tests
  * Verifies runtime template interpolation across context and prior step outputs (§13 of CLAUDE.md).
  */
 

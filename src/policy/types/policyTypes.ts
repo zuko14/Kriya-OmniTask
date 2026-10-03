@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Policy-as-Code Engine Types & Schemas
+ * Kriya AI — Policy-as-Code Engine Types & Schemas
  * Declarative condition trees, business invariant rules, and evaluation verdicts (§14, §16 of CLAUDE.md).
  */
 

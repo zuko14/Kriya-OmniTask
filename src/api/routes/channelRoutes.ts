@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Omnichannel Communication REST Routes
+ * Kriya AI — Omnichannel Communication REST Routes
  * Implements webhook verification, inbound event ingestion, and idempotent outbound messaging.
  */
 
@@ -13,11 +13,13 @@ import { WebhookRepository } from '../../channels/repositories/webhookRepository
 import { WebhookVerifier } from '../../channels/security/webhookVerifier.js';
 import { WhatsAppConnector } from '../../channels/whatsapp/whatsappConnector.js';
 import { OutboundQueueService } from '../../channels/queue/outboundQueueService.js';
+import { InboundMessageService } from '../../channels/service/inboundMessageService.js';
 import { EntityResolutionService } from '../../customer360/services/entityResolutionService.js';
 import { TimelineRepository } from '../../customer360/repositories/timelineRepository.js';
 import { ValidationError, UnauthorizedError } from '../../core/errors/errors.js';
 import { TenantContextManager } from '../../core/context/tenantContext.js';
 import { config } from '../../core/config/config.js';
+import { logger } from '../../core/logger/logger.js';
 
 const SendMessageSchema = z.object({
   customerId: z.string().optional(),
@@ -43,6 +45,7 @@ export async function channelRoutes(fastify: FastifyInstance): Promise<void> {
   const queueService = new OutboundQueueService();
   const resolutionService = new EntityResolutionService();
   const timelineRepo = new TimelineRepository();
+  const inboundService = new InboundMessageService({ outboundQueue: queueService, timelineRepo });
 
   // 1. Meta Webhook Verification Challenge (GET)
   fastify.get('/api/v1/channels/whatsapp/webhook', async (request, reply) => {
@@ -73,7 +76,10 @@ export async function channelRoutes(fastify: FastifyInstance): Promise<void> {
     }
 
     const payloadHash = WebhookVerifier.computePayloadHash(rawBody);
-    const tenantId = (request.headers['x-tenant-id'] as string) || 'system';
+    const tenantId = (request.headers['x-tenant-id'] as string) || TenantContextManager.getTenantId();
+    if (!tenantId) {
+      throw new UnauthorizedError('Missing tenant identifier for webhook processing');
+    }
 
     return TenantContextManager.withTenant(tenantId, 'default', async () => {
       // Deduplication check
@@ -90,7 +96,8 @@ export async function channelRoutes(fastify: FastifyInstance): Promise<void> {
       // Parse payload
       const { messages, statuses } = WhatsAppConnector.parseInboundWebhook(request.body);
 
-      // Process Inbound Messages
+      // Process Inbound Messages through Customer 360 and Intake Agent DAG runtime (WP-2.7)
+      const agentRuns: any[] = [];
       for (const msg of messages) {
         // Resolve or create Customer 360 profile
         const resolution = await resolutionService.resolve({
@@ -108,6 +115,26 @@ export async function channelRoutes(fastify: FastifyInstance): Promise<void> {
           details: { messageId: msg.messageId, raw: msg.rawPayload },
           actorType: 'customer',
         });
+
+        // WP-2.7: Dispatch actionable inbound messages to Intake Agent DAG graph
+        if (msg.text) {
+          try {
+            const agentRun = await inboundService.processInboundCustomerMessage({
+              tenantId,
+              customerId: resolution.customer.id,
+              phone: msg.from,
+              channel: 'whatsapp',
+              messageText: msg.text,
+              messageId: msg.messageId,
+              rawPayload: msg.rawPayload as Record<string, unknown> | undefined,
+            });
+            agentRuns.push(agentRun);
+          } catch (agentErr) {
+            logger.error(
+              `Error processing inbound message '${msg.messageId}' via Intake DAG: ${agentErr instanceof Error ? agentErr.message : String(agentErr)}`
+            );
+          }
+        }
       }
 
       // Process Delivery Status Receipts
@@ -119,6 +146,7 @@ export async function channelRoutes(fastify: FastifyInstance): Promise<void> {
         status: 'processed',
         messagesProcessed: messages.length,
         statusesProcessed: statuses.length,
+        agentRuns,
       });
     });
   });

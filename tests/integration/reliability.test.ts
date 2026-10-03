@@ -27,7 +27,7 @@ describe('Reliability Engineering REST Integration Tests', () => {
     adminToken = JwtService.sign({
       userId: 'usr_rel_admin',
       tenantId,
-      email: 'reladmin@xylarc.ai',
+      email: 'reladmin@kriya.ai',
       roles: ['admin', 'operations_manager'],
     });
   });

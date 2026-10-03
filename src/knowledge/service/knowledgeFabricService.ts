@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Knowledge Fabric Service
+ * Kriya AI — Knowledge Fabric Service
  * High-level orchestration service for document ingestion, recursive chunking, embedding, hybrid search, and provenance lineage (§10-§12 of CLAUDE.md).
  */
 
@@ -64,13 +64,16 @@ export class KnowledgeFabricService {
     // 4. Generate Dense Vector Embeddings
     const chunksWithEmbeddings = await Promise.all(
       generatedChunks.map(async (c) => {
-        const embedding = await this.embeddingService.generateEmbedding(`${c.headingContext}\n${c.content}`);
+        const meta = await this.embeddingService.generateEmbeddingWithMetadata(`${c.headingContext}\n${c.content}`);
         return {
           chunkIndex: c.chunkIndex,
           headingContext: c.headingContext,
           content: c.content,
           tokenCount: c.tokenCount,
-          embeddingJson: JSON.stringify(embedding),
+          embeddingJson: JSON.stringify(meta.embedding),
+          embeddingVector: meta.embedding,
+          embeddingModel: meta.model,
+          embeddingDimensions: meta.dimensions,
           metadataJson: '{}',
         };
       })

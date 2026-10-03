@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Indirect Prompt Injection Shield Unit Tests
+ * Kriya AI — Indirect Prompt Injection Shield Unit Tests
  */
 
 import { describe, it, expect } from 'vitest';

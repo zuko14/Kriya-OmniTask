@@ -1,7 +1,7 @@
 {
-  "name": "xylarc-ai",
+  "name": "kriya-omnitask",
   "version": "1.0.0",
-  "description": "Xylarc AI — Autonomous Business Workforce Platform",
+  "description": "Kriya AI — Autonomous Operations Runtime & Omnitask Platform",
   "type": "module",
   "workspaces": [
     "web"
@@ -14,26 +14,31 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
+    "evals:ci": "npx tsx src/evaluation/ci/cli/runCiEvals.ts",
     "start": "node dist/index.js"
   },
   "keywords": [
-    "xylarc",
-    "autonomous-workforce",
+    "kriya",
+    "kriya-ai",
+    "omnitask",
+    "autonomous-operations",
+    "verified-action",
     "agentic-ai",
-    "multi-agent",
     "enterprise-saas"
   ],
-  "author": "Xylarc AI Systems Engineering Team",
+  "author": "Kriya AI Systems Engineering Team",
   "license": "UNLICENSED",
   "dependencies": {
     "@fastify/cors": "^11.3.0",
     "@fastify/rate-limit": "^11.2.0",
     "dotenv": "^16.4.7",
     "fastify": "^5.12.0",
+    "pg": "^8.23.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
+    "@types/pg": "^8.23.1",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"
   }

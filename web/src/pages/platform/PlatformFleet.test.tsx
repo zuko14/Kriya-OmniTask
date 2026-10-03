@@ -38,7 +38,7 @@ const mockDiagnostics = {
 describe('PlatformFleet Page', () => {
   beforeEach(() => {
     sessionStorage.clear();
-    sessionStorage.setItem('xylarc_access_token', 'test_platform_token');
+    sessionStorage.setItem('kriya_access_token', 'test_platform_token');
     vi.restoreAllMocks();
   });
 

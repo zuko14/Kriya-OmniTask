@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Orchestration & Multi-Tenant Security Tests
+ * Kriya AI — Adversarial Orchestration & Multi-Tenant Security Tests
  * Verifies cross-tenant orchestration boundary isolation and prompt injection containment (§6, §26 of CLAUDE.md).
  */
 

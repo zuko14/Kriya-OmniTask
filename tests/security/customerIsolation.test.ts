@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Multi-Tenant Customer Isolation Tests
+ * Kriya AI — Adversarial Multi-Tenant Customer Isolation Tests
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

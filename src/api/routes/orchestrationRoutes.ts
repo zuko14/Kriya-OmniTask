@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Orchestration & Safety Firewall REST Routes
+ * Kriya AI — Orchestration & Safety Firewall REST Routes
  * Fastify routes for hierarchical agent dispatch, trace retrieval, and firewall testing.
  */
 

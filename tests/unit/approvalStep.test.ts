@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Human Approval Step Unit Tests
+ * Kriya AI — Human Approval Step Unit Tests
  * Verifies workflow execution suspension, resume on approval, and abort on rejection (§15, §37 of CLAUDE.md).
  */
 

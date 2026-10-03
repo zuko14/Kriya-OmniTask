@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — JWT Authentication Engine
+ * Kriya AI — JWT Authentication Engine
  * Cryptographically signed JWT tokens (HMAC-SHA256) with strict claims validation.
  */
 
@@ -13,6 +13,9 @@ export interface JwtPayload {
   organizationId?: string;
   roles: string[];
   email: string;
+  isElevatedOperator?: boolean;
+  elevationReason?: string;
+  elevatedUntil?: string;
   iat?: number;
   exp?: number;
 }

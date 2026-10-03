@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Organization & Workspace Routes
+ * Kriya AI — Customer Organization & Workspace Routes
  */
 
 import { FastifyInstance } from 'fastify';

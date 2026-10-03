@@ -80,8 +80,8 @@ export function BillingSubscription() {
   };
 
   const subscription = subState.status === 'success' ? subState.data : null;
-  const plans = plansState.status === 'success' ? plansState.data.plans : [];
-  const invoices = invoicesState.status === 'success' ? invoicesState.data.invoices : [];
+  const plans = plansState.status === 'success' ? (plansState.data?.plans ?? []) : [];
+  const invoices = invoicesState.status === 'success' ? (invoicesState.data?.invoices ?? []) : [];
 
   const invoiceColumns: Column<InvoiceItem>[] = [
     {
@@ -113,7 +113,7 @@ export function BillingSubscription() {
           className={styles.badge}
           style={{
             background: inv.status === 'paid' ? 'rgba(63, 166, 107, 0.15)' : 'rgba(217, 151, 62, 0.15)',
-            color: inv.status === 'paid' ? 'var(--color-verify)' : 'var(--color-caution)',
+            color: inv.status === 'paid' ? 'var(--green)' : 'var(--amber)',
           }}
         >
           {inv.status}
@@ -131,13 +131,13 @@ export function BillingSubscription() {
         </div>
       </header>
 
-      {actionError && <div style={{ color: 'var(--color-critical)', background: 'rgba(216,87,75,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>⚠️ {actionError}</div>}
-      {actionSuccess && <div style={{ color: 'var(--color-verify)', background: 'rgba(63,166,107,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Current Subscription Card */}
       <div className={styles.currentSubCard}>
         <div>
-          <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-ink-muted)' }}>
+          <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text2)' }}>
             Active Subscription
           </div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', margin: '4px 0 0 0', textTransform: 'capitalize' }}>
@@ -162,7 +162,7 @@ export function BillingSubscription() {
                   <h3 className={styles.planTitle}>{p.name}</h3>
                   {isCurrent && <span className={`${styles.badge} ${styles.badgeActive}`}>Current</span>}
                 </div>
-                <div className={styles.planPrice}>${p.priceMonthlyUsd}<span style={{ fontSize: '13px', fontWeight: 'normal', color: 'var(--color-ink-muted)' }}>/mo</span></div>
+                <div className={styles.planPrice}>${p.priceMonthlyUsd}<span style={{ fontSize: '13px', fontWeight: 'normal', color: 'var(--text2)' }}>/mo</span></div>
                 <ul className={styles.planFeatures}>
                   <li>Up to {p.maxAgents} active autonomous agents</li>
                   <li>{p.maxMonthlyWorkflows.toLocaleString()} monthly DAG executions</li>
@@ -171,7 +171,7 @@ export function BillingSubscription() {
                   ))}
                 </ul>
                 <button
-                  className={isCurrent ? styles.btnSecondary : styles.btnPrimary}
+                  className={isCurrent ? 'btn btn-ghost btn-sm' : 'btn btn-accent'}
                   disabled={isCurrent || isUpgrading}
                   onClick={() => handleSubscribe(p.tier)}
                   style={{ marginTop: 'auto' }}

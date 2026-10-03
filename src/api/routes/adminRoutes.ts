@@ -1,6 +1,6 @@
 /**
- * Xylarc AI — Platform Administration REST API Routes
- * Endpoints for Operator Control Plane, Tenant Lifecycle, Fleet Health & Maintenance (§10–§14, §24).
+ * Kriya Omnitask — Platform Administration REST API Routes
+ * Endpoints for Operator Control Plane, Enterprise Provisioning, Elevation & Fleet Health (§2, §17.1, §17.2, §17.6).
  */
 
 import { FastifyInstance } from 'fastify';
@@ -8,30 +8,84 @@ import { AdminService } from '../../admin/service/adminService.js';
 import {
   ProvisionTenantRequestSchema,
   UpdateTenantStatusRequestSchema,
+  ElevateSessionRequestSchema,
   NodeHeartbeatRequestSchema,
   CreateAnnouncementRequestSchema,
   UpdateMaintenanceStateRequestSchema,
 } from '../../admin/types/adminTypes.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { requirePermission } from '../middleware/rbacMiddleware.js';
-import { TenantContextManager } from '../../core/context/tenantContext.js';
 
 export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   const service = new AdminService();
 
-  // 1. Provision Tenant
+  // 1. Provision Tenant (§2, §17.2)
   fastify.post(
     '/api/v1/admin/tenants/provision',
     { preHandler: [authenticate, requirePermission('system:admin')] },
     async (request, reply) => {
       const user = request.user!;
       const body = ProvisionTenantRequestSchema.parse(request.body);
-      const tenant = await service.provisionTenant(body, user.userId);
-      return reply.status(201).send(tenant);
+      const result = await service.provisionTenant(body, user.userId);
+      return reply.status(201).send(result);
     }
   );
 
-  // 2. Update Tenant Lifecycle Status
+  // 2. Organizations Roster (§17.1)
+  fastify.get(
+    '/api/v1/admin/organizations/roster',
+    { preHandler: [authenticate, requirePermission('system:admin')] },
+    async (request, reply) => {
+      const roster = await service.listOrganizationsRoster();
+      return reply.status(200).send({ organizations: roster, count: roster.length });
+    }
+  );
+
+  // 3. Operator Elevation into Tenant (§17.6)
+  fastify.post(
+    '/api/v1/admin/tenants/:id/elevate',
+    { preHandler: [authenticate, requirePermission('system:admin')] },
+    async (request, reply) => {
+      const user = request.user!;
+      const { id } = request.params as { id: string };
+      const body = ElevateSessionRequestSchema.parse(request.body);
+      const result = await service.elevateIntoTenant(id, body, {
+        userId: user.userId,
+        email: user.email,
+        fullName: 'Platform Operator',
+      });
+      return reply.status(200).send(result);
+    }
+  );
+
+  // 4. Revoke Elevation Session
+  fastify.post(
+    '/api/v1/admin/tenants/:id/elevation/revoke',
+    { preHandler: [authenticate, requirePermission('system:admin')] },
+    async (request, reply) => {
+      const user = request.user!;
+      const { id } = request.params as { id: string };
+      const { sessionId } = (request.body as { sessionId: string }) || {};
+      if (!sessionId) {
+        return reply.status(400).send({ error: 'sessionId is required' });
+      }
+      await service.revokeElevation(id, sessionId, user.userId);
+      return reply.status(200).send({ message: `Elevation session '${sessionId}' revoked.` });
+    }
+  );
+
+  // 5. Get Active Elevation Status
+  fastify.get(
+    '/api/v1/admin/tenants/:id/elevation',
+    { preHandler: [authenticate, requirePermission('system:admin')] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const active = await service.getActiveElevation(id);
+      return reply.status(200).send({ activeElevation: active });
+    }
+  );
+
+  // 6. Update Tenant Lifecycle Status
   fastify.put(
     '/api/v1/admin/tenants/:id/status',
     { preHandler: [authenticate, requirePermission('system:admin')] },
@@ -44,7 +98,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }
   );
 
-  // 3. List All Tenants
+  // 7. List All Tenants (raw)
   fastify.get(
     '/api/v1/admin/tenants',
     { preHandler: [authenticate, requirePermission('system:admin')] },
@@ -54,7 +108,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }
   );
 
-  // 4. Record Node Fleet Heartbeat
+  // 8. Record Node Fleet Heartbeat
   fastify.post(
     '/api/v1/admin/fleet/heartbeat',
     { preHandler: [authenticate, requirePermission('system:admin')] },
@@ -65,7 +119,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }
   );
 
-  // 5. Get Fleet Diagnostics Overview
+  // 9. Get Fleet Diagnostics Overview
   fastify.get(
     '/api/v1/admin/fleet/diagnostics',
     { preHandler: [authenticate, requirePermission('system:admin')] },
@@ -75,7 +129,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }
   );
 
-  // 6. Update Platform Maintenance State
+  // 10. Update Platform Maintenance State
   fastify.post(
     '/api/v1/admin/maintenance',
     { preHandler: [authenticate, requirePermission('system:admin')] },
@@ -87,7 +141,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }
   );
 
-  // 7. Get Current Maintenance State
+  // 11. Get Current Maintenance State
   fastify.get(
     '/api/v1/admin/maintenance',
     { preHandler: [authenticate] },
@@ -97,7 +151,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }
   );
 
-  // 8. Create System Announcement
+  // 12. Create System Announcement
   fastify.post(
     '/api/v1/admin/announcements',
     { preHandler: [authenticate, requirePermission('system:admin')] },
@@ -109,25 +163,22 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }
   );
 
-  // 9. List Active Announcements for Authenticated Tenant
   fastify.get(
     '/api/v1/admin/announcements',
-    { preHandler: [authenticate] },
+    { preHandler: [authenticate, requirePermission('system:admin')] },
     async (request, reply) => {
-      const user = request.user!;
-      const announcements = await service.listAnnouncementsForTenant(user.tenantId);
+      const announcements = await service.listAllAnnouncements();
       return reply.status(200).send({ announcements, count: announcements.length });
     }
   );
 
-  // 10. List Operator Audit Logs
+  // 13. List Operator Audit Logs
   fastify.get(
     '/api/v1/admin/audit-logs',
     { preHandler: [authenticate, requirePermission('system:admin')] },
     async (request, reply) => {
       const { limit } = request.query as { limit?: string };
-      const parsedLimit = limit ? parseInt(limit, 10) : 100;
-      const logs = await service.listOperatorLogs(parsedLimit);
+      const logs = await service.listOperatorLogs(limit ? parseInt(limit, 10) : 100);
       return reply.status(200).send({ logs, count: logs.length });
     }
   );

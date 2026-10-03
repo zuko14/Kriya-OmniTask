@@ -27,7 +27,7 @@ describe('Model Provider Resilience REST Integration Tests', () => {
     adminToken = JwtService.sign({
       userId: 'usr_model_admin',
       tenantId,
-      email: 'modeladmin@xylarc.ai',
+      email: 'modeladmin@kriya.ai',
       roles: ['admin', 'operations_manager'],
     });
   });

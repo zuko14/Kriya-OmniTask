@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tool Registry Unit Tests
+ * Kriya AI — Tool Registry Unit Tests
  * Verifies tool definitions, Zod validation schemas, and database synchronization (§18 of CLAUDE.md).
  */
 

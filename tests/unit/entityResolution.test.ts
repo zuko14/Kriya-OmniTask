@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Entity Resolution Unit Tests
+ * Kriya AI — Entity Resolution Unit Tests
  */
 
 import { describe, it, expect } from 'vitest';

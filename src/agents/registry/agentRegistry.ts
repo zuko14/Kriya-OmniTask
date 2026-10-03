@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Registry Service
+ * Kriya AI — Agent Registry Service
  * Manages tenant-scoped agent lifecycle specifications, template bootstrapping, and quota limits (§8, §12, §39 of CLAUDE.md).
  */
 

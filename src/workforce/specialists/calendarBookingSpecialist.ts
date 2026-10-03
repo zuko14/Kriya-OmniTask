@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Calendar Booking Specialist
+ * Kriya AI — Calendar Booking Specialist
  * Negotiates open slots, checks calendar availability, books appointments, and logs timeline confirmations (§24 of CLAUDE.md).
  */
 

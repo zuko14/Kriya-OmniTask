@@ -38,7 +38,7 @@ describe('FleetHealthDiagnostics Unit Tests', () => {
     const summary = FleetHealthDiagnostics.evaluateDiagnostics(nodes, now);
 
     expect(summary.totalNodes).toBe(2);
-    expect(summary.onlineNodes).toBe(1);
+    expect(summary.healthyNodes).toBe(1);
     expect(summary.offlineNodes).toBe(1); // Node 2 marked offline due to stale heartbeat (>60s)
     expect(summary.totalActiveThreads).toBe(48);
     expect(summary.totalActiveExecutions).toBe(32);

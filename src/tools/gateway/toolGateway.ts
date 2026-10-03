@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Mediated Scoped Tool Gateway & Execution Engine
+ * Kriya AI — Mediated Scoped Tool Gateway & Execution Engine
  * Enforces tenant isolation, per-tool permissions, risk gating, circuit breakers, idempotency, and audit logging (§8.4, §15, §18 of CLAUDE.md).
  */
 
@@ -27,6 +27,8 @@ import {
 import { logger } from '../../core/logger/logger.js';
 import { CryptoUtils } from '../../core/utils/crypto.js';
 
+import { DatabaseClient } from '../../storage/db.js';
+
 export class ToolGateway {
   private toolRegistry: ToolRegistryService;
   private credentialVault: CredentialVault;
@@ -44,14 +46,16 @@ export class ToolGateway {
     permissionRepo?: ToolPermissionRepository;
     toolDefRepo?: ToolDefinitionRepository;
     agentRepo?: AgentRepository;
+    dbClient?: DatabaseClient;
   }) {
+    const client = dependencies?.dbClient;
     this.toolRegistry = dependencies?.toolRegistry || new ToolRegistryService();
     this.credentialVault = dependencies?.credentialVault || new CredentialVault();
     this.circuitBreaker = dependencies?.circuitBreaker || new ToolCircuitBreaker();
-    this.executionRepo = dependencies?.executionRepo || new ToolExecutionRepository();
-    this.permissionRepo = dependencies?.permissionRepo || new ToolPermissionRepository();
-    this.toolDefRepo = dependencies?.toolDefRepo || new ToolDefinitionRepository();
-    this.agentRepo = dependencies?.agentRepo || new AgentRepository();
+    this.executionRepo = dependencies?.executionRepo || new ToolExecutionRepository(client);
+    this.permissionRepo = dependencies?.permissionRepo || new ToolPermissionRepository(client);
+    this.toolDefRepo = dependencies?.toolDefRepo || new ToolDefinitionRepository(client);
+    this.agentRepo = dependencies?.agentRepo || new AgentRepository(client);
   }
 
   /**
@@ -157,6 +161,7 @@ export class ToolGateway {
         tenantId,
         agentId: req.agentId,
         correlationId,
+        idempotencyKey: req.idempotencyKey,
         vault: this.credentialVault,
       });
 

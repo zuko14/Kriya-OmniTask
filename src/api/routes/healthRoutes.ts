@@ -1,14 +1,14 @@
 /**
- * Xylarc AI — Health Check Routes
+ * Kriya AI — Health Check Routes
  * Provides standard liveness and readiness health endpoints.
  */
 
 import { FastifyInstance } from 'fastify';
-import { XylarcPlatform } from '../../index.js';
+import { KriyaPlatform } from '../../index.js';
 
 export async function healthRoutes(fastify: FastifyInstance): Promise<void> {
   const handler = async (_request: any, reply: any) => {
-    const health = await XylarcPlatform.getHealth();
+    const health = await KriyaPlatform.getHealth();
     return reply.status(health.status === 'healthy' ? 200 : 503).send(health);
   };
 

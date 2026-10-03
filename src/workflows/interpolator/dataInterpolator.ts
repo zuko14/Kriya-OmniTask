@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Workflow Data Interpolator
+ * Kriya AI — Workflow Data Interpolator
  * Resolves dynamic runtime expressions (${steps.stepId.output.property} and ${context.property}) across workflow payloads (§13 of CLAUDE.md).
  */
 

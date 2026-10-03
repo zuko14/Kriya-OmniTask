@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tenant Quota & Channel Plan Enforcement Service
+ * Kriya AI — Tenant Quota & Channel Plan Enforcement Service
  * Enforces tier-based resource limits and channel subscriptions (§8, §30 of CLAUDE.md).
  */
 

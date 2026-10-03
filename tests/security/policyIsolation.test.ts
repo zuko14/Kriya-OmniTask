@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Policy Isolation Security Tests
+ * Kriya AI — Adversarial Policy Isolation Security Tests
  * Verifies cross-tenant policy rule isolation and evaluation audit boundary security (§14, §16 of CLAUDE.md).
  */
 

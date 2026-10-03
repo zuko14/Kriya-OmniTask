@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Lifecycle Workforce Type Definitions & Schemas
+ * Kriya AI — Customer Lifecycle Workforce Type Definitions & Schemas
  * Typed contracts for Lead Qualification, Calendar Booking, Customer Support, and Reactivation Specialists (§23-§28 of CLAUDE.md).
  */
 

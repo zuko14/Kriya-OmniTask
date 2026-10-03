@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Webhook Signature Verifier
+ * Kriya AI — Webhook Signature Verifier
  * Cryptographic verification for Meta WhatsApp and partner webhooks with replay defense.
  */
 

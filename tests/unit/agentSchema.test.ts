@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Schema & Output Contract Unit Tests
+ * Kriya AI — Agent Schema & Output Contract Unit Tests
  * Validates Zod formal agent specifications, limits, and structured output contracts (§12, §15, §39 of CLAUDE.md).
  */
 

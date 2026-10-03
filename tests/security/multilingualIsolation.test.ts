@@ -41,14 +41,14 @@ describe('Adversarial Multilingual Profile Isolation Security Tests', () => {
     tokenA = JwtService.sign({
       userId: 'usr_admin_multi_a',
       tenantId: tenantA,
-      email: 'admina@xylarc.ai',
+      email: 'admina@kriya.ai',
       roles: ['admin'],
     });
 
     tokenB = JwtService.sign({
       userId: 'usr_admin_multi_b',
       tenantId: tenantB,
-      email: 'adminb@xylarc.ai',
+      email: 'adminb@kriya.ai',
       roles: ['admin'],
     });
 

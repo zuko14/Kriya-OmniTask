@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Lifecycle State Machine
+ * Kriya AI — Agent Lifecycle State Machine
  * Enforces valid state transitions and audit logging across draft, idle, active, paused, and error states (§17 of CLAUDE.md).
  */
 

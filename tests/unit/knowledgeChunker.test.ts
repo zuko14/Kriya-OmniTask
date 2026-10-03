@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Knowledge Document Chunker Unit Tests
+ * Kriya AI — Knowledge Document Chunker Unit Tests
  */
 
 import { describe, it, expect } from 'vitest';
@@ -10,7 +10,7 @@ describe('Knowledge Document Chunker Unit Tests', () => {
   it('should parse markdown into structured sections', () => {
     const markdown = `
 # Company Overview
-Xylarc AI provides autonomous workforce intelligence for high-growth enterprises.
+Kriya AI provides autonomous workforce intelligence for high-growth enterprises.
 
 ## Pricing & Packages
 Enterprise plan starts at $2,000/mo with dedicated WhatsApp SLA.
@@ -29,7 +29,7 @@ All subscription cancellations must be requested 30 days in advance.
 
   it('should chunk parsed sections with token estimation and breadcrumbs', () => {
     const longSectionText = Array(20)
-      .fill('Xylarc AI agents execute multi-step deterministic business workflows safely.')
+      .fill('Kriya AI agents execute multi-step deterministic business workflows safely.')
       .join(' ');
 
     const sections = [
@@ -50,13 +50,13 @@ All subscription cancellations must be requested 30 days in advance.
 
   it('should parse FAQ format cleanly', () => {
     const faqJson = JSON.stringify([
-      { question: 'What is Xylarc AI?', answer: 'An autonomous workforce platform.' },
+      { question: 'What is Kriya AI?', answer: 'An autonomous workforce platform.' },
       { question: 'Does it support WhatsApp?', answer: 'Yes, via official Cloud API.' },
     ]);
 
     const parsed = DocumentParser.parse(faqJson, 'faq');
     expect(parsed.sections.length).toBe(2);
-    expect(parsed.sections[0].heading).toBe('What is Xylarc AI?');
+    expect(parsed.sections[0].heading).toBe('What is Kriya AI?');
     expect(parsed.sections[1].content).toBe('Yes, via official Cloud API.');
   });
 });

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Reliability Engineering Types & Contracts
+ * Kriya AI — Reliability Engineering Types & Contracts
  * Strict enterprise lifecycle states, idempotency models, DLQ, and dependency resilience contracts.
  */
 
@@ -95,3 +95,127 @@ export const UpdateDependencyHealthRequestSchema = z.object({
 });
 
 export type UpdateDependencyHealthRequest = z.infer<typeof UpdateDependencyHealthRequestSchema>;
+
+// --- WP-8.4: Reliability Drills, Failover Runbooks, and PITR Types ---
+
+export type ReliabilityDrillFaultType =
+  | 'network_drop_retry'
+  | 'llm_rate_limit_fallback'
+  | 'db_pool_exhaustion'
+  | 'worker_queue_crash'
+  | 'latency_spike';
+
+export type ReliabilityDrillStatus = 'passed' | 'failed' | 'aborted';
+
+export interface ReliabilityDrillRun {
+  id: string;
+  tenantId: string;
+  drillName: string;
+  faultType: ReliabilityDrillFaultType;
+  environment: string;
+  status: ReliabilityDrillStatus;
+  injectedCount: number;
+  survivedCount: number;
+  recoveryTimeMs: number;
+  details: Record<string, unknown>;
+  createdAt: string;
+}
+
+export type PitrSnapshotType = 'full' | 'incremental' | 'wal_checkpoint';
+export type PitrSnapshotStatus = 'completed' | 'corrupted' | 'pending';
+
+export interface PitrSnapshot {
+  id: string;
+  tenantId: string;
+  snapshotName: string;
+  snapshotType: PitrSnapshotType;
+  checksumSha256: string;
+  recordCounts: Record<string, number>;
+  metadata: Record<string, unknown>;
+  dataPayload?: string | null;
+  status: PitrSnapshotStatus;
+  createdAt: string;
+}
+
+export type PitrRestoreStatus = 'completed' | 'verified' | 'failed' | 'in_progress';
+
+export interface PitrRestoreOperation {
+  id: string;
+  tenantId: string;
+  snapshotId: string;
+  targetTimestamp: string;
+  status: PitrRestoreStatus;
+  restoredRecordsCount: number;
+  verified: boolean;
+  errorMessage?: string | null;
+  executedAt: string;
+  createdAt: string;
+}
+
+export interface FailoverStep {
+  stepName: string;
+  status: 'success' | 'failed';
+  durationMs: number;
+  details?: Record<string, unknown>;
+}
+
+export interface FailoverDrillResult {
+  id: string;
+  tenantId: string;
+  drillName: string;
+  primaryNodeId: string;
+  promotedReplicaId: string;
+  status: 'completed' | 'failed';
+  failoverTimeMs: number;
+  steps: FailoverStep[];
+  createdAt: string;
+}
+
+export interface NodeHealthStatus {
+  nodeId: string;
+  role: 'primary' | 'read_replica' | 'standby';
+  health: 'healthy' | 'degraded' | 'unreachable';
+  replicationLagMs: number;
+  lastHeartbeat: string;
+}
+
+export const RunReliabilityDrillRequestSchema = z.object({
+  drillName: z.string().min(1),
+  faultType: z.enum([
+    'network_drop_retry',
+    'llm_rate_limit_fallback',
+    'db_pool_exhaustion',
+    'worker_queue_crash',
+    'latency_spike',
+  ]),
+  faultProbability: z.number().min(0).max(1).default(0.5),
+  iterations: z.number().int().min(1).max(100).default(20),
+});
+
+export type RunReliabilityDrillRequest = z.input<typeof RunReliabilityDrillRequestSchema>;
+
+export const CreatePitrSnapshotRequestSchema = z.object({
+  snapshotName: z.string().min(1),
+  snapshotType: z.enum(['full', 'incremental', 'wal_checkpoint']).default('full'),
+  tables: z.array(z.string()).optional(),
+});
+
+export type CreatePitrSnapshotRequest = z.input<typeof CreatePitrSnapshotRequestSchema>;
+
+export const RestorePitrRequestSchema = z.object({
+  snapshotId: z.string().min(1),
+  targetTimestamp: z.string().optional(),
+  verifyIntegrityOnly: z.boolean().default(false),
+});
+
+export type RestorePitrRequest = z.input<typeof RestorePitrRequestSchema>;
+
+export const SimulateFailoverRequestSchema = z.object({
+  drillName: z.string().min(1).default('Automated Database Primary Failover Drill'),
+  primaryNodeId: z.string().default('pg-node-primary-01'),
+  targetReplicaId: z.string().default('pg-node-replica-01'),
+  simulateReplicationLagMs: z.number().min(0).default(12),
+});
+
+export type SimulateFailoverRequest = z.input<typeof SimulateFailoverRequestSchema>;
+

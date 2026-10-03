@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Recursive Knowledge Document Chunker
+ * Kriya AI — Recursive Knowledge Document Chunker
  * Chunks normalized documents with window overlap, token estimation, and heading context breadcrumbs (§10 of CLAUDE.md).
  */
 

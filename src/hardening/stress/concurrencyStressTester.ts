@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Multi-Tenant Concurrency Stress & Load Testing Harness
+ * Kriya AI — Multi-Tenant Concurrency Stress & Load Testing Harness
  * Simulates high-concurrency multi-tenant workloads to benchmark throughput, latency percentiles, and cross-contamination invariants.
  */
 

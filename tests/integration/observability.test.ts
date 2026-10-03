@@ -31,7 +31,7 @@ describe('Agent Observability & Tracing REST Integration Tests', () => {
     adminToken = JwtService.sign({
       userId: 'usr_admin_obs',
       tenantId,
-      email: 'obsadmin@xylarc.ai',
+      email: 'obsadmin@kriya.ai',
       roles: ['admin'],
     });
 

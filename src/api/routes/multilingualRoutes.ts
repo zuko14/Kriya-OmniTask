@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Multilingual System (Indic & Global Languages) REST Routes
+ * Kriya AI — Multilingual System (Indic & Global Languages) REST Routes
  * Endpoints for Language Detection, Indic Normalization, Cross-Lingual Sentiment, Translation, and Profiles (§14, §19 of CLAUDE.md).
  */
 

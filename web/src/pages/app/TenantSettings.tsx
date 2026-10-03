@@ -4,6 +4,7 @@ import { apiFetch, ApiError } from '../../lib/apiClient';
 import { useAsync } from '../../lib/useAsync';
 import { DataTable, Column } from '../../components/DataTable';
 import { AsyncState } from '../../components/AsyncState';
+import { useBusinessDna } from '../../lib/dnaContext';
 import styles from './TenantSettings.module.css';
 
 export interface TenantDetails {
@@ -30,6 +31,7 @@ export interface UserRecord {
 
 export function TenantSettings() {
   const { auth } = useAuth();
+  const { dna, vocabulary, capabilities, agents } = useBusinessDna();
   const tenantId = auth?.tenant?.id;
 
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
@@ -85,7 +87,7 @@ export function TenantSettings() {
 
   const tenant = tenantState.status === 'success' ? tenantState.data?.tenant : null;
   const limits = tenantState.status === 'success' ? tenantState.data?.limits || {} : {};
-  const users = usersState.status === 'success' ? usersState.data.users : [];
+  const users = usersState.status === 'success' ? (usersState.data?.users ?? []) : [];
 
   const userColumns: Column<UserRecord>[] = [
     {
@@ -102,7 +104,7 @@ export function TenantSettings() {
       key: 'created_at',
       header: 'Joined Date',
       width: '160px',
-      render: (u) => <span style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>{new Date(u.created_at).toLocaleDateString()}</span>,
+      render: (u) => <span style={{ fontSize: '11px', color: 'var(--text2)' }}>{new Date(u.created_at).toLocaleDateString()}</span>,
     },
   ];
 
@@ -114,14 +116,14 @@ export function TenantSettings() {
           <p className={styles.subtitle}>Tenant identity, plan quota limits, and workforce team access management.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnPrimary} onClick={() => setIsInviting(true)}>
+          <button className="btn btn-accent" onClick={() => setIsInviting(true)}>
             + Invite Team Member
           </button>
         </div>
       </header>
 
-      {actionError && <div style={{ color: 'var(--color-critical)', background: 'rgba(216,87,75,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>⚠️ {actionError}</div>}
-      {actionSuccess && <div style={{ color: 'var(--color-verify)', background: 'rgba(63,166,107,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Tenant Profile Card */}
       <div className={styles.sectionCard}>
@@ -150,6 +152,50 @@ export function TenantSettings() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Business DNA & Active Roster Manifest (§3, §4) */}
+      <div className={styles.sectionCard}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
+          <h2 className={styles.sectionTitle} style={{ margin: 0 }}>Business DNA & Active Roster Manifest</h2>
+          {dna?.activeManifest && (
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', background: 'var(--surface3)', color: 'var(--text2)' }}>
+              Manifest v{dna.activeManifest.version} · SHA-256: {dna.activeManifest.checksum?.slice(0, 10)}…
+            </span>
+          )}
+        </div>
+        <div className={styles.gridTwo}>
+          <div className={styles.metaField}>
+            <span className={styles.metaLabel}>Active DNA Profile</span>
+            <span className={styles.metaValue}>{dna?.dnaProfile?.display_name || 'Retail & Digital Commerce'}</span>
+          </div>
+          <div className={styles.metaField}>
+            <span className={styles.metaLabel}>Business Type</span>
+            <span className={styles.metaValue} style={{ fontFamily: 'var(--font-mono)' }}>{dna?.dnaProfile?.business_type || 'retail_commerce'}</span>
+          </div>
+          <div className={styles.metaField}>
+            <span className={styles.metaLabel}>Entity Vocabulary</span>
+            <span className={styles.metaValue} style={{ fontSize: '12px' }}>
+              {vocabulary.customer} / {vocabulary.customer_plural} · {vocabulary.item} / {vocabulary.item_plural} · {vocabulary.transaction}
+            </span>
+          </div>
+          <div className={styles.metaField}>
+            <span className={styles.metaLabel}>Moulded Workforce</span>
+            <span className={styles.metaValue} style={{ fontSize: '12px' }}>
+              {agents.filter((a) => a.is_active).length} Active Agents ({agents.map((a) => a.name).join(', ')})
+            </span>
+          </div>
+        </div>
+        <div style={{ marginTop: 'var(--space-3)' }}>
+          <span className={styles.metaLabel}>Active DNA Capabilities</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)', marginTop: 'var(--space-1)' }}>
+            {capabilities.map((cap) => (
+              <span key={cap} style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '2px 6px', borderRadius: 'var(--radius-sm)', background: 'rgba(56,128,255,0.08)', color: 'var(--text)' }}>
+                {cap}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Plan Quotas & Effective Limits Card */}
@@ -249,10 +295,10 @@ export function TenantSettings() {
               </div>
 
               <div className={styles.modalActions}>
-                <button type="button" className={styles.btnSecondary} onClick={() => setIsInviting(false)} disabled={isSubmitting}>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIsInviting(false)} disabled={isSubmitting}>
                   Cancel
                 </button>
-                <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
+                <button type="submit" className="btn btn-accent" disabled={isSubmitting}>
                   {isSubmitting ? 'Inviting...' : 'Send Invitation'}
                 </button>
               </div>

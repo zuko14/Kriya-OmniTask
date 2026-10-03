@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Role-Based Access Control (RBAC) Engine
+ * Kriya AI — Role-Based Access Control (RBAC) Engine
  * Standardized enterprise roles, granular permissions, and authorization assertion gates.
  */
 
@@ -52,7 +52,7 @@ export type Permission =
 
 export const ROLE_PERMISSIONS: Record<StandardRole, Permission[]> = {
   owner: [
-    'tenant:read', 'tenant:write', 'tenant:admin',
+    'tenant:read', 'tenant:write', 'tenant:admin', 'system:admin',
     'org:read', 'org:write',
     'user:read', 'user:write', 'user:invite',
     'customer:read', 'customer:write', 'customer:delete',
@@ -64,7 +64,7 @@ export const ROLE_PERMISSIONS: Record<StandardRole, Permission[]> = {
     'attention:read', 'attention:approve', 'attention:escalate',
   ],
   super_admin: [
-    'tenant:read', 'tenant:write', 'tenant:admin',
+    'tenant:read', 'tenant:write', 'tenant:admin', 'system:admin',
     'org:read', 'org:write',
     'user:read', 'user:write', 'user:invite',
     'customer:read', 'customer:write', 'customer:delete',

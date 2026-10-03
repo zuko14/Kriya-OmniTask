@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Site Reliability Engineering (SRE) Types & Contracts
+ * Kriya AI — Site Reliability Engineering (SRE) Types & Contracts
  * Definitions for distributed waterfall tracing, SLO tracking, multi-window burn rates, and structured alerts.
  */
 
@@ -44,6 +44,7 @@ export const SloEvaluationSchema = z.object({
   errorBudgetTotalPct: z.number(),
   errorBudgetRemainingPct: z.number(),
   burnRate1h: z.number(),
+  burnRate6h: z.number().optional(),
   burnRate24h: z.number(),
   alertStatus: z.enum(['normal', 'warning', 'critical']),
 });

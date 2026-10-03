@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Deterministic Business Invariant Verifier
+ * Kriya AI — Deterministic Business Invariant Verifier
  * Rigorous deterministic validation for financial, communication, privacy, autonomy, and structured output invariants (§14, §16 of CLAUDE.md).
  */
 

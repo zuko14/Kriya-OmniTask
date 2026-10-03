@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Meta WhatsApp Cloud API Connector
+ * Kriya AI — Meta WhatsApp Cloud API Connector
  * Native builder and parser for WhatsApp Business API messages (§7, §27 of CLAUDE.md).
  */
 

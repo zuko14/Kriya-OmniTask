@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Knowledge Fabric REST Integration Tests
+ * Kriya AI — Knowledge Fabric REST Integration Tests
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -32,7 +32,7 @@ describe('Knowledge Fabric REST Integration Tests', () => {
     adminToken = JwtService.sign({
       userId: 'usr_admin_1',
       tenantId,
-      email: 'admin@xylarc.ai',
+      email: 'admin@kriya.ai',
       roles: ['admin'],
     });
   });

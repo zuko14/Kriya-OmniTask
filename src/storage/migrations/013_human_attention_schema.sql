@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS attention_items (
     'security_anomaly',
     'agent_disagreement',
     'workflow_suspended',
-    'manual_flag'
+    'manual_flag',
+    'slo_burn'
   )),
   priority TEXT NOT NULL CHECK (priority IN ('P0_CRITICAL', 'P1_HIGH', 'P2_MEDIUM', 'P3_LOW')),
   status TEXT NOT NULL CHECK (status IN ('pending', 'claimed', 'resolved', 'dismissed', 'timed_out')),

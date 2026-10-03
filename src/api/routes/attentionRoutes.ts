@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Human Attention Center & Priority Exception Queue REST Routes
+ * Kriya AI — Human Attention Center & Priority Exception Queue REST Routes
  * Endpoints for Escalation Items, Approvals, and Live Conversation Takeovers (§14, §16 of CLAUDE.md).
  */
 
@@ -14,6 +14,9 @@ import { AttentionService } from '../../attention/service/attentionService.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { requirePermission } from '../middleware/rbacMiddleware.js';
 import { TenantContextManager } from '../../core/context/tenantContext.js';
+
+import { GraphRunRepository } from '../../runtime/graph/graphRunRepository.js';
+import { GraphExecutor } from '../../runtime/graph/executor.js';
 
 export async function attentionRoutes(fastify: FastifyInstance): Promise<void> {
   const service = new AttentionService();
@@ -90,7 +93,34 @@ export async function attentionRoutes(fastify: FastifyInstance): Promise<void> {
         const { id } = request.params as { id: string };
         const body = ResolveAttentionItemRequestSchema.parse(request.body);
         const resolved = await service.resolveItem(id, body);
-        return reply.status(200).send(resolved);
+
+        // WP-2.5: If this item was created by a human_gate in a workflow run, automatically resume the run
+        let runOutcome: unknown = undefined;
+        if (resolved.context_data_json) {
+          try {
+            const ctx = JSON.parse(resolved.context_data_json) as Record<string, unknown>;
+            if (ctx.runId && (body.action === 'approved' || body.action === 'rejected')) {
+              const graphRepo = new GraphRunRepository();
+              const run = await graphRepo.getRun(String(ctx.runId));
+              if (run && run.status === 'parked') {
+                const executor = new GraphExecutor({}, graphRepo, undefined, service);
+                runOutcome = await executor.resume(String(ctx.runId), {
+                  decision: body.action,
+                  notes: body.notes,
+                  humanApproverId: user.userId,
+                  attentionItemId: id,
+                });
+              }
+            }
+          } catch {
+            // Keep resolution intact even if resume encounters an error
+          }
+        }
+
+        return reply.status(200).send({
+          ...resolved,
+          ...(runOutcome ? { runOutcome } : {}),
+        });
       }, { userId: user.userId, roles: user.roles });
     }
   );

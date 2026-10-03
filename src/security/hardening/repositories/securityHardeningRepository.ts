@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Security Audit Ledger & Secret Rotation Relational Repository
+ * Kriya AI — Security Audit Ledger & Secret Rotation Relational Repository
  * Persistence for chained audit events and encrypted secret records (§14, §20 of CLAUDE.md).
  */
 
@@ -201,5 +201,32 @@ export class SecurityHardeningRepository extends BaseRepository<SecurityAuditLed
     );
 
     return record;
+  }
+
+  /**
+   * Automatically revokes all secrets whose grace period has expired.
+   */
+  public async revokeExpiredSecrets(): Promise<{ count: number; ids: string[] }> {
+    const tenantId = this.getTenantId();
+    const now = new Date().toISOString();
+
+    const expiredRecords = await this.client.query<SecretRotationRecord>(
+      "SELECT * FROM secret_rotations WHERE tenant_id = ? AND status = 'grace_period' AND expires_at IS NOT NULL AND expires_at <= ?;",
+      [tenantId, now]
+    );
+
+    if (expiredRecords.length === 0) {
+      return { count: 0, ids: [] };
+    }
+
+    const ids = expiredRecords.map((r) => r.id);
+    for (const record of expiredRecords) {
+      await this.client.execute(
+        "UPDATE secret_rotations SET status = 'revoked', updated_at = ? WHERE id = ? AND tenant_id = ?;",
+        [now, record.id, tenantId]
+      );
+    }
+
+    return { count: ids.length, ids };
   }
 }

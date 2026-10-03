@@ -18,7 +18,7 @@ describe('SecretAuditEngine Unit Tests', () => {
       PORT: '3000',
       OPENAI_API_KEY: 'sk-proj-998877665544332211aabbccddeeff',
       AWS_SECRET_ACCESS_KEY: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-      PUBLIC_APP_NAME: 'Xylarc AI',
+      PUBLIC_APP_NAME: 'Kriya AI',
     };
 
     const report = SecretAuditEngine.auditEnvironmentSecrets(mockEnv, 'audit_report_test');

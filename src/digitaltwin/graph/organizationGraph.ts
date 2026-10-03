@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Organizational Graph Topology Engine
+ * Kriya AI — Organizational Graph Topology Engine
  * In-memory graph adjacency model for department hierarchies, service delivery paths, and escalation chains (§13 of CLAUDE.md).
  */
 

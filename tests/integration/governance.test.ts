@@ -27,7 +27,7 @@ describe('Enterprise Governance REST Integration Tests', () => {
     adminToken = JwtService.sign({
       userId: 'usr_gov_admin',
       tenantId,
-      email: 'govadmin@xylarc.ai',
+      email: 'govadmin@kriya.ai',
       roles: ['admin', 'compliance_officer'],
     });
   });
@@ -88,7 +88,7 @@ describe('Enterprise Governance REST Integration Tests', () => {
       headers: { authorization: `Bearer ${adminToken}` },
       payload: {
         providerType: 'okta',
-        issuerUrl: 'https://xylarc.okta.com/oauth2/v1',
+        issuerUrl: 'https://kriya.okta.com/oauth2/v1',
         clientId: 'okta_client_enterprise',
         clientSecret: 'super_secret_okta_key',
         claimsMapping: {
@@ -111,7 +111,7 @@ describe('Enterprise Governance REST Integration Tests', () => {
         providerType: 'okta',
         idTokenOrAssertion: 'mock_jwt_token',
         mockClaims: {
-          email: 'controller@xylarc.ai',
+          email: 'controller@kriya.ai',
           sub: 'okta_controller_99',
           groups: ['Okta-Finance'],
           name: 'Corporate Controller',

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — BM25 Sparse Lexical Search Engine
+ * Kriya AI — BM25 Sparse Lexical Search Engine
  * Implements Okapi BM25 ranking algorithm for keyword and alphanumeric exact matching (§11 of CLAUDE.md).
  */
 

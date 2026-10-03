@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Channel Integration Repository
+ * Kriya AI — Channel Integration Repository
  * Manages per-tenant messaging channel configurations with encrypted provider credentials.
  */
 

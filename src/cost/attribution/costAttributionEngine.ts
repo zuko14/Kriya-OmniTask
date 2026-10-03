@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Cost Attribution Engine
+ * Kriya AI — Cost Attribution Engine
  * Ground-truth cost calculation for LLM tokens, voice minutes, API tools, and compute units.
  */
 

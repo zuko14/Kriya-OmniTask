@@ -46,7 +46,7 @@ const mockUsers = {
 describe('TenantSettings Page', () => {
   beforeEach(() => {
     sessionStorage.clear();
-    sessionStorage.setItem('xylarc_access_token', 'test_jwt');
+    sessionStorage.setItem('kriya_access_token', 'test_jwt');
     vi.restoreAllMocks();
   });
 

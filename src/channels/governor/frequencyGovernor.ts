@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Anti-Spam & Contact Frequency Governor
+ * Kriya AI — Anti-Spam & Contact Frequency Governor
  * Enforces strict quiet hours, interaction quotas, and response-window rules (§21 of CLAUDE.md).
  */
 

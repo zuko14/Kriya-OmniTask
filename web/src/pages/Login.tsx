@@ -1,14 +1,19 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { useAuth, ApiError } from '../lib/authContext';
+import { getBranding } from '../lib/branding';
+import { KriyaMark } from '../components/brand/KriyaMark';
+import { Icon } from '../components/brand/Icon';
 import styles from './Login.module.css';
 
 export function Login() {
   const { auth, login } = useAuth();
   const location = useLocation();
+  const branding = getBranding();
   const [tenantSlug, setTenantSlug] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,7 +38,14 @@ export function Login() {
   return (
     <div className={styles.wrap}>
       <form className={styles.card} onSubmit={handleSubmit}>
-        <div className={styles.title}>Sign in to Xylarc AI</div>
+        <div className={styles.brand}>
+          <div className={styles.markTile}>
+            <KriyaMark size={36} />
+          </div>
+          <div className={styles.wordmark}>{branding.companyName}</div>
+          <div className={styles.product}>{branding.shortName}</div>
+        </div>
+        <h1 className={styles.title}>Sign in to {branding.companyName}</h1>
         <div className={styles.field}>
           <label className={styles.label} htmlFor="tenantSlug">
             Workspace
@@ -65,18 +77,33 @@ export function Login() {
           <label className={styles.label} htmlFor="password">
             Password
           </label>
-          <input
-            id="password"
-            type="password"
-            className={styles.input}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-          />
+          <div className={styles.passwordRow}>
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              className={styles.input}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              className={styles.reveal}
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+            >
+              <Icon name={showPassword ? 'eye-off' : 'eye'} />
+            </button>
+          </div>
         </div>
-        {error && <div className={styles.error}>{error}</div>}
-        <button className={styles.submit} type="submit" disabled={submitting}>
+        {error && (
+          <div className={styles.error} role="alert">
+            {error}
+          </div>
+        )}
+        <button className={`btn btn-accent ${styles.submit}`} type="submit" disabled={submitting}>
           {submitting ? 'Signing in…' : 'Sign in'}
         </button>
       </form>

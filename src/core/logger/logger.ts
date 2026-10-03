@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Structured JSON Logger with Tenant & Trace Attribution
+ * Kriya AI — Structured JSON Logger with Tenant & Trace Attribution
  * Automatically attaches correlation IDs, tenant scopes, timestamps, and error stacks
  * with zero PII/secret leakage.
  */
@@ -35,7 +35,7 @@ const SENSITIVE_KEYS = new Set([
 export class Logger {
   private service: string;
 
-  constructor(service = 'xylarc-core') {
+  constructor(service = 'kriya-omnitask') {
     this.service = service;
   }
 
@@ -152,4 +152,4 @@ export class Logger {
   }
 }
 
-export const logger = new Logger('xylarc-core');
+export const logger = new Logger('kriya-omnitask');

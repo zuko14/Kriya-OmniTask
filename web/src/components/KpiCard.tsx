@@ -9,9 +9,9 @@ interface KpiCardProps {
 
 export function KpiCard({ title, value, children }: KpiCardProps) {
   return (
-    <div className={styles.card}>
-      <div className={styles.title}>{title}</div>
-      {value !== undefined && <div className={styles.value}>{value}</div>}
+    <div className={`stat ${styles.card}`}>
+      <div className="stat-label">{title}</div>
+      {value !== undefined && <div className="stat-num">{value}</div>}
       {children && <div className={styles.body}>{children}</div>}
     </div>
   );

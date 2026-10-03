@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tool Gateway & Credential Repositories
+ * Kriya AI — Tool Gateway & Credential Repositories
  * Relational data layer for encrypted credentials, tool definitions, scoped permissions, and execution audit logging.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Multi-Tenant Channel Gateway Isolation Tests
+ * Kriya AI — Adversarial Multi-Tenant Channel Gateway Isolation Tests
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

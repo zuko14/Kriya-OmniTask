@@ -8,7 +8,7 @@ describe('apiFetch', () => {
   });
 
   it('throws a typed ApiError and clears the session on 401', async () => {
-    sessionStorage.setItem('xylarc_access_token', 'stale-token');
+    sessionStorage.setItem('kriya_access_token', 'stale-token');
     const unauthorizedHandler = vi.fn();
     setUnauthorizedHandler(unauthorizedHandler);
 
@@ -24,12 +24,12 @@ describe('apiFetch', () => {
     );
 
     await expect(apiFetch('/api/v1/auth/me')).rejects.toBeInstanceOf(ApiError);
-    expect(sessionStorage.getItem('xylarc_access_token')).toBeNull();
+    expect(sessionStorage.getItem('kriya_access_token')).toBeNull();
     expect(unauthorizedHandler).toHaveBeenCalledOnce();
   });
 
   it('does not clear the session on 403', async () => {
-    sessionStorage.setItem('xylarc_access_token', 'valid-token');
+    sessionStorage.setItem('kriya_access_token', 'valid-token');
     const unauthorizedHandler = vi.fn();
     setUnauthorizedHandler(unauthorizedHandler);
 
@@ -45,7 +45,7 @@ describe('apiFetch', () => {
     );
 
     await expect(apiFetch('/api/v1/bi/briefings')).rejects.toMatchObject({ statusCode: 403 });
-    expect(sessionStorage.getItem('xylarc_access_token')).toBe('valid-token');
+    expect(sessionStorage.getItem('kriya_access_token')).toBe('valid-token');
     expect(unauthorizedHandler).not.toHaveBeenCalled();
   });
 });

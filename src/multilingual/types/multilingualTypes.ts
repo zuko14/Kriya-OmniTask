@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Multilingual System (Indic & Global Languages) Type Definitions
+ * Kriya AI — Multilingual System (Indic & Global Languages) Type Definitions
  * Typed contracts for language identification, Indic script normalization, sentiment, and translation (§14, §19 of CLAUDE.md).
  */
 

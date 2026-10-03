@@ -113,7 +113,7 @@ export function PlatformFleet() {
       key: 'lastHeartbeat',
       header: 'Last Seen',
       width: '150px',
-      render: (n) => <span style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>{new Date(n.lastHeartbeat).toLocaleTimeString()}</span>,
+      render: (n) => <span style={{ fontSize: '11px', color: 'var(--text2)' }}>{new Date(n.lastHeartbeat).toLocaleTimeString()}</span>,
     },
   ];
 
@@ -125,46 +125,46 @@ export function PlatformFleet() {
           <p className={styles.subtitle}>Multi-region distributed compute nodes, heartbeat diagnostics, and capacity utilization.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnPrimary} onClick={() => setIsSendingHeartbeat(true)}>
+          <button className="btn btn-accent" onClick={() => setIsSendingHeartbeat(true)}>
             + Dispatch Node Heartbeat
           </button>
         </div>
       </header>
 
-      {actionError && <div style={{ color: 'var(--color-critical)', background: 'rgba(216,87,75,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>⚠️ {actionError}</div>}
-      {actionSuccess && <div style={{ color: 'var(--color-verify)', background: 'rgba(63,166,107,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Fleet KPI Metrics Grid */}
       <div className={styles.kpiGrid}>
         <KpiCard
           title="Cluster Health"
-          value={diagnostics?.clusterHealth?.toUpperCase() || 'HEALTHY'}
+          value={diagnostics?.clusterHealth ? diagnostics.clusterHealth.toUpperCase() : '—'}
         >
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Global orchestrator status</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Global orchestrator status</div>
         </KpiCard>
         <KpiCard
           title="Total Compute Nodes"
-          value={String(diagnostics?.totalNodes ?? 0)}
+          value={diagnostics ? String(diagnostics.totalNodes) : '—'}
         >
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Provisioned infrastructure</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Provisioned infrastructure</div>
         </KpiCard>
         <KpiCard
           title="Online Nodes"
-          value={String(diagnostics?.onlineNodes ?? 0)}
+          value={diagnostics ? String(diagnostics.onlineNodes) : '—'}
         >
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Ready for execution</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Ready for execution</div>
         </KpiCard>
         <KpiCard
           title="Avg CPU Utilization"
-          value={`${diagnostics?.avgCpuUsagePct?.toFixed(1) ?? '0.0'}%`}
+          value={typeof diagnostics?.avgCpuUsagePct === 'number' ? `${diagnostics.avgCpuUsagePct.toFixed(1)}%` : '—'}
         >
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Fleet compute load</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Fleet compute load</div>
         </KpiCard>
         <KpiCard
           title="Avg Memory Utilization"
-          value={`${diagnostics?.avgMemoryUsagePct?.toFixed(1) ?? '0.0'}%`}
+          value={typeof diagnostics?.avgMemoryUsagePct === 'number' ? `${diagnostics.avgMemoryUsagePct.toFixed(1)}%` : '—'}
         >
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Fleet memory footprint</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Fleet memory footprint</div>
         </KpiCard>
       </div>
 
@@ -261,10 +261,10 @@ export function PlatformFleet() {
               </div>
 
               <div className={styles.modalActions}>
-                <button type="button" className={styles.btnSecondary} onClick={() => setIsSendingHeartbeat(false)} disabled={isSubmitting}>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIsSendingHeartbeat(false)} disabled={isSubmitting}>
                   Cancel
                 </button>
-                <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
+                <button type="submit" className="btn btn-accent" disabled={isSubmitting}>
                   {isSubmitting ? 'Recording...' : 'Send Heartbeat'}
                 </button>
               </div>

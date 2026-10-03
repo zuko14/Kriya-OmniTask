@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Policy Condition Evaluator
+ * Kriya AI — Policy Condition Evaluator
  * Pure deterministic condition tree evaluator supporting nested fields, operators, and boolean logic (§14 of CLAUDE.md).
  */
 

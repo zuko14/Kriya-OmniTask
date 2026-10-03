@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Digital Twin Entities & Relationships Repository
+ * Kriya AI — Digital Twin Entities & Relationships Repository
  * Relational storage for organizational context nodes and adjacency edges (§13 of CLAUDE.md).
  */
 

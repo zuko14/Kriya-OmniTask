@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Knowledge Fabric Isolation & Scope Security Tests
+ * Kriya AI — Adversarial Knowledge Fabric Isolation & Scope Security Tests
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';

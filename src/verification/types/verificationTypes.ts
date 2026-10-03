@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Deterministic Verification & Quality Reviewer Type Definitions
+ * Kriya AI — Deterministic Verification & Quality Reviewer Type Definitions
  * Typed contracts for pre-flight assertions, dual-pass quality evaluations, and verdicts (§14, §15 of CLAUDE.md).
  */
 

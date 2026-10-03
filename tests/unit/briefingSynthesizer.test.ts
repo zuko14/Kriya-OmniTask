@@ -37,7 +37,7 @@ describe('Briefing Synthesizer Unit Tests', () => {
     expect(result.summaryMarkdown).toContain('Active Operational Bottlenecks Detected');
 
     // WhatsApp formatting
-    expect(result.whatsappFormattedText).toContain('☀️ *XYLARC AI — EXECUTIVE MORNING BRIEFING*');
+    expect(result.whatsappFormattedText).toContain('☀️ *KRIYA AI — EXECUTIVE MORNING BRIEFING*');
     expect(result.whatsappFormattedText).toContain('• *New Inbound Leads:* 12');
     expect(result.whatsappFormattedText).toContain('• *Autonomous Resolution Rate:* 91.5%');
     expect(result.whatsappFormattedText).toContain('$359.76');

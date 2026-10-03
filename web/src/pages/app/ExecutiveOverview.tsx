@@ -1,110 +1,110 @@
-import { apiFetch } from '../../lib/apiClient';
-import { useAsync } from '../../lib/useAsync';
-import { KpiCard } from '../../components/KpiCard';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+import { MetricBlock } from '../../components/primitives/MetricBlock';
+import { EmptyState } from '../../components/primitives/EmptyState';
+import { ActivityTheatre } from '../../components/theatre/ActivityTheatre';
 import { AsyncState } from '../../components/AsyncState';
+import { apiFetch } from '../../lib/apiClient';
+import { useAuth } from '../../lib/authContext';
 import styles from './ExecutiveOverview.module.css';
 
-interface AttentionItem {
-  id: string;
-  title: string;
-  description: string;
-  priority: string;
-  status: string;
-  reason_category: string;
-  created_at: string;
+/** Server shapes: src/observability/types (ObservabilityMetricsOverview), src/attention/types (AttentionMetricsOverview). */
+interface RunMetrics {
+  totalTraces: number;
+  completedTraces: number;
+  failedTraces: number;
+  escalatedTraces: number;
+}
+interface AttentionMetrics {
+  pendingCount: number;
+  claimedCount: number;
+  slaBreachCount: number;
 }
 
-interface CostRecord {
-  id: string;
-  agentId: string;
-  costCategory: string;
-  totalCostUsd: number;
-  createdAt: string;
+type Load<T> = { status: 'loading' } | { status: 'error'; error: unknown } | { status: 'ok'; data: T; readAt: string };
+
+function useMetrics<T>(path: string): Load<T> {
+  const [state, setState] = useState<Load<T>>({ status: 'loading' });
+  useEffect(() => {
+    let live = true;
+    apiFetch<T>(path)
+      .then((data) => live && setState({ status: 'ok', data, readAt: new Date().toISOString() }))
+      .catch((error) => live && setState({ status: 'error', error }));
+    return () => {
+      live = false;
+    };
+  }, [path]);
+  return state;
 }
 
-interface Briefing {
-  id: string;
-  briefing_date: string;
-  title: string;
-  summary_markdown: string;
-  status: string;
-}
+const fmt = (n: number | null | undefined) => Number(n ?? 0).toLocaleString('en-IN');
 
-function fetchAttentionItems() {
-  return apiFetch<{ items: AttentionItem[]; count: number }>('/api/v1/attention/items?status=pending');
-}
-
-function fetchCostRecords() {
-  return apiFetch<{ records: CostRecord[]; count: number }>('/api/v1/cost/records?limit=20');
-}
-
-function fetchBriefings() {
-  return apiFetch<{ briefings: Briefing[]; count: number }>('/api/v1/bi/briefings');
-}
-
+/**
+ * Today screen (CLAUDE.md §8): every number comes from a tenant-scoped API with its source and read time.
+ * Nothing is shown that the backend did not return (S40); sections with no data source say so.
+ */
 export function ExecutiveOverview() {
-  const attention = useAsync(fetchAttentionItems, []);
-  const cost = useAsync(fetchCostRecords, []);
-  const briefings = useAsync(fetchBriefings, []);
-
-  const totalSpend = cost.status === 'success' ? cost.data.records.reduce((sum, r) => sum + r.totalCostUsd, 0) : undefined;
-  const latestBriefing = briefings.status === 'success' ? briefings.data.briefings[0] : undefined;
+  const { auth } = useAuth();
+  const navigate = useNavigate();
+  const runs = useMetrics<RunMetrics>('/api/v1/observability/metrics');
+  const attention = useMetrics<AttentionMetrics>('/api/v1/attention/metrics');
 
   return (
-    <div>
-      <h1 style={{ marginBottom: 'var(--space-5)' }}>Executive Overview</h1>
-      <div className={styles.grid}>
-        <KpiCard title="Needs Attention" value={attention.status === 'success' ? String(attention.data.count) : undefined}>
-          {attention.status !== 'success' && (
-            <AsyncState status={attention.status === 'loading' ? 'loading' : 'error'} error={attention.error} />
-          )}
-          {attention.status === 'success' && attention.data.items.length === 0 && (
-            <AsyncState status="empty" emptyMessage="Nothing needs human attention right now." />
-          )}
-          {attention.status === 'success' &&
-            attention.data.items.slice(0, 5).map((item) => (
-              <div key={item.id} className={styles.item}>
-                <div className={styles.itemTitle}>{item.title}</div>
-                <div className={styles.itemMeta}>
-                  {item.priority} · {item.reason_category}
-                </div>
-              </div>
-            ))}
-        </KpiCard>
+    <div className={styles.container}>
+      <h1>Today · Executive Overview</h1>
 
-        <KpiCard title="Recent Spend" value={totalSpend !== undefined ? `$${totalSpend.toFixed(2)}` : undefined}>
-          {cost.status !== 'success' && <AsyncState status={cost.status === 'loading' ? 'loading' : 'error'} error={cost.error} />}
-          {cost.status === 'success' && cost.data.records.length === 0 && (
-            <AsyncState status="empty" emptyMessage="No cost records yet." />
-          )}
-          {cost.status === 'success' &&
-            cost.data.records.slice(0, 5).map((r) => (
-              <div key={r.id} className={styles.item}>
-                <div className={styles.itemTitle}>
-                  {r.costCategory} — ${r.totalCostUsd.toFixed(4)}
-                </div>
-                <div className={styles.itemMeta}>{r.agentId}</div>
-              </div>
-            ))}
-        </KpiCard>
+      {auth && <ActivityTheatre tenantId={auth.tenant.id} />}
 
-        <KpiCard title="Latest Briefing">
-          {briefings.status !== 'success' && (
-            <AsyncState status={briefings.status === 'loading' ? 'loading' : 'error'} error={briefings.error} />
-          )}
-          {briefings.status === 'success' && !latestBriefing && (
-            <AsyncState status="empty" emptyMessage="No briefing generated yet." />
-          )}
-          {latestBriefing && (
-            <div className={styles.item}>
-              <div className={styles.itemTitle}>{latestBriefing.title}</div>
-              <div className={styles.itemMeta}>
-                {latestBriefing.briefing_date} · {latestBriefing.status}
-              </div>
-            </div>
-          )}
-        </KpiCard>
-      </div>
+      <section className={`${styles.metricsRow} stagger`} aria-label="Key operational metrics">
+        {runs.status === 'ok' ? (
+          <>
+            <MetricBlock
+              label="Completed runs"
+              value={fmt(runs.data.completedTraces)}
+              source={`execution_traces · ${fmt(runs.data.totalTraces)} total · all time`}
+              timestamp={`read ${new Date(runs.readAt).toLocaleTimeString()}`}
+            />
+            <MetricBlock
+              label="Failed or escalated runs"
+              value={fmt(runs.data.failedTraces + runs.data.escalatedTraces)}
+              source={`execution_traces · ${fmt(runs.data.failedTraces)} failed · ${fmt(runs.data.escalatedTraces)} escalated · all time`}
+              timestamp={`read ${new Date(runs.readAt).toLocaleTimeString()}`}
+            />
+          </>
+        ) : (
+          <div className={styles.span2}>
+            <AsyncState status={runs.status === 'loading' ? 'loading' : 'error'} error={runs.status === 'error' ? runs.error : undefined} />
+          </div>
+        )}
+
+        {attention.status === 'ok' ? (
+          <>
+            <MetricBlock
+              label="Needs you (attention)"
+              value={fmt(attention.data.pendingCount)}
+              source={`attention_items · pending · ${fmt(attention.data.claimedCount)} claimed`}
+              timestamp={`read ${new Date(attention.readAt).toLocaleTimeString()}`}
+              onDrill={() => navigate('/app/attention')}
+            />
+            <MetricBlock
+              label="SLA breaches"
+              value={fmt(attention.data.slaBreachCount)}
+              source="attention_items · past SLA · all time"
+              timestamp={`read ${new Date(attention.readAt).toLocaleTimeString()}`}
+              onDrill={() => navigate('/app/attention')}
+            />
+          </>
+        ) : (
+          <div className={styles.span2}>
+            <AsyncState status={attention.status === 'loading' ? 'loading' : 'error'} error={attention.status === 'error' ? attention.error : undefined} />
+          </div>
+        )}
+      </section>
+
+      <EmptyState
+        title="Customers, bookings, funnel and response-time trend"
+        message="These need tenant-scoped analytics endpoints that do not exist yet. They will appear here once their data sources are built; nothing is estimated in the meantime."
+      />
     </div>
   );
 }

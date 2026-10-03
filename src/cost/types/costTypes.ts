@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Cost Intelligence Contracts & Types
+ * Kriya AI — Cost Intelligence Contracts & Types
  * Ground-truth cost attribution, business outcome unit economics, and hard budget policies.
  */
 
@@ -20,6 +20,8 @@ export const CostProviderSchema = z.enum([
   'anthropic',
   'deepseek',
   'local',
+  'openrouter',
+  'meta',
   'twilio',
   'elevenlabs',
   'livekit',

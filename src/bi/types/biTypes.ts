@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Business Intelligence & Executive Daily Briefing Type Definitions
+ * Kriya AI — Business Intelligence & Executive Daily Briefing Type Definitions
  * Typed contracts for multi-source aggregation, deterministic narrative synthesis & briefings (§13, §14 of CLAUDE.md).
  */
 

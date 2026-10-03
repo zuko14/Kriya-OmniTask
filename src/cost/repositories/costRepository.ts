@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Cost Intelligence Repository
+ * Kriya AI — Cost Intelligence Repository
  * Persistence for cost attribution records, business outcomes, and tenant budget policies.
  */
 
@@ -256,6 +256,8 @@ export class CostRepository extends BaseRepository<any> {
       anthropic: 0,
       deepseek: 0,
       local: 0,
+      openrouter: 0,
+      meta: 0,
       twilio: 0,
       elevenlabs: 0,
       livekit: 0,

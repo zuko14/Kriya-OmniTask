@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Organization Hierarchy Engine
+ * Kriya AI — Organization Hierarchy Engine
  * Manages enterprise tree structures, department/squad hierarchies, cycle prevention, and subtree resolution.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Reliability Engineering Service
+ * Kriya AI — Reliability Engineering Service
  * High-level orchestration of idempotency protection, circuit breakers, dead-letter recovery, and state transitions.
  */
 
@@ -8,6 +8,9 @@ import { IdempotencyManager } from '../idempotency/idempotencyManager.js';
 import { BulkheadCircuitBreaker } from '../circuit/bulkheadCircuitBreaker.js';
 import { DeadLetterQueueManager } from '../dlq/deadLetterQueueManager.js';
 import { StateRecoveryEngine } from '../recovery/stateRecoveryEngine.js';
+import { ChaosDrillEngine } from '../chaos/chaosDrillEngine.js';
+import { PitrEngine } from '../pitr/pitrEngine.js';
+import { FailoverRunbookEngine } from '../failover/failoverRunbookEngine.js';
 import {
   IdempotentExecuteRequest,
   DeadLetterJob,
@@ -15,6 +18,14 @@ import {
   DependencyHealth,
   OperationRecoveryCheckpoint,
   OperationLifecycleState,
+  ReliabilityDrillRun,
+  RunReliabilityDrillRequest,
+  PitrSnapshot,
+  CreatePitrSnapshotRequest,
+  PitrRestoreOperation,
+  RestorePitrRequest,
+  FailoverDrillResult,
+  SimulateFailoverRequest,
 } from '../types/reliabilityTypes.js';
 import { TenantContextManager } from '../../core/context/tenantContext.js';
 import { NotFoundError } from '../../core/errors/errors.js';
@@ -23,6 +34,9 @@ import { logger } from '../../core/logger/logger.js';
 export class ReliabilityService {
   private repo = new ReliabilityRepository();
   private circuitBreakers = new Map<string, BulkheadCircuitBreaker>();
+  private chaosEngine = new ChaosDrillEngine(this.repo);
+  private pitrEngine = new PitrEngine(undefined, this.repo);
+  private failoverEngine = new FailoverRunbookEngine(this.repo);
 
   private getCircuitBreaker(dependencyName: string): BulkheadCircuitBreaker {
     let cb = this.circuitBreakers.get(dependencyName);
@@ -223,4 +237,65 @@ export class ReliabilityService {
     const plan = StateRecoveryEngine.planRecovery(checkpoint);
     return { plan, checkpoint };
   }
+
+  // --- WP-8.4: Chaos Injection Drills (Staging Only) ---
+
+  public async executeChaosDrill(params: RunReliabilityDrillRequest): Promise<ReliabilityDrillRun> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.chaosEngine.executeDrill(tenantId, params);
+  }
+
+  public async listChaosDrills(limit = 20): Promise<ReliabilityDrillRun[]> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.repo.listReliabilityDrillRuns(tenantId, limit);
+  }
+
+  // --- WP-8.4: Point-In-Time Recovery (PITR) & Snapshots ---
+
+  public async createPitrSnapshot(params: CreatePitrSnapshotRequest): Promise<PitrSnapshot> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.pitrEngine.createSnapshot(tenantId, params);
+  }
+
+  public async verifyPitrSnapshot(snapshotId: string): Promise<{ valid: boolean; checksumSha256: string; computedSha256: string }> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.pitrEngine.verifySnapshotIntegrity(tenantId, snapshotId);
+  }
+
+  public async executePitrRestore(params: RestorePitrRequest): Promise<PitrRestoreOperation> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.pitrEngine.executeRestoreDrill(tenantId, params);
+  }
+
+  public async listPitrSnapshots(limit = 20): Promise<PitrSnapshot[]> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.pitrEngine.listSnapshots(tenantId, limit);
+  }
+
+  public async getPitrSnapshot(snapshotId: string): Promise<PitrSnapshot | null> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.pitrEngine.getSnapshot(tenantId, snapshotId);
+  }
+
+  public async listPitrRestores(limit = 20): Promise<PitrRestoreOperation[]> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.pitrEngine.listRestores(tenantId, limit);
+  }
+
+  // --- WP-8.4: Failover Runbooks & Drills ---
+
+  public async simulateFailover(params: SimulateFailoverRequest): Promise<FailoverDrillResult> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.failoverEngine.executeFailoverDrill(tenantId, params);
+  }
+
+  public getFailoverClusterTopology(): ReturnType<FailoverRunbookEngine['getClusterTopology']> {
+    return this.failoverEngine.getClusterTopology();
+  }
+
+  public async listFailoverDrills(limit = 20): Promise<FailoverDrillResult[]> {
+    const tenantId = TenantContextManager.getTenantId();
+    return this.repo.listFailoverDrillRuns(tenantId, limit);
+  }
 }
+

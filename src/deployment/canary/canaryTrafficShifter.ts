@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Canary Traffic Shifter & Automated Rollback Guardian
+ * Kriya AI — Canary Traffic Shifter & Automated Rollback Guardian
  * Controls gradual canary traffic weighting and evaluates real-time telemetry to trigger safe automatic rollbacks.
  */
 

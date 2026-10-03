@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { apiFetch, ApiError } from '../../lib/apiClient';
 import styles from './Conversations.module.css';
@@ -12,6 +12,10 @@ export function Conversations() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
+  // One idempotency key per composed message: a retry after a failure or timeout reuses it, so the
+  // server can de-duplicate; a new key is minted only after the server accepted this message.
+  const idempotencyKeyRef = useRef(`msg_${crypto.randomUUID()}`);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -19,7 +23,7 @@ export function Conversations() {
       setActionError(null);
       setActionSuccess(null);
 
-      const idempotencyKey = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const idempotencyKey = idempotencyKeyRef.current;
 
       const res = await apiFetch<{ status: string; messageId?: string }>('/api/v1/channels/send', {
         method: 'POST',
@@ -33,8 +37,12 @@ export function Conversations() {
         }),
       });
 
-      setActionSuccess(`Message dispatched successfully via ${channel.toUpperCase()} (ID: ${res.messageId || 'queued'}).`);
+      // Report exactly what the server said; "submitted" is not "delivered" (verified-or-not-done).
+      setActionSuccess(
+        `${channel.toUpperCase()} message accepted by the server · status: ${res.status}${res.messageId ? ` · id: ${res.messageId}` : ' · no message id returned'}`
+      );
       setMessageText('');
+      idempotencyKeyRef.current = `msg_${crypto.randomUUID()}`;
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : 'Failed to send outbound message');
     } finally {
@@ -51,8 +59,8 @@ export function Conversations() {
         </div>
       </header>
 
-      {actionError && <div className={styles.errorBanner}>⚠️ {actionError}</div>}
-      {actionSuccess && <div className={styles.successBanner}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       <div className={styles.grid}>
         {/* Outbound Dispatcher Form */}
@@ -111,7 +119,7 @@ export function Conversations() {
               />
             </div>
 
-            <button type="submit" className={styles.btnPrimary} disabled={isSending}>
+            <button type="submit" className="btn btn-accent" disabled={isSending}>
               {isSending ? 'Dispatching...' : 'Send Message'}
             </button>
           </form>
@@ -124,24 +132,24 @@ export function Conversations() {
             <div className={styles.channelList}>
               <div className={styles.channelItem}>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-ink)' }}>WhatsApp Cloud API</div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Webhook: <code>/api/v1/channels/whatsapp/webhook</code></div>
+                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>WhatsApp Cloud API</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Webhook: <code>/api/v1/channels/whatsapp/webhook</code></div>
                 </div>
                 <span className={`${styles.badge} ${styles.badgeActive}`}>Active</span>
               </div>
 
               <div className={styles.channelItem}>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-ink)' }}>Voice WebRTC / SIP</div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Full-duplex low-latency audio connector</div>
+                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>Voice WebRTC / SIP</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Full-duplex low-latency audio connector</div>
                 </div>
                 <span className={`${styles.badge} ${styles.badgeActive}`}>Active</span>
               </div>
 
               <div className={styles.channelItem}>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-ink)' }}>Email Gateway</div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Transactional & marketing inbox router</div>
+                  <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>Email Gateway</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Transactional & marketing inbox router</div>
                 </div>
                 <span className={`${styles.badge} ${styles.badgeActive}`}>Active</span>
               </div>
@@ -151,10 +159,10 @@ export function Conversations() {
           <div className={styles.noticeBox}>
             <h4>Conversation History Architecture</h4>
             <p>
-              Under Xylarc AI's sovereign architecture, conversation turns and agent dialogues are anchored directly to individual customer entities.
+              Under Kriya AI's sovereign architecture, conversation turns and agent dialogues are anchored directly to individual customer entities.
             </p>
             <p style={{ margin: 0 }}>
-              To view full chronological multi-turn conversations and sentiment analysis, visit the <Link to="/app/customers" style={{ color: 'var(--color-signal)', fontWeight: 600 }}>Customer 360 Directory</Link>. For live conversation takeovers, visit the <Link to="/app/attention" style={{ color: 'var(--color-signal)', fontWeight: 600 }}>Human Attention Center</Link>.
+              To view full chronological multi-turn conversations and sentiment analysis, visit the <Link to="/app/customers" style={{ color: 'var(--accent)', fontWeight: 600 }}>Customer 360 Directory</Link>. For live conversation takeovers, visit the <Link to="/app/attention" style={{ color: 'var(--accent)', fontWeight: 600 }}>Human Attention Center</Link>.
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Overage Evaluator Engine
+ * Kriya AI — Overage Evaluator Engine
  * Computes delta overages against included plan allowances and applies contractual overage rates.
  */
 

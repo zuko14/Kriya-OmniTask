@@ -1,4 +1,5 @@
 @import './tokens.css';
+@import './components.css';
 
 *,
 *::before,
@@ -12,37 +13,194 @@ body,
   height: 100%;
 }
 
+/* The page is never flat: two auras diffuse through the glass (DS §6.2). */
 body {
   margin: 0;
-  background: var(--color-void);
-  color: var(--color-ink);
+  background:
+    radial-gradient(ellipse 60% 45% at 88% -5%, var(--bg-aura-2), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 5% 8%, var(--bg-aura-1), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
   font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--text-md);
+  line-height: 1.6;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
   margin: 0;
+  line-height: 1.25;
+  font-weight: 600;
+  color: var(--text-strong);
 }
 
+h1 { font-size: var(--text-2xl); letter-spacing: -0.025em; }
+h2 { font-size: var(--text-xl); letter-spacing: -0.018em; }
+h3 { font-size: var(--text-lg); letter-spacing: -0.018em; }
+
 code,
+pre,
 .mono {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+table,
+td,
+th {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  line-height: 1.4;
 }
 
 a {
-  color: var(--color-signal);
+  color: var(--accent);
+  text-decoration: none;
 }
 
-button {
+a:hover {
+  text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
   font-family: var(--font-body);
 }
 
+button {
+  border-radius: var(--radius-control);
+}
+
+/* Glass recipe (DS §5.1). Fallback to opaque surfaces lives in tokens.css. */
+.glass {
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(155%);
+  backdrop-filter: blur(var(--blur)) saturate(155%);
+  box-shadow: inset 0 1px 0 var(--rim), var(--shadow);
+}
+
+/* Accessibility floor (DS §11) */
 :focus-visible {
-  outline: 2px solid var(--color-signal);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible {
+  outline-offset: 3px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--accent);
+  border: 1.5px solid var(--text3);
+}
+
+input:disabled,
+button:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Skip link (WCAG 2.4.1): hidden until focused, then the first thing a keyboard user sees. */
+.skip-link {
+  position: absolute;
+  left: var(--space-3);
+  top: -100px;
+  z-index: calc(var(--z-modal) + 1);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-solid);
+  color: var(--text-strong);
+  border: var(--border-width) solid var(--accent);
+  border-radius: var(--radius-control);
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}
+
+/* Shell layout & breakpoints (DS §4.3, §10) */
+.shell-main {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-6) 36px;
+}
+
+.shell-main > * {
+  max-width: var(--main-max);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.shell-hamburger {
+  display: none;
+}
+
+.shell-search {
+  min-width: 200px;
+}
+
+@media (max-width: 1024px) {
+  .shell-main {
+    padding: 28px var(--space-5);
+  }
+}
+
+@media (max-width: 768px) {
+  .shell-main {
+    padding: var(--space-4);
+  }
+
+  .shell-hamburger {
+    display: inline-flex;
+  }
+
+  .shell-hide-mobile {
+    display: none !important;
+  }
+
+  .shell-search {
+    min-width: 0;
+  }
+}
+
+/* Eyebrow utility class */
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
 }

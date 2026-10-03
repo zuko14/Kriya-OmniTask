@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Model Fallback Execution Manager
+ * Kriya AI — Model Fallback Execution Manager
  * Multi-tier provider failover execution loop with cost and latency calculation.
  */
 
@@ -67,10 +67,11 @@ export class ModelFallbackManager {
           mockFailure: shouldMockFailure,
         });
 
-        // Compute cost in USD
+        // Cost in USD: provider-reported when available, otherwise the registry's list price.
         const inputCost = (result.promptTokens / 1000) * candidate.inputCostPer1k;
         const outputCost = (result.completionTokens / 1000) * candidate.outputCostPer1k;
-        const totalCostUsd = Number((inputCost + outputCost).toFixed(6));
+        const totalCostUsd =
+          typeof result.costUsd === 'number' ? result.costUsd : Number((inputCost + outputCost).toFixed(6));
 
         if (isFallback) {
           logger.warn(

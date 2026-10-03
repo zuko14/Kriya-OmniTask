@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Chaos Injection Engine & Survivability Tester
+ * Kriya AI — Chaos Injection Engine & Survivability Tester
  * Injects synthetic latency, transient network drops, database pool starvation, and model rate limits.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Knowledge Fabric REST Routes
+ * Kriya AI — Knowledge Fabric REST Routes
  * Endpoints for Document Ingestion, Hybrid Search, Quality Verification & Provenance (§10, §11, §12 of CLAUDE.md).
  */
 

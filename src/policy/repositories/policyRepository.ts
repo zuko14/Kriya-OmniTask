@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Policy Repository Layer
+ * Kriya AI — Policy Repository Layer
  * Relational persistence for declarative business policy rules and audit evaluation ledger (§14, §16 of CLAUDE.md).
  */
 

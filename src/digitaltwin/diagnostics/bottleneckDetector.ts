@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Operational Bottleneck & Revenue Leak Diagnostic Detector
+ * Kriya AI — Operational Bottleneck & Revenue Leak Diagnostic Detector
  * Scans workforce execution traces, customer funnel data, and SLAs to detect operational bottlenecks (§13, §14 of CLAUDE.md).
  */
 

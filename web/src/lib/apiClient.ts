@@ -30,7 +30,7 @@ export function setUnauthorizedHandler(handler: () => void): void {
 }
 
 function getToken(): string | null {
-  return sessionStorage.getItem('xylarc_access_token');
+  return sessionStorage.getItem('kriya_access_token');
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -56,7 +56,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     }
     const err = new ApiError(body.error);
     if (err.statusCode === 401) {
-      sessionStorage.removeItem('xylarc_access_token');
+      sessionStorage.removeItem('kriya_access_token');
       onUnauthorized?.();
     }
     throw err;

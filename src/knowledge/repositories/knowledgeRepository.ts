@@ -1,10 +1,10 @@
 /**
- * Xylarc AI — Knowledge Documents & Chunks Repository
+ * Kriya AI — Knowledge Documents & Chunks Repository
  * Manages relational and vector storage of documents and windowed chunks with strict tenant scoping (§10 of CLAUDE.md).
  */
 
 import { BaseRepository } from '../../storage/repositories/baseRepository.js';
-import { DatabaseClient } from '../../storage/db.js';
+import { DatabaseClient, isPostgres } from '../../storage/db.js';
 import {
   KnowledgeDocumentRecord,
   KnowledgeChunkRecord,
@@ -12,6 +12,7 @@ import {
   KnowledgeQualityStatus,
 } from '../types/knowledgeTypes.js';
 import { CryptoUtils } from '../../core/utils/crypto.js';
+import { EmbeddingService } from '../embeddings/embeddingService.js';
 
 export class KnowledgeRepository extends BaseRepository<KnowledgeDocumentRecord> {
   protected readonly tableName = 'knowledge_documents';
@@ -22,6 +23,7 @@ export class KnowledgeRepository extends BaseRepository<KnowledgeDocumentRecord>
 
   /**
    * Ingests a new document and its chunks transactionally.
+   * Supports pgvector vector column persistence when running on PostgreSQL.
    */
   public async createDocumentWithChunks(params: {
     title: string;
@@ -42,6 +44,9 @@ export class KnowledgeRepository extends BaseRepository<KnowledgeDocumentRecord>
       content: string;
       tokenCount: number;
       embeddingJson?: string;
+      embeddingVector?: number[];
+      embeddingModel?: string;
+      embeddingDimensions?: number;
       metadataJson?: string;
     }>;
   }): Promise<{ document: KnowledgeDocumentRecord; chunks: KnowledgeChunkRecord[] }> {
@@ -79,12 +84,16 @@ export class KnowledgeRepository extends BaseRepository<KnowledgeDocumentRecord>
       heading_context: c.headingContext,
       content: c.content,
       token_count: c.tokenCount,
-      embedding_json: c.embeddingJson,
+      embedding_json: c.embeddingJson || (c.embeddingVector ? JSON.stringify(c.embeddingVector) : undefined),
+      embedding_model: c.embeddingModel || 'openai/text-embedding-3-small',
+      embedding_dimensions: c.embeddingDimensions || c.embeddingVector?.length || 1536,
       quality_status: docRecord.quality_status,
       metadata_json: c.metadataJson || '{}',
       created_at: now,
       updated_at: now,
     }));
+
+    const isPg = isPostgres(this.client);
 
     await this.client.transaction(async (tx) => {
       // 1. Insert document
@@ -118,26 +127,60 @@ export class KnowledgeRepository extends BaseRepository<KnowledgeDocumentRecord>
       );
 
       // 2. Insert chunks
-      for (const chunk of chunkRecords) {
-        await tx.execute(
-          `INSERT INTO knowledge_chunks (
-            id, tenant_id, document_id, chunk_index, heading_context, content,
-            token_count, embedding_json, quality_status, metadata_json, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-          [
-            chunk.id,
-            chunk.tenant_id,
-            chunk.document_id,
-            chunk.chunk_index,
-            chunk.heading_context,
-            chunk.content,
-            chunk.token_count,
-            chunk.embedding_json || null,
-            chunk.quality_status,
-            chunk.metadata_json,
-            chunk.created_at,
-          ]
-        );
+      for (let i = 0; i < chunkRecords.length; i++) {
+        const chunk = chunkRecords[i];
+        const rawChunk = params.chunks[i];
+        const vectorArray = rawChunk.embeddingVector || (chunk.embedding_json ? JSON.parse(chunk.embedding_json) : null);
+
+        if (isPg && vectorArray && Array.isArray(vectorArray)) {
+          const vectorLiteral = `[${vectorArray.join(',')}]`;
+          await tx.execute(
+            `INSERT INTO knowledge_chunks (
+              id, tenant_id, document_id, chunk_index, heading_context, content,
+              token_count, embedding_json, embedding_vector, embedding_model, embedding_dimensions,
+              quality_status, metadata_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::vector, ?, ?, ?, ?, ?);`,
+            [
+              chunk.id,
+              chunk.tenant_id,
+              chunk.document_id,
+              chunk.chunk_index,
+              chunk.heading_context,
+              chunk.content,
+              chunk.token_count,
+              chunk.embedding_json || null,
+              vectorLiteral,
+              chunk.embedding_model || 'openai/text-embedding-3-small',
+              chunk.embedding_dimensions || 1536,
+              chunk.quality_status,
+              chunk.metadata_json,
+              chunk.created_at,
+            ]
+          );
+        } else {
+          await tx.execute(
+            `INSERT INTO knowledge_chunks (
+              id, tenant_id, document_id, chunk_index, heading_context, content,
+              token_count, embedding_json, embedding_model, embedding_dimensions,
+              quality_status, metadata_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            [
+              chunk.id,
+              chunk.tenant_id,
+              chunk.document_id,
+              chunk.chunk_index,
+              chunk.heading_context,
+              chunk.content,
+              chunk.token_count,
+              chunk.embedding_json || null,
+              chunk.embedding_model || 'openai/text-embedding-3-small',
+              chunk.embedding_dimensions || 1536,
+              chunk.quality_status,
+              chunk.metadata_json,
+              chunk.created_at,
+            ]
+          );
+        }
       }
     });
 
@@ -289,5 +332,108 @@ export class KnowledgeRepository extends BaseRepository<KnowledgeDocumentRecord>
       'SELECT * FROM knowledge_documents WHERE tenant_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT ? OFFSET ?;',
       [tenantId, limit, offset]
     );
+  }
+
+  /**
+   * Performs vector similarity search using native pgvector cosine distance on PostgreSQL,
+   * or falls back to in-memory cosine similarity on SQLite.
+   */
+  public async vectorSearch(params: {
+    queryVector: number[];
+    topK?: number;
+    minScore?: number;
+  }): Promise<Array<{ chunk: KnowledgeChunkRecord; document: KnowledgeDocumentRecord; similarity: number }>> {
+    const tenantId = this.getTenantId();
+    const topK = params.topK ?? 5;
+    const minScore = params.minScore ?? 0.0;
+
+    if (isPostgres(this.client)) {
+      const vectorLiteral = `[${params.queryVector.join(',')}]`;
+      const rows = await this.client.query<any>(
+        `SELECT
+          c.id as chunk_id, c.tenant_id, c.document_id, c.chunk_index, c.heading_context,
+          c.content as chunk_content, c.token_count, c.embedding_json, c.embedding_model,
+          c.embedding_dimensions, c.quality_status as chunk_quality_status,
+          c.metadata_json as chunk_metadata_json, c.created_at as chunk_created_at,
+          d.id as doc_id, d.title, d.source_type, d.source_uri, d.mime_type, d.content_raw,
+          d.content_normalized, d.summary, d.version, d.is_active, d.quality_status as doc_quality_status,
+          d.stale_after_days, d.provenance_json, d.access_scope_json, d.metadata_json as doc_metadata_json,
+          d.created_at as doc_created_at, d.updated_at as doc_updated_at,
+          (1 - (c.embedding_vector <=> ?::vector)) as similarity
+        FROM knowledge_chunks c
+        JOIN knowledge_documents d ON c.document_id = d.id AND c.tenant_id = d.tenant_id
+        WHERE c.tenant_id = ? AND d.is_active = 1
+        ORDER BY c.embedding_vector <=> ?::vector ASC
+        LIMIT ?;`,
+        [vectorLiteral, tenantId, vectorLiteral, topK]
+      );
+
+      return rows
+        .map((r) => ({
+          chunk: {
+            id: r.chunk_id,
+            tenant_id: r.tenant_id,
+            document_id: r.document_id,
+            chunk_index: r.chunk_index,
+            heading_context: r.heading_context,
+            content: r.chunk_content,
+            token_count: r.token_count,
+            embedding_json: r.embedding_json,
+            embedding_model: r.embedding_model,
+            embedding_dimensions: r.embedding_dimensions,
+            quality_status: r.chunk_quality_status,
+            metadata_json: r.chunk_metadata_json,
+            created_at: r.chunk_created_at,
+            updated_at: r.chunk_created_at,
+          },
+          document: {
+            id: r.doc_id,
+            tenant_id: r.tenant_id,
+            organization_id: 'default',
+            title: r.title,
+            source_type: r.source_type,
+            source_uri: r.source_uri,
+            mime_type: r.mime_type,
+            content_raw: r.content_raw,
+            content_normalized: r.content_normalized,
+            summary: r.summary,
+            version: r.version,
+            is_active: r.is_active,
+            quality_status: r.doc_quality_status,
+            stale_after_days: r.stale_after_days,
+            provenance_json: r.provenance_json,
+            access_scope_json: r.access_scope_json,
+            metadata_json: r.doc_metadata_json,
+            created_at: r.doc_created_at,
+            updated_at: r.doc_updated_at,
+          },
+          similarity: Number(r.similarity ?? 0),
+        }))
+        .filter((r) => r.similarity >= minScore);
+    }
+
+    // SQLite in-memory fallback
+    const corpus = await this.getTenantChunksWithDocuments();
+    const scored = corpus.map((item) => {
+      let sim = 0;
+      if (item.chunk.embedding_json) {
+        try {
+          const vec = JSON.parse(item.chunk.embedding_json) as number[];
+          sim = EmbeddingService.cosineSimilarity(params.queryVector, vec);
+        } catch {
+          sim = 0;
+        }
+      }
+      return {
+        chunk: item.chunk,
+        document: item.document,
+        similarity: sim,
+      };
+    });
+
+    return scored
+      .filter((s) => s.similarity >= minScore)
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, topK);
   }
 }

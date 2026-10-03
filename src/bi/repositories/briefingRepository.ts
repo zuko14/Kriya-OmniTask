@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Executive Briefings Relational Repository
+ * Kriya AI — Executive Briefings Relational Repository
  * Manages daily executive briefing persistence and temporal queries (§13, §14 of CLAUDE.md).
  */
 

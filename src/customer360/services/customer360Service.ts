@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer 360 View & Governance Service
+ * Kriya AI — Customer 360 View & Governance Service
  * Synthesizes customer profiles, timeline, identities, consent, and privacy rights (§10, §21, §26 of CLAUDE.md).
  */
 

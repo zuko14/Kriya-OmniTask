@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Calendar Booking Specialist Unit Tests
+ * Kriya AI — Calendar Booking Specialist Unit Tests
  * Verifies slot availability query, appointment scheduling, and timeline logging (§24 of CLAUDE.md).
  */
 

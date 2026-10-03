@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Inbound Webhook Ledger Repository
+ * Kriya AI — Inbound Webhook Ledger Repository
  * Prevents replay attacks and retains raw payload traceability.
  */
 

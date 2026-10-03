@@ -5,6 +5,7 @@ import { useAsync } from '../../lib/useAsync';
 import { DataTable, Column } from '../../components/DataTable';
 import { AsyncState } from '../../components/AsyncState';
 import styles from './AgentDetail.module.css';
+import { Icon } from '../../components/brand/Icon';
 
 export interface AgentDetailRecord {
   id: string;
@@ -97,22 +98,23 @@ export function AgentDetail() {
   const agent = agentState.data.agent;
   const history = historyState.status === 'success' ? historyState.data.history : [];
 
-  let modelPolicy = { primaryModel: 'gemini-2.5-pro', temperature: 0.2, maxTokens: 4096 };
-  try {
-    if (agent.model_policy_json) {
-      modelPolicy = JSON.parse(agent.model_policy_json);
+  // Show only what the record holds: no invented model or tool list when absent/unreadable.
+  let primaryModel = 'Not set';
+  if (agent.model_policy_json) {
+    try {
+      primaryModel = JSON.parse(agent.model_policy_json).primaryModel ?? 'Not set';
+    } catch {
+      primaryModel = 'Unreadable policy';
     }
-  } catch {
-    // fallback default
   }
 
-  let toolsAllowed: string[] = [];
-  try {
-    if (agent.tools_allowed_json) {
+  let toolsAllowed: string[] | null = [];
+  if (agent.tools_allowed_json) {
+    try {
       toolsAllowed = JSON.parse(agent.tools_allowed_json);
+    } catch {
+      toolsAllowed = null;
     }
-  } catch {
-    // fallback default
   }
 
   const historyColumns: Column<TransitionHistoryItem>[] = [
@@ -138,7 +140,7 @@ export function AgentDetail() {
       render: (h) => (
         <div style={{ fontSize: '12px' }}>
           <div>{h.reason}</div>
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Actor: {h.actor_type}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Actor: {h.actor_type}</div>
         </div>
       ),
     },
@@ -146,7 +148,7 @@ export function AgentDetail() {
       key: 'timestamp',
       header: 'Timestamp',
       width: '160px',
-      render: (h) => <span style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>{new Date(h.created_at).toLocaleString()}</span>,
+      render: (h) => <span style={{ fontSize: '11px', color: 'var(--text2)' }}>{new Date(h.created_at).toLocaleString()}</span>,
     },
   ];
 
@@ -154,14 +156,14 @@ export function AgentDetail() {
     <div className={styles.container}>
       <Link to="/app/agents" className={styles.backLink}>← Back to Fleet Directory</Link>
 
-      {actionError && <div className={styles.errorBanner}>⚠️ {actionError}</div>}
-      {actionSuccess && <div className={styles.successBanner}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Header Card */}
       <div className={styles.headerCard}>
         <div className={styles.headerInfo}>
           <h1>{agent.name}</h1>
-          <p style={{ fontSize: '13px', color: 'var(--color-ink-muted)', margin: '4px 0 8px 0' }}>{agent.description}</p>
+          <p style={{ fontSize: '13px', color: 'var(--text2)', margin: '4px 0 8px 0' }}>{agent.description}</p>
           <div className={styles.headerMeta}>
             <span>ID: <strong style={{ fontFamily: 'var(--font-mono)' }}>{agent.id}</strong></span>
             <span>Department: <strong>{agent.department.toUpperCase()}</strong></span>
@@ -174,27 +176,27 @@ export function AgentDetail() {
             {agent.status}
           </span>
           {agent.status === 'draft' && (
-            <button className={styles.btnPrimary} onClick={() => handleTransition('publish', 'Operator publish to idle')}>
+            <button className="btn btn-accent" onClick={() => handleTransition('publish', 'Operator publish to idle')}>
               Publish
             </button>
           )}
           {agent.status === 'idle' && (
-            <button className={styles.btnPrimary} onClick={() => handleTransition('activate', 'Operator activation')}>
+            <button className="btn btn-accent" onClick={() => handleTransition('activate', 'Operator activation')}>
               Activate
             </button>
           )}
           {(agent.status === 'active' || agent.status === 'idle') && (
-            <button className={styles.btnSecondary} onClick={() => handleTransition('pause', 'Operator manual pause')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => handleTransition('pause', 'Operator manual pause')}>
               Pause
             </button>
           )}
           {agent.status === 'paused' && (
-            <button className={styles.btnPrimary} onClick={() => handleTransition('resume', 'Operator manual resume')}>
+            <button className="btn btn-accent" onClick={() => handleTransition('resume', 'Operator manual resume')}>
               Resume
             </button>
           )}
           {agent.status === 'error' && (
-            <button className={styles.btnPrimary} onClick={() => handleTransition('recover', 'Operator recovery reset')}>
+            <button className="btn btn-accent" onClick={() => handleTransition('recover', 'Operator recovery reset')}>
               Recover
             </button>
           )}
@@ -209,20 +211,20 @@ export function AgentDetail() {
         </div>
         <div className={styles.specCard}>
           <span className={styles.specLabel}>Risk Governance</span>
-          <span className={styles.specValue} style={{ color: agent.risk_tier === 'CRITICAL' ? 'var(--color-critical)' : 'var(--color-ink)' }}>
+          <span className={styles.specValue} style={{ color: agent.risk_tier === 'CRITICAL' ? 'var(--red)' : 'var(--text)' }}>
             {agent.risk_tier}
           </span>
         </div>
         <div className={styles.specCard}>
           <span className={styles.specLabel}>Primary Model</span>
           <span className={styles.specValue} style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
-            {modelPolicy.primaryModel}
+            {primaryModel}
           </span>
         </div>
         <div className={styles.specCard}>
           <span className={styles.specLabel}>Allowed Tools</span>
           <span className={styles.specValue} style={{ fontSize: '12px' }}>
-            {toolsAllowed.length > 0 ? toolsAllowed.join(', ') : 'None'}
+            {toolsAllowed === null ? 'Unreadable tool list' : toolsAllowed.length > 0 ? toolsAllowed.join(', ') : 'None'}
           </span>
         </div>
       </div>
@@ -231,7 +233,7 @@ export function AgentDetail() {
       {agent.system_prompt && (
         <div className={styles.sectionCard}>
           <h2 className={styles.sectionTitle}>System Prompt & Directives</h2>
-          <pre style={{ background: 'var(--color-surface-raised)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)', fontSize: '12px', whiteSpace: 'pre-wrap', color: 'var(--color-ink)', margin: 0 }}>
+          <pre style={{ background: 'var(--surface2)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)', fontSize: '12px', whiteSpace: 'pre-wrap', color: 'var(--text)', margin: 0 }}>
             {agent.system_prompt}
           </pre>
         </div>
@@ -250,25 +252,25 @@ export function AgentDetail() {
       </div>
 
       {/* Delete / Deregister Zone */}
-      <div className={styles.sectionCard} style={{ borderTop: '1px solid var(--color-border)' }}>
-        <h2 className={styles.sectionTitle} style={{ color: 'var(--color-critical)' }}>Deregister Agent</h2>
-        <p style={{ fontSize: '13px', color: 'var(--color-ink-muted)', margin: 0 }}>
+      <div className={styles.sectionCard} style={{ borderTop: '1px solid var(--border)' }}>
+        <h2 className={styles.sectionTitle} style={{ color: 'var(--red)' }}>Deregister Agent</h2>
+        <p style={{ fontSize: '13px', color: 'var(--text2)', margin: 0 }}>
           Permanently remove this agent specification from the tenant registry. Active tasks will be cancelled.
         </p>
         {!showConfirmDelete ? (
-          <button className={styles.btnDanger} onClick={() => setShowConfirmDelete(true)} style={{ alignSelf: 'flex-start' }}>
+          <button className="btn btn-danger btn-sm" onClick={() => setShowConfirmDelete(true)} style={{ alignSelf: 'flex-start' }}>
             Deregister Agent
           </button>
         ) : (
-          <div style={{ background: 'rgba(216, 87, 75, 0.1)', padding: 'var(--space-4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-critical)' }}>
-            <p style={{ fontSize: '13px', color: 'var(--color-critical)', margin: '0 0 var(--space-3) 0', fontWeight: 600 }}>
-              ⚠️ Are you sure you want to permanently delete {agent.name}?
+          <div style={{ background: 'rgba(216, 87, 75, 0.1)', padding: 'var(--space-4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--red)' }}>
+            <p style={{ fontSize: '13px', color: 'var(--red)', margin: '0 0 var(--space-3) 0', fontWeight: 600 }}>
+              <Icon name="alert" /> Are you sure you want to permanently delete {agent.name}?
             </p>
             <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-              <button className={styles.btnDanger} onClick={handleDelete} disabled={isDeleting}>
+              <button className="btn btn-danger btn-sm" onClick={handleDelete} disabled={isDeleting}>
                 {isDeleting ? 'Deleting...' : 'Yes, Permanently Delete'}
               </button>
-              <button className={styles.btnSecondary} onClick={() => setShowConfirmDelete(false)}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowConfirmDelete(false)}>
                 Cancel
               </button>
             </div>

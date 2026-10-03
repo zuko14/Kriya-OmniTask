@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Lead Qualification Specialist
+ * Kriya AI — Lead Qualification Specialist
  * Analyzes inbound commercial inquiries, calculates deterministic BANT lead scores, and promotes lifecycle stages (§23 of CLAUDE.md).
  */
 

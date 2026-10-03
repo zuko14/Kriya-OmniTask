@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Granular ABAC Policy Evaluator
+ * Kriya AI — Granular ABAC Policy Evaluator
  * Attribute-Based Access Control enforcing data classifications, department boundaries, and clearance levels.
  */
 

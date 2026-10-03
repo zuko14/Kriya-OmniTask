@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Timeline Repository
+ * Kriya AI — Customer Timeline Repository
  * Ingests and sequences chronological customer interaction and agent lifecycle events.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Hybrid RAG Retriever Unit Tests
+ * Kriya AI — Hybrid RAG Retriever Unit Tests
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';

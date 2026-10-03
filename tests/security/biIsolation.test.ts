@@ -33,14 +33,14 @@ describe('Adversarial Business Intelligence & Briefing Isolation Security Tests'
     tokenA = JwtService.sign({
       userId: 'usr_admin_a',
       tenantId: tenantA,
-      email: 'admina@xylarc.ai',
+      email: 'admina@kriya.ai',
       roles: ['admin'],
     });
 
     tokenB = JwtService.sign({
       userId: 'usr_admin_b',
       tenantId: tenantB,
-      email: 'adminb@xylarc.ai',
+      email: 'adminb@kriya.ai',
       roles: ['admin'],
     });
   });

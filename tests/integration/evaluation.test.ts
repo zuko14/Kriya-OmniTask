@@ -29,7 +29,7 @@ describe('Agent Evaluation Benchmark & Golden Test Suite REST Integration Tests'
     adminToken = JwtService.sign({
       userId: 'usr_admin_eval',
       tenantId,
-      email: 'evaladmin@xylarc.ai',
+      email: 'evaladmin@kriya.ai',
       roles: ['admin'],
     });
   });
@@ -83,8 +83,13 @@ describe('Agent Evaluation Benchmark & Golden Test Suite REST Integration Tests'
     expect(benchRes.statusCode).toBe(201);
     const bench = benchRes.json();
     expect(bench.id).toBeDefined();
-    expect(bench.verdict).toBe('release_approved');
-    expect(bench.pass_rate).toBe(1.0);
+    // In test mode the candidate is the simulated sandbox model. Its answers are graded for real,
+    // so the gate must NOT approve a release on simulated output (the old runner graded its own
+    // answer key and always approved). The report says it was a sandbox run.
+    expect(bench.verdict).not.toBe('release_approved');
+    const report = JSON.parse(bench.detailed_results_json);
+    expect(report.executionMode).toBe('sandbox');
+    expect(report.releaseGateNotes.join(' ')).toContain('SANDBOX');
     benchmarkId = bench.id;
 
     // 3. Fetch benchmark details

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Webhook Signature Verifier Unit Tests
+ * Kriya AI — Webhook Signature Verifier Unit Tests
  */
 
 import { describe, it, expect } from 'vitest';

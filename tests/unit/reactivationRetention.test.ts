@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Reactivation & Retention Specialist Unit Tests
+ * Kriya AI — Reactivation & Retention Specialist Unit Tests
  * Verifies win-back offer eligibility, consent gating, and discount policy boundaries (§26, §27 of CLAUDE.md).
  */
 

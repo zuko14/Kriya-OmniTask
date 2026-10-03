@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Enterprise Governance Types & Contracts
+ * Kriya AI — Enterprise Governance Types & Contracts
  * Organization hierarchy, granular ABAC, SSO/OIDC integration, and data retention policies.
  */
 

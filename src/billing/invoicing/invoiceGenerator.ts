@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Enterprise Invoice Generator
+ * Kriya AI — Enterprise Invoice Generator
  * Synthesizes base subscriptions, overages, promotional discounts, and localized taxes into deterministic invoices.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — WhatsApp Connector Integration Tests
+ * Kriya AI — WhatsApp Connector Integration Tests
  */
 
 import { describe, it, expect } from 'vitest';
@@ -7,11 +7,11 @@ import { WhatsAppConnector } from '../../src/channels/whatsapp/whatsappConnector
 
 describe('WhatsApp Connector Integration Tests', () => {
   it('should build text message payload adhering to Meta Cloud API specification', () => {
-    const payload = WhatsAppConnector.buildTextMessage('+919876543210', 'Welcome to Xylarc AI!');
+    const payload = WhatsAppConnector.buildTextMessage('+919876543210', 'Welcome to Kriya AI!');
     expect(payload.messaging_product).toBe('whatsapp');
     expect(payload.to).toBe('+919876543210');
     expect(payload.type).toBe('text');
-    expect((payload.text as any).body).toBe('Welcome to Xylarc AI!');
+    expect((payload.text as any).body).toBe('Welcome to Kriya AI!');
   });
 
   it('should build interactive quick-reply button message', () => {
@@ -22,8 +22,8 @@ describe('WhatsApp Connector Integration Tests', () => {
         { id: 'btn_book', title: 'Book Demo' },
         { id: 'btn_support', title: 'Get Support' },
       ],
-      'Xylarc Assistant',
-      'Powered by Xylarc AI'
+      'Kriya Assistant',
+      'Powered by Kriya AI'
     );
 
     expect(payload.type).toBe('interactive');
@@ -31,7 +31,7 @@ describe('WhatsApp Connector Integration Tests', () => {
     expect(interactive.type).toBe('button');
     expect(interactive.action.buttons.length).toBe(2);
     expect(interactive.action.buttons[0].reply.id).toBe('btn_book');
-    expect(interactive.header.text).toBe('Xylarc Assistant');
+    expect(interactive.header.text).toBe('Kriya Assistant');
   });
 
   it('should build interactive list message', () => {

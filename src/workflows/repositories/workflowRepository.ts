@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Workflow Repositories
+ * Kriya AI — Workflow Repositories
  * Relational persistence for workflow definitions, DAG execution runs, and human approval requests (§13, §15 of CLAUDE.md).
  */
 

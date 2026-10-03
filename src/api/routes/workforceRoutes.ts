@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Lifecycle Workforce REST Routes
+ * Kriya AI — Customer Lifecycle Workforce REST Routes
  * Fastify REST endpoints for Lead Qualification, Calendar Booking, Support Resolution, and Customer Reactivation (§23-§28 of CLAUDE.md).
  */
 

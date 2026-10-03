@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Virtual Dry-Run Sandbox Runner
+ * Kriya AI — Virtual Dry-Run Sandbox Runner
  * Executes agents in a sandboxed mock environment without production side effects (§14, §17 of CLAUDE.md).
  */
 

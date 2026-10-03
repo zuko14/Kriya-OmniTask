@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Authentication & Identity Routes
+ * Kriya AI — Authentication & Identity Routes
  */
 
 import { FastifyInstance } from 'fastify';

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Business Digital Twin & KPI REST Routes
+ * Kriya AI — Business Digital Twin & KPI REST Routes
  * Endpoints for Org Context Graph, KPI Evaluations & Bottleneck Diagnostics (§13, §14, §15 of CLAUDE.md).
  */
 

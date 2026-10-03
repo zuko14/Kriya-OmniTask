@@ -5,6 +5,12 @@ import { DataTable, Column } from '../../components/DataTable';
 import { AsyncState } from '../../components/AsyncState';
 import styles from './PlatformSecurity.module.css';
 
+/** 32 bytes from the CSPRNG, base64url (never Math.random for secrets). */
+function generateSecret(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return `sec_${btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`;
+}
+
 export interface SecurityComplianceReport {
   status: 'COMPLIANT' | 'VULNERABILITY_DETECTED';
   totalChecks: number;
@@ -71,7 +77,7 @@ export function PlatformSecurity() {
         method: 'POST',
         body: JSON.stringify({
           secretName,
-          newSecretValue: newSecretValue || `sec_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+          newSecretValue: newSecretValue || generateSecret(),
         }),
       });
       setActionSuccess(`Secret '${secretName}' rotated successfully.`);
@@ -87,7 +93,7 @@ export function PlatformSecurity() {
 
   const scan = scanState.status === 'success' ? scanState.data : null;
   const ledger = ledgerState.status === 'success' ? ledgerState.data : null;
-  const secrets = secretsState.status === 'success' ? secretsState.data.secrets : [];
+  const secrets = secretsState.status === 'success' ? (secretsState.data?.secrets ?? []) : [];
 
   const findingColumns: Column<SecurityComplianceReport['findings'][0]>[] = [
     {
@@ -99,7 +105,7 @@ export function PlatformSecurity() {
           className={styles.badge}
           style={{
             background: f.severity === 'CRITICAL' || f.severity === 'HIGH' ? 'rgba(216, 87, 75, 0.15)' : 'rgba(217, 151, 62, 0.15)',
-            color: f.severity === 'CRITICAL' || f.severity === 'HIGH' ? 'var(--color-critical)' : 'var(--color-caution)',
+            color: f.severity === 'CRITICAL' || f.severity === 'HIGH' ? 'var(--red)' : 'var(--amber)',
           }}
         >
           {f.severity}
@@ -119,7 +125,7 @@ export function PlatformSecurity() {
     {
       key: 'remediation',
       header: 'Remediation Step',
-      render: (f) => <span style={{ fontSize: '12px', color: 'var(--color-ink-muted)' }}>{f.remediation}</span>,
+      render: (f) => <span style={{ fontSize: '12px', color: 'var(--text2)' }}>{f.remediation}</span>,
     },
   ];
 
@@ -149,7 +155,7 @@ export function PlatformSecurity() {
       key: 'rotated_at',
       header: 'Rotated At',
       width: '150px',
-      render: (s) => <span style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>{new Date(s.rotated_at).toLocaleString()}</span>,
+      render: (s) => <span style={{ fontSize: '11px', color: 'var(--text2)' }}>{new Date(s.rotated_at).toLocaleString()}</span>,
     },
   ];
 
@@ -161,17 +167,17 @@ export function PlatformSecurity() {
           <p className={styles.subtitle}>Cryptographic audit hash-chain ledger, automated compliance checks, and zero-trust key rotation.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnSecondary} onClick={() => setRefreshTrigger((prev) => prev + 1)}>
+          <button className="btn btn-ghost btn-sm" onClick={() => setRefreshTrigger((prev) => prev + 1)}>
             Run Scan Now
           </button>
-          <button className={styles.btnPrimary} onClick={() => setIsRotating(true)}>
+          <button className="btn btn-accent" onClick={() => setIsRotating(true)}>
             + Rotate Secret Key
           </button>
         </div>
       </header>
 
-      {actionError && <div style={{ color: 'var(--color-critical)', background: 'rgba(216,87,75,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>⚠️ {actionError}</div>}
-      {actionSuccess && <div style={{ color: 'var(--color-verify)', background: 'rgba(63,166,107,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Cryptographic Ledger & Compliance Score */}
       <div className={styles.gridTwo}>
@@ -187,7 +193,7 @@ export function PlatformSecurity() {
                   {ledger?.isValid ? 'VERIFIED (IMMUTABLE)' : 'INTEGRITY BREACH'}
                 </span>
               </div>
-              <div style={{ fontSize: '13px', color: 'var(--color-ink-muted)' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text2)' }}>
                 Total Verified Events: <strong>{ledger?.totalEventsChecked}</strong> | Sequence: <strong>{ledger?.lastValidSequence}</strong>
               </div>
             </div>
@@ -206,7 +212,7 @@ export function PlatformSecurity() {
                   {scan?.status}
                 </span>
               </div>
-              <div style={{ fontSize: '13px', color: 'var(--color-ink-muted)' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text2)' }}>
                 Passed Checks: <strong>{scan?.passedChecks} / {scan?.totalChecks}</strong>
               </div>
             </div>
@@ -276,10 +282,10 @@ export function PlatformSecurity() {
               </div>
 
               <div className={styles.modalActions}>
-                <button type="button" className={styles.btnSecondary} onClick={() => setIsRotating(false)} disabled={isSubmitting}>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIsRotating(false)} disabled={isSubmitting}>
                   Cancel
                 </button>
-                <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
+                <button type="submit" className="btn btn-accent" disabled={isSubmitting}>
                   {isSubmitting ? 'Rotating...' : 'Rotate & Re-encrypt'}
                 </button>
               </div>

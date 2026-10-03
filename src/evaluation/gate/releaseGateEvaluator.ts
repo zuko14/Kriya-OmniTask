@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Release Quality Gate Evaluator
+ * Kriya AI — Release Quality Gate Evaluator
  * Enforces deterministic release gating rules across benchmark test runs (§14, §18 of CLAUDE.md).
  */
 

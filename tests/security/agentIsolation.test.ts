@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Multi-Tenant Agent Isolation Security Tests
+ * Kriya AI — Adversarial Multi-Tenant Agent Isolation Security Tests
  * Verifies that agent specifications, state transitions, and audit histories are strictly isolated across tenants (§6, §26 of CLAUDE.md).
  */
 

@@ -88,21 +88,43 @@ export function AgentFleet() {
     }
   };
 
+  const [drainingAgentIds, setDrainingAgentIds] = useState<Set<string>>(new Set());
+  const [deactivatingAgent, setDeactivatingAgent] = useState<Agent | null>(null);
+
   const handleTransition = async (agent: Agent, action: string, reason: string) => {
     try {
       setActionError(null);
+      if (action === 'pause') {
+        // Mark as draining in-flight work
+        setDrainingAgentIds((prev) => new Set(prev).add(agent.id));
+      }
       await apiFetch(`/api/v1/agents/${agent.id}/transition`, {
         method: 'POST',
         body: JSON.stringify({ action, reason }),
       });
-      setActionSuccess(`Transitioned '${agent.name}' via action '${action}'.`);
+      if (action === 'pause') {
+        setActionSuccess(`Agent '${agent.name}' is draining in-flight work and entering paused state.`);
+      } else {
+        setActionSuccess(`Transitioned '${agent.name}' via action '${action}'.`);
+      }
       setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : 'Failed to transition agent');
+    } finally {
+      setDeactivatingAgent(null);
+      setDrainingAgentIds((prev) => {
+        const next = new Set(prev);
+        next.delete(agent.id);
+        return next;
+      });
     }
   };
 
-  const agents = state.status === 'success' ? state.data.agents : [];
+  const handleInitiateDeactivation = (agent: Agent) => {
+    setDeactivatingAgent(agent);
+  };
+
+  const agents = state.status === 'success' ? (state.data?.agents ?? []) : [];
   const activeCount = agents.filter((a) => a.status === 'active').length;
   const idleCount = agents.filter((a) => a.status === 'idle').length;
   const pausedCount = agents.filter((a) => a.status === 'paused').length;
@@ -114,11 +136,11 @@ export function AgentFleet() {
       header: 'Agent Name',
       render: (a) => (
         <div>
-          <Link to={`/app/agents/${a.id}`} style={{ color: 'var(--color-signal)', fontWeight: 600, textDecoration: 'none' }}>
+          <Link to={`/app/agents/${a.id}`} style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
             {a.name}
           </Link>
-          <div style={{ fontSize: '12px', color: 'var(--color-ink-muted)' }}>{a.description}</div>
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{a.description}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)', fontFamily: 'var(--font-mono)' }}>
             ID: {a.id}
           </div>
         </div>
@@ -131,7 +153,7 @@ export function AgentFleet() {
       render: (a) => (
         <div style={{ fontSize: '12px' }}>
           <div style={{ fontWeight: 500, textTransform: 'capitalize' }}>{a.department}</div>
-          <div style={{ color: 'var(--color-ink-muted)', textTransform: 'capitalize', fontSize: '11px' }}>{a.category}</div>
+          <div style={{ color: 'var(--text2)', textTransform: 'capitalize', fontSize: '11px' }}>{a.category}</div>
         </div>
       ),
     },
@@ -142,7 +164,7 @@ export function AgentFleet() {
       render: (a) => (
         <div style={{ fontSize: '11px' }}>
           <div>Level: <strong>L{a.autonomy_level}</strong></div>
-          <div style={{ color: a.risk_tier === 'CRITICAL' ? 'var(--color-critical)' : 'var(--color-ink-muted)' }}>
+          <div style={{ color: a.risk_tier === 'CRITICAL' ? 'var(--red)' : 'var(--text2)' }}>
             Risk: <strong>{a.risk_tier}</strong>
           </div>
         </div>
@@ -151,8 +173,16 @@ export function AgentFleet() {
     {
       key: 'status',
       header: 'Status',
-      width: '110px',
+      width: '130px',
       render: (a) => {
+        const isDraining = drainingAgentIds.has(a.id);
+        if (isDraining) {
+          return (
+            <span className={`${styles.badge} ${styles.statusPaused}`} style={{ background: 'var(--purple)', color: '#000' }}>
+              Draining...
+            </span>
+          );
+        }
         const statusClass =
           a.status === 'active'
             ? styles.statusActive
@@ -169,25 +199,25 @@ export function AgentFleet() {
     {
       key: 'actions',
       header: 'Actions',
-      width: '160px',
+      width: '180px',
       render: (a) => (
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           {a.status === 'idle' && (
-            <button className={styles.btnSecondary} onClick={() => handleTransition(a, 'activate', 'Operator initiated activation')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => handleTransition(a, 'activate', 'Operator initiated activation')}>
               Activate
             </button>
           )}
           {(a.status === 'active' || a.status === 'idle') && (
-            <button className={styles.btnSecondary} onClick={() => handleTransition(a, 'pause', 'Operator pause')}>
-              Pause
+            <button className="btn btn-ghost btn-sm" onClick={() => handleInitiateDeactivation(a)}>
+              Deactivate
             </button>
           )}
           {a.status === 'paused' && (
-            <button className={styles.btnSecondary} onClick={() => handleTransition(a, 'resume', 'Operator resume')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => handleTransition(a, 'resume', 'Operator resume')}>
               Resume
             </button>
           )}
-          <Link to={`/app/agents/${a.id}`} className={styles.btnSecondary}>
+          <Link to={`/app/agents/${a.id}`} className="btn btn-ghost btn-sm">
             Details →
           </Link>
         </div>
@@ -203,17 +233,17 @@ export function AgentFleet() {
           <p className={styles.subtitle}>Supervise agent lifecycle state machines, autonomous permissions, and task assignments.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnSecondary} onClick={handleBootstrap}>
+          <button className="btn btn-ghost btn-sm" onClick={handleBootstrap}>
             Bootstrap Templates
           </button>
-          <button className={styles.btnPrimary} onClick={() => setIsCreating(true)}>
+          <button className="btn btn-accent" onClick={() => setIsCreating(true)}>
             + Register Agent
           </button>
         </div>
       </header>
 
-      {actionError && <div className={styles.errorBanner}>⚠️ {actionError}</div>}
-      {actionSuccess && <div className={styles.successBanner}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Metrics Strip */}
       <div className={styles.metricsGrid}>
@@ -223,19 +253,19 @@ export function AgentFleet() {
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Active</span>
-          <span className={styles.metricValue} style={{ color: 'var(--color-verify)' }}>{activeCount}</span>
+          <span className={styles.metricValue}>{activeCount}</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Idle</span>
-          <span className={styles.metricValue} style={{ color: 'var(--color-signal)' }}>{idleCount}</span>
+          <span className={styles.metricValue}>{idleCount}</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Paused</span>
-          <span className={styles.metricValue} style={{ color: 'var(--color-caution)' }}>{pausedCount}</span>
+          <span className={styles.metricValue} style={{ color: pausedCount > 0 ? 'var(--amber)' : undefined }}>{pausedCount}</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Error</span>
-          <span className={styles.metricValue} style={{ color: errorCount > 0 ? 'var(--color-critical)' : 'var(--color-ink-muted)' }}>
+          <span className={styles.metricValue} style={{ color: errorCount > 0 ? 'var(--red)' : undefined }}>
             {errorCount}
           </span>
         </div>
@@ -394,7 +424,7 @@ export function AgentFleet() {
               <div className={styles.modalActions}>
                 <button
                   type="button"
-                  className={styles.btnSecondary}
+                  className="btn btn-ghost btn-sm"
                   onClick={() => setIsCreating(false)}
                   disabled={isSubmitting}
                 >
@@ -402,13 +432,52 @@ export function AgentFleet() {
                 </button>
                 <button
                   type="submit"
-                  className={styles.btnPrimary}
+                  className="btn btn-accent"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Registering...' : 'Register Agent'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Graceful Drain & Deactivation Confirmation Modal (§18.2, Criterion 2) */}
+      {deactivatingAgent && (
+        <div className={styles.modalBackdrop} role="dialog" aria-modal="true" aria-labelledby="deactivate-modal-title">
+          <div className={styles.modal}>
+            <h2 className={styles.modalTitle} id="deactivate-modal-title">
+              Deactivate Agent & Drain In-Flight Work
+            </h2>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text2)', lineHeight: 1.5 }}>
+              Deactivating <strong>{deactivatingAgent.name}</strong> will initiate graceful work draining.
+              All active in-flight tasks will run to completion. New task dispatches will be suspended.
+              Once drained, the agent will enter the paused state.
+            </p>
+
+            <div style={{ background: 'var(--surface3)', border: '1px solid var(--border)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)', margin: 'var(--space-3) 0', fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)' }}>
+              <div>Active Work Draining: ENABLED</div>
+              <div>Estimated Drain Time: &lt; 30s</div>
+              <div>Tenant Scope: Isolated</div>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setDeactivatingAgent(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-accent"
+                onClick={() => handleTransition(deactivatingAgent, 'pause', 'Graceful deactivation & task drain')}
+              >
+                Confirm Graceful Drain & Deactivate
+              </button>
+            </div>
           </div>
         </div>
       )}

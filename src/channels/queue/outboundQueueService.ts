@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Outbound Message Queue & Dispatcher
+ * Kriya AI — Outbound Message Queue & Dispatcher
  * Idempotent message delivery, privacy consent gating, and frequency governance (§21, §27 of CLAUDE.md).
  */
 
@@ -11,6 +11,7 @@ import { QuotaService } from '../../control-plane/quotas/quotaService.js';
 import { TimelineRepository } from '../../customer360/repositories/timelineRepository.js';
 import { auditLogger } from '../../security/audit/auditLogger.js';
 import { CryptoUtils } from '../../core/utils/crypto.js';
+import { isSandboxMode } from '../../core/config/runtimeMode.js';
 
 export interface SendMessagePayload {
   customerId?: string;
@@ -116,9 +117,16 @@ export class OutboundQueueService {
       return { message: record, delivered: false, status: throttleStatus, reason: govCheck.reason };
     }
 
-    // 5. Successful Transmission
-    const externalMessageId = `wamid.${CryptoUtils.generateId()}`;
+    // 5. Transmission. No real channel transport is wired yet (WhatsApp send = docs/kriya WP-5.2),
+    // so outside sandbox the message is held as 'queued' — it is NEVER reported as sent without a
+    // provider message ID (docs/kriya S4). Sandbox sends are explicitly labelled as simulated.
+    const sandbox = isSandboxMode();
     const now = new Date().toISOString();
+    const status: OutboundStatus = sandbox ? 'sent' : 'queued';
+    const externalMessageId = sandbox ? `sandbox.${CryptoUtils.generateId()}` : undefined;
+    const reason = sandbox
+      ? 'SANDBOX: simulated delivery, no real message left the platform.'
+      : `No ${params.channel} transport configured; message held in queue until delivery is enabled.`;
 
     const record = await this.messageRepo.create({
       customer_id: params.customerId,
@@ -127,9 +135,9 @@ export class OutboundQueueService {
       recipient: params.recipient,
       message_type: params.messageType,
       payload_json: JSON.stringify(params.payload),
-      status: 'sent',
+      status,
       external_message_id: externalMessageId,
-      sent_at: now,
+      sent_at: sandbox ? now : undefined,
       retry_count: 0,
     });
 
@@ -138,24 +146,27 @@ export class OutboundQueueService {
       await this.timelineRepo.appendEvent({
         customerId: params.customerId,
         channel: params.channel,
-        eventType: 'message.sent',
-        summary: `Outbound ${params.channel} message sent (${params.messageType})`,
-        details: { idempotencyKey: params.idempotencyKey, externalMessageId },
+        eventType: sandbox ? 'message.sent' : 'message.queued',
+        summary: sandbox
+          ? `[SANDBOX] Outbound ${params.channel} message simulated (${params.messageType})`
+          : `Outbound ${params.channel} message queued, not yet delivered (${params.messageType})`,
+        details: { idempotencyKey: params.idempotencyKey, externalMessageId, sandbox },
         actorType: 'system',
       });
     }
 
     await auditLogger.logEvent({
-      action: 'channel.message_sent',
+      action: sandbox ? 'channel.message_sent_sandbox' : 'channel.message_queued',
       resourceType: 'outbound_message',
       resourceId: record.id,
-      details: { channel: params.channel, recipient: params.recipient, messageType: params.messageType },
+      details: { channel: params.channel, recipient: params.recipient, messageType: params.messageType, sandbox },
     });
 
     return {
       message: record,
-      delivered: true,
-      status: 'sent',
+      delivered: sandbox,
+      status,
+      reason,
     };
   }
 }

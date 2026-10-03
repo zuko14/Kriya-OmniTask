@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Verification & Quality Review Controller Service
+ * Kriya AI — Verification & Quality Review Controller Service
  * High-level service managing pre-flight assertions, LLM-judge quality evaluations, and review persistence (§14, §15 of CLAUDE.md).
  */
 

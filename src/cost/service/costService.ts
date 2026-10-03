@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Cost Intelligence Service
+ * Kriya AI — Cost Intelligence Service
  * High-level orchestration for cost attribution, unit economics calculation, and budget enforcement.
  */
 

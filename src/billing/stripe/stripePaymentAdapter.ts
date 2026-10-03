@@ -1,9 +1,10 @@
 /**
- * Xylarc AI — Stripe Payment & Webhook Adapter
+ * Kriya AI — Stripe Payment & Webhook Adapter
  * Integrates Stripe checkout, payment intents, and asynchronous webhook lifecycle events.
  */
 
 import { Invoice, TenantSubscription } from '../types/billingTypes.js';
+import { isSandboxMode, NotConfiguredError } from '../../core/config/runtimeMode.js';
 
 export interface StripePaymentIntentResult {
   paymentIntentId: string;
@@ -31,7 +32,12 @@ export class StripePaymentAdapter {
    * Creates a PaymentIntent for an open invoice.
    */
   public static createPaymentIntent(invoice: Invoice): StripePaymentIntentResult {
-    const paymentIntentId = `pi_${invoice.id.replace('inv_', '')}_${Date.now()}`;
+    // No Stripe API call exists yet (docs/kriya S6 → WP-5.3). Outside sandbox, refuse rather
+    // than hand out a fake client secret that a real checkout would fail on.
+    if (!isSandboxMode()) {
+      throw new NotConfiguredError('Stripe payment intents', 'real Stripe integration lands in docs/kriya WP-5.3.');
+    }
+    const paymentIntentId = `pi_sandbox_${invoice.id.replace('inv_', '')}_${Date.now()}`;
     return {
       paymentIntentId,
       clientSecret: `${paymentIntentId}_secret_mock`,

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Channel Pricing & Plan Catalog
+ * Kriya AI — Channel Pricing & Plan Catalog
  * Standard plan tiers and multi-channel workforce pricing structures.
  */
 

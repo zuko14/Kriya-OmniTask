@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Billing & Usage Service
+ * Kriya AI — Billing & Usage Service
  * Orchestrates subscriptions, usage ingestion, overage calculation, invoicing, and Stripe payments.
  */
 

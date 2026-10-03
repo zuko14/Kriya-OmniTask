@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Infrastructure Service
+ * Kriya AI — Production Infrastructure Service
  * Orchestrates worker queues, connection pool metrics, scheduled jobs, and secret audits.
  */
 
@@ -8,6 +8,7 @@ import { InfrastructureRepository } from '../repositories/infrastructureReposito
 import { WorkerQueueManager } from '../queue/workerQueueManager.js';
 import { ConnectionPoolManager } from '../pool/connectionPoolManager.js';
 import { SecretAuditEngine } from '../secrets/secretAuditEngine.js';
+import { DurableJobQueue } from '../queue/durableJobQueue.js';
 import {
   AsyncJob,
   ScheduledJob,
@@ -20,9 +21,15 @@ import { logger } from '../../core/logger/logger.js';
 
 export class InfrastructureService {
   private poolManager: ConnectionPoolManager;
+  private durableQueue: DurableJobQueue;
 
   constructor(private repo: InfrastructureRepository) {
     this.poolManager = new ConnectionPoolManager(25);
+    this.durableQueue = new DurableJobQueue(this.repo);
+  }
+
+  public getDurableQueue(): DurableJobQueue {
+    return this.durableQueue;
   }
 
   /**
@@ -37,67 +44,67 @@ export class InfrastructureService {
       priority?: number;
       runAt?: string;
       maxRetries?: number;
+      correlationId?: string;
+      idempotencyKey?: string;
+      timezone?: string;
+      quietHoursPolicy?: 'none' | 'skip' | 'postpone';
     }
   ): Promise<AsyncJob> {
-    const now = new Date().toISOString();
-    const job: AsyncJob = {
-      id: `job_${CryptoUtils.generateId()}`,
+    return this.durableQueue.enqueue({
       tenantId,
-      queueName: options?.queueName || 'default',
       jobType,
       payload,
-      priority: options?.priority ?? 50,
-      status: 'pending',
-      maxRetries: options?.maxRetries ?? 3,
-      retryCount: 0,
-      runAt: options?.runAt || now,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    await this.repo.saveJob(job);
-    logger.info(`Enqueued job ${job.id} (${job.jobType}) on queue '${job.queueName}' with priority ${job.priority}`);
-    return job;
+      queueName: options?.queueName,
+      priority: options?.priority,
+      runAt: options?.runAt,
+      maxRetries: options?.maxRetries,
+      correlationId: options?.correlationId,
+      idempotencyKey: options?.idempotencyKey,
+      timezone: options?.timezone,
+      quietHoursPolicy: options?.quietHoursPolicy,
+    });
   }
 
   /**
-   * Worker task to atomically claim the next available job.
+   * Worker task to atomically claim the next available job using FOR UPDATE SKIP LOCKED.
    */
   public async claimNextJob(
     workerId: string,
-    queueNames: JobQueueName[] = ['high', 'default', 'low', 'batch']
+    queueNames: JobQueueName[] = ['high', 'default', 'low', 'batch'],
+    lockDurationSeconds = 60
   ): Promise<AsyncJob | null> {
-    return this.repo.claimNextPendingJob(queueNames, workerId);
+    return this.durableQueue.claimJob(workerId, { queueNames, lockDurationSeconds });
   }
 
   /**
    * Completes a running job with result payload.
    */
   public async completeJob(jobId: string, result: Record<string, any>): Promise<void> {
-    await this.repo.updateJobStatus(jobId, 'completed', result);
-    logger.info(`Completed job ${jobId} successfully`);
+    await this.durableQueue.completeJob(jobId, result);
   }
 
   /**
    * Fails a running job, evaluating retry backoff or transition to dead_letter.
    */
   public async failJob(jobId: string, errorMessage: string): Promise<AsyncJob['status']> {
-    const job = await this.repo.getJobById(jobId);
-    if (!job) {
-      throw new NotFoundError(`Job ${jobId} not found`);
-    }
+    const res = await this.durableQueue.failJob(jobId, errorMessage);
+    return res.newStatus;
+  }
 
-    const failureEval = WorkerQueueManager.evaluateJobFailure(job, errorMessage);
-    await this.repo.updateJobStatus(
-      jobId,
-      failureEval.newStatus,
-      undefined,
-      failureEval.errorMessage,
-      failureEval.nextRunAt
-    );
+  public async deadLetterJob(jobId: string, reason: string): Promise<void> {
+    await this.durableQueue.deadLetterJob(jobId, reason);
+  }
 
-    logger.warn(`Failed job ${jobId}: transitioned to status '${failureEval.newStatus}' (retry ${failureEval.retryCount})`);
-    return failureEval.newStatus;
+  public async retryDeadLetterJob(jobId: string): Promise<AsyncJob> {
+    return this.durableQueue.retryDeadLetterJob(jobId);
+  }
+
+  public async recoverStaleJobs(staleTimeoutMs = 300000): Promise<number> {
+    return this.durableQueue.recoverStaleJobs(staleTimeoutMs);
+  }
+
+  public async getQueueMetrics(tenantId?: string): Promise<Record<string, Record<string, number>>> {
+    return this.durableQueue.getMetrics(tenantId);
   }
 
   public async getJob(jobId: string, tenantId?: string): Promise<AsyncJob | null> {

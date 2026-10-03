@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Enterprise SSO / OIDC Adapter
+ * Kriya AI — Enterprise SSO / OIDC Adapter
  * IdP claim normalization, group mapping, and enterprise authentication exchange.
  */
 

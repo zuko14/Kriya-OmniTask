@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Structured Multi-Channel SRE Alert Dispatcher
+ * Kriya AI — Structured Multi-Channel SRE Alert Dispatcher
  * Formats and routes operational incident alerts to Slack, PagerDuty, Webhooks, and Email.
  */
 
@@ -63,7 +63,7 @@ export class StructuredAlertDispatcher {
           payload: {
             summary: `${severityEmoji} ${alert.title}: ${alert.summary}`,
             severity: alert.severity === 'P1_CRITICAL' ? 'critical' : 'warning',
-            source: 'xylarc-sre-engine',
+            source: 'kriya-sre-engine',
             timestamp: alert.dispatchedAt,
           },
         });

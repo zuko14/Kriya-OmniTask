@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Repository
+ * Kriya AI — Customer Repository
  * Manages customer 360 profile state, lifecycle transitions, and GDPR anonymization.
  */
 

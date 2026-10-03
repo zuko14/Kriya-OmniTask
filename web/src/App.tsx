@@ -7,6 +7,7 @@ import { AsyncState } from './components/AsyncState';
 
 // Lazy-loaded pages for optimized code splitting
 const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
+const Styleguide = lazy(() => import('./pages/Styleguide').then((m) => ({ default: m.Styleguide })));
 const ExecutiveOverview = lazy(() => import('./pages/app/ExecutiveOverview').then((m) => ({ default: m.ExecutiveOverview })));
 const HumanAttention = lazy(() => import('./pages/app/HumanAttention').then((m) => ({ default: m.HumanAttention })));
 const CustomerList = lazy(() => import('./pages/app/CustomerList').then((m) => ({ default: m.CustomerList })));
@@ -21,11 +22,19 @@ const AnalyticsDashboard = lazy(() => import('./pages/app/AnalyticsDashboard').t
 const KnowledgeCenter = lazy(() => import('./pages/app/KnowledgeCenter').then((m) => ({ default: m.KnowledgeCenter })));
 const BillingSubscription = lazy(() => import('./pages/app/BillingSubscription').then((m) => ({ default: m.BillingSubscription })));
 const TenantSettings = lazy(() => import('./pages/app/TenantSettings').then((m) => ({ default: m.TenantSettings })));
+const RunTrace = lazy(() => import('./pages/app/RunTrace').then((m) => ({ default: m.RunTrace })));
+const ProofReceipts = lazy(() => import('./pages/app/ProofReceipts').then((m) => ({ default: m.ProofReceipts })));
+const Mandates = lazy(() => import('./pages/app/Mandates').then((m) => ({ default: m.Mandates })));
+const VerificationQueue = lazy(() => import('./pages/app/VerificationQueue').then((m) => ({ default: m.VerificationQueue })));
+const CostPerOutcome = lazy(() => import('./pages/app/CostPerOutcome').then((m) => ({ default: m.CostPerOutcome })));
+const BrainConsole = lazy(() => import('./pages/app/BrainConsole').then((m) => ({ default: m.BrainConsole })));
 
 const PlatformOverview = lazy(() => import('./pages/platform/PlatformOverview').then((m) => ({ default: m.PlatformOverview })));
 const PlatformTenants = lazy(() => import('./pages/platform/PlatformTenants').then((m) => ({ default: m.PlatformTenants })));
 const PlatformFleet = lazy(() => import('./pages/platform/PlatformFleet').then((m) => ({ default: m.PlatformFleet })));
 const PlatformModelHealth = lazy(() => import('./pages/platform/PlatformModelHealth').then((m) => ({ default: m.PlatformModelHealth })));
+const PlatformModelRegistry = lazy(() => import('./pages/platform/PlatformModelRegistry').then((m) => ({ default: m.PlatformModelRegistry })));
+const PlatformSkills = lazy(() => import('./pages/platform/PlatformSkills').then((m) => ({ default: m.PlatformSkills })));
 const PlatformSecurity = lazy(() => import('./pages/platform/PlatformSecurity').then((m) => ({ default: m.PlatformSecurity })));
 const PlatformBilling = lazy(() => import('./pages/platform/PlatformBilling').then((m) => ({ default: m.PlatformBilling })));
 const PlatformAudit = lazy(() => import('./pages/platform/PlatformAudit').then((m) => ({ default: m.PlatformAudit })));
@@ -44,6 +53,15 @@ export function App() {
             element={
               <PageSuspense>
                 <Login />
+              </PageSuspense>
+            }
+          />
+
+          <Route
+            path="/styleguide"
+            element={
+              <PageSuspense>
+                <Styleguide />
               </PageSuspense>
             }
           />
@@ -69,6 +87,12 @@ export function App() {
             <Route path="bi" element={<PageSuspense><BusinessIntelligence /></PageSuspense>} />
             <Route path="knowledge" element={<PageSuspense><KnowledgeCenter /></PageSuspense>} />
             <Route path="billing" element={<PageSuspense><BillingSubscription /></PageSuspense>} />
+            <Route path="brain" element={<PageSuspense><BrainConsole /></PageSuspense>} />
+            <Route path="traces" element={<PageSuspense><RunTrace /></PageSuspense>} />
+            <Route path="proof" element={<PageSuspense><ProofReceipts /></PageSuspense>} />
+            <Route path="mandates" element={<PageSuspense><Mandates /></PageSuspense>} />
+            <Route path="cost" element={<PageSuspense><CostPerOutcome /></PageSuspense>} />
+            <Route path="verification" element={<PageSuspense><VerificationQueue /></PageSuspense>} />
             <Route path="settings" element={<PageSuspense><TenantSettings /></PageSuspense>} />
           </Route>
 
@@ -84,6 +108,8 @@ export function App() {
             <Route path="tenants" element={<PageSuspense><PlatformTenants /></PageSuspense>} />
             <Route path="fleet" element={<PageSuspense><PlatformFleet /></PageSuspense>} />
             <Route path="models" element={<PageSuspense><PlatformModelHealth /></PageSuspense>} />
+            <Route path="models/registry" element={<PageSuspense><PlatformModelRegistry /></PageSuspense>} />
+            <Route path="skills" element={<PageSuspense><PlatformSkills /></PageSuspense>} />
             <Route path="security" element={<PageSuspense><PlatformSecurity /></PageSuspense>} />
             <Route path="billing" element={<PageSuspense><PlatformBilling /></PageSuspense>} />
             <Route path="audit" element={<PageSuspense><PlatformAudit /></PageSuspense>} />

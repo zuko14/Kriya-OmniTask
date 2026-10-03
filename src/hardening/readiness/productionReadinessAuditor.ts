@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Readiness Auditor & System Certification Engine
+ * Kriya AI — Production Readiness Auditor & System Certification Engine
  * Evaluates full-stack platform maturity across all 30 architecture phases and issues production readiness certificates.
  */
 

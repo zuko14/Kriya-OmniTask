@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Hybrid RAG Retriever (Dense Vector + Sparse BM25 + Scope Gating)
+ * Kriya AI — Hybrid RAG Retriever (Dense Vector + Sparse BM25 + Scope Gating)
  * Reciprocal Rank Fusion, access permission filtering, freshness checks & conflict detection (§11, §12 of CLAUDE.md).
  */
 
@@ -24,10 +24,18 @@ export interface ChunkWithDocument {
 export class HybridRetriever {
   private embeddingService: EmbeddingService;
   private bm25Engine: BM25SearchEngine;
+  private defaultVectorWeight: number;
+  private defaultBm25Weight: number;
 
-  constructor(embeddingService?: EmbeddingService, bm25Engine?: BM25SearchEngine) {
+  constructor(
+    embeddingService?: EmbeddingService,
+    bm25Engine?: BM25SearchEngine,
+    weights: { vector?: number; bm25?: number } = {}
+  ) {
     this.embeddingService = embeddingService || new EmbeddingService();
     this.bm25Engine = bm25Engine || new BM25SearchEngine();
+    this.defaultVectorWeight = weights.vector ?? 0.6;
+    this.defaultBm25Weight = weights.bm25 ?? 0.4;
   }
 
   /**
@@ -35,7 +43,39 @@ export class HybridRetriever {
    */
   public async retrieve(
     req: KnowledgeQueryRequest,
+    corpus: ChunkWithDocument[],
+    weights?: { vector?: number; bm25?: number }
+  ): Promise<KnowledgeRetrievalResponse> {
+    const vWeight = weights?.vector ?? this.defaultVectorWeight;
+    const bWeight = weights?.bm25 ?? this.defaultBm25Weight;
+    return this.retrieveInternal(req, corpus, vWeight, bWeight);
+  }
+
+  /**
+   * Performs pure dense vector retrieval for ablation and benchmark comparison.
+   */
+  public async retrieveVectorOnly(
+    req: KnowledgeQueryRequest,
     corpus: ChunkWithDocument[]
+  ): Promise<KnowledgeRetrievalResponse> {
+    return this.retrieveInternal(req, corpus, 1.0, 0.0);
+  }
+
+  /**
+   * Performs pure lexical BM25 retrieval for baseline comparison.
+   */
+  public async retrieveBm25Only(
+    req: KnowledgeQueryRequest,
+    corpus: ChunkWithDocument[]
+  ): Promise<KnowledgeRetrievalResponse> {
+    return this.retrieveInternal(req, corpus, 0.0, 1.0);
+  }
+
+  private async retrieveInternal(
+    req: KnowledgeQueryRequest,
+    corpus: ChunkWithDocument[],
+    vectorWeight: number,
+    bm25Weight: number
   ): Promise<KnowledgeRetrievalResponse> {
     const topK = req.topK || 5;
     const minScore = req.minScore || 0.2;
@@ -87,7 +127,7 @@ export class HybridRetriever {
     const scoredResults: RetrievedChunkResult[] = accessibleChunks.map((item) => {
       const vScore = vectorScores.get(item.chunk.id) || 0;
       const bScore = bm25Scores.get(item.chunk.id) || 0;
-      const hybridScore = 0.6 * vScore + 0.4 * bScore;
+      const hybridScore = vectorWeight * vScore + bm25Weight * bScore;
 
       let provenance: ProvenanceMetadata = { tags: [], sourceSystem: 'upload' };
       try {

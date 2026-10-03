@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Structured Error Hierarchy
+ * Kriya AI — Structured Error Hierarchy
  * Strictly categorized domain errors with error codes, HTTP status mappings,
  * operational classification, and correlation ID support.
  */

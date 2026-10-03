@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — User & Role Repository
+ * Kriya AI — User & Role Repository
  * Manages user accounts, password authentication, and role assignments with tenant boundaries.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Mediated Tool Gateway Integration Tests
+ * Kriya AI — Mediated Tool Gateway Integration Tests
  * Verifies Fastify REST endpoints for tool execution, idempotency, risk gating, permissions, and credential vault.
  */
 

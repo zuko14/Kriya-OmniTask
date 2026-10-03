@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer 360 & Entity Resolution Integration Tests
+ * Kriya AI — Customer 360 & Entity Resolution Integration Tests
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

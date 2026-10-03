@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — DAG Executor Engine Unit Tests
+ * Kriya AI — DAG Executor Engine Unit Tests
  * Verifies topological execution, cycle detection, conditional branching, and error handling (§13 of CLAUDE.md).
  */
 

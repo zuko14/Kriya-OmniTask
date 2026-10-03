@@ -27,7 +27,7 @@ describe('Deployment & Release Engineering REST Integration Tests', () => {
     operatorToken = JwtService.sign({
       userId: 'usr_release_lead',
       tenantId,
-      email: 'release.lead@xylarc.com',
+      email: 'release.lead@kriya.ai',
       roles: ['system'],
     });
   });

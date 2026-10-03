@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Knowledge Lineage & Provenance Ledger Repository
+ * Kriya AI — Knowledge Lineage & Provenance Ledger Repository
  * Records immutable provenance events, version transitions, and agent retrieval traces (§10, §12 of CLAUDE.md).
  */
 

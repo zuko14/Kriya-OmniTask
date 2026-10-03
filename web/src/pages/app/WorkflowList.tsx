@@ -5,6 +5,7 @@ import { useAsync } from '../../lib/useAsync';
 import { DataTable, Column } from '../../components/DataTable';
 import { AsyncState } from '../../components/AsyncState';
 import styles from './WorkflowList.module.css';
+import { Icon } from '../../components/brand/Icon';
 
 export interface WorkflowDefinition {
   id: string;
@@ -127,8 +128,8 @@ export function WorkflowList() {
     }
   };
 
-  const workflows = workflowsState.status === 'success' ? workflowsState.data.workflows : [];
-  const approvals = approvalsState.status === 'success' ? approvalsState.data.approvals : [];
+  const workflows = workflowsState.status === 'success' ? (workflowsState.data?.workflows ?? []) : [];
+  const approvals = approvalsState.status === 'success' ? (approvalsState.data?.approvals ?? []) : [];
   const activeCount = workflows.filter((w) => w.is_active === 1 || (w.is_active as any) === true).length;
 
   const columns: Column<WorkflowDefinition>[] = [
@@ -137,11 +138,11 @@ export function WorkflowList() {
       header: 'Workflow Name',
       render: (w) => (
         <div>
-          <Link to={`/app/workflows/${w.slug}`} style={{ color: 'var(--color-signal)', fontWeight: 600, textDecoration: 'none' }}>
+          <Link to={`/app/workflows/${w.slug}`} style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
             {w.name}
           </Link>
-          <div style={{ fontSize: '12px', color: 'var(--color-ink-muted)' }}>{w.description}</div>
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{w.description}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)', fontFamily: 'var(--font-mono)' }}>
             Slug: {w.slug} · v{w.version}
           </div>
         </div>
@@ -158,14 +159,12 @@ export function WorkflowList() {
       header: 'DAG Steps',
       width: '110px',
       render: (w) => {
-        let stepCount = 0;
         try {
-          const dag = JSON.parse(w.dag_json);
-          stepCount = dag.steps?.length || 0;
+          const stepCount = JSON.parse(w.dag_json).steps?.length || 0;
+          return <span style={{ fontSize: '12px' }}>{stepCount} steps</span>;
         } catch {
-          // fallback
+          return <span style={{ fontSize: '12px', color: 'var(--red)' }}>Unreadable DAG</span>;
         }
-        return <span style={{ fontSize: '12px' }}>{stepCount} steps</span>;
       },
     },
     {
@@ -183,10 +182,10 @@ export function WorkflowList() {
       width: '180px',
       render: (w) => (
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          <button className={styles.btnSecondary} onClick={() => handleTrigger(w)}>
+          <button className="btn btn-ghost btn-sm" onClick={() => handleTrigger(w)}>
             Trigger
           </button>
-          <Link to={`/app/workflows/${w.slug}`} className={styles.btnSecondary}>
+          <Link to={`/app/workflows/${w.slug}`} className="btn btn-ghost btn-sm">
             Details →
           </Link>
         </div>
@@ -202,14 +201,14 @@ export function WorkflowList() {
           <p className={styles.subtitle}>Multi-agent DAG executions, conditional branching, and human-in-the-loop approvals.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnPrimary} onClick={() => setIsCreating(true)}>
+          <button className="btn btn-accent" onClick={() => setIsCreating(true)}>
             + Create Workflow
           </button>
         </div>
       </header>
 
-      {actionError && <div className={styles.errorBanner}>⚠️ {actionError}</div>}
-      {actionSuccess && <div className={styles.successBanner}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Metrics Grid */}
       <div className={styles.metricsGrid}>
@@ -219,11 +218,11 @@ export function WorkflowList() {
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Active</span>
-          <span className={styles.metricValue} style={{ color: 'var(--color-verify)' }}>{activeCount}</span>
+          <span className={styles.metricValue}>{activeCount}</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Pending Approvals</span>
-          <span className={styles.metricValue} style={{ color: approvals.length > 0 ? 'var(--color-caution)' : 'var(--color-ink)' }}>
+          <span className={styles.metricValue} style={{ color: approvals.length > 0 ? 'var(--amber)' : undefined }}>
             {approvals.length}
           </span>
         </div>
@@ -232,22 +231,22 @@ export function WorkflowList() {
       {/* Pending Approvals Strip */}
       {approvals.length > 0 && (
         <div className={styles.approvalsSection}>
-          <h3 className={styles.approvalsTitle}>⚠️ Pending Workflow Approval Gates ({approvals.length})</h3>
+          <h3 className={styles.approvalsTitle}><Icon name="alert" /> Pending Workflow Approval Gates ({approvals.length})</h3>
           {approvals.map((appr) => (
             <div key={appr.id} className={styles.approvalCard}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-ink)' }}>
+                <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>
                   Execution: <code style={{ fontFamily: 'var(--font-mono)' }}>{appr.execution_id}</code> · Step: <code>{appr.step_id}</code>
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text2)' }}>
                   Required Role: {appr.required_role} · Created: {new Date(appr.created_at).toLocaleTimeString()}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                <button className={styles.btnApprove} onClick={() => handleDecideApproval(appr, 'approved')}>
+                <button className="btn btn-success btn-sm" onClick={() => handleDecideApproval(appr, 'approved')}>
                   Approve
                 </button>
-                <button className={styles.btnReject} onClick={() => handleDecideApproval(appr, 'rejected')}>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDecideApproval(appr, 'rejected')}>
                   Reject
                 </button>
               </div>
@@ -335,7 +334,7 @@ export function WorkflowList() {
               <div className={styles.modalActions}>
                 <button
                   type="button"
-                  className={styles.btnSecondary}
+                  className="btn btn-ghost btn-sm"
                   onClick={() => setIsCreating(false)}
                   disabled={isSubmitting}
                 >
@@ -343,7 +342,7 @@ export function WorkflowList() {
                 </button>
                 <button
                   type="submit"
-                  className={styles.btnPrimary}
+                  className="btn btn-accent"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Creating...' : 'Create Workflow'}

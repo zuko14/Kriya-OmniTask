@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Usage Metering Engine
+ * Kriya AI — Usage Metering Engine
  * Aggregates high-throughput, event-driven usage events into deterministic billing summaries.
  */
 

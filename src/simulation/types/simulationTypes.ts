@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Simulation & Dry-Run Sandbox Type Definitions
+ * Kriya AI — Agent Simulation & Dry-Run Sandbox Type Definitions
  * Typed contracts for mock scenarios, virtual sandbox executions, and behavioral regression reports (§14, §17 of CLAUDE.md).
  */
 

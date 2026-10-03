@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Red-Team Security Validator
+ * Kriya AI — Adversarial Red-Team Security Validator
  * Systematically tests security boundaries against SQL injection, JWT forgery, IDOR, and prompt injection attacks.
  */
 

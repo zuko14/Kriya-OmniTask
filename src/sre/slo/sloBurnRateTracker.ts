@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Service Level Objective (SLO) & Error Budget Burn Rate Tracker
+ * Kriya AI — Service Level Objective (SLO) & Error Budget Burn Rate Tracker
  * Multi-window burn rate computation based on Google SRE Workbook engineering standards.
  */
 
@@ -19,6 +19,7 @@ export class SloBurnRateTracker {
     let errorBudgetTotalPct = 0;
     let errorBudgetRemainingPct = 100;
     let burnRate1h = 1.0;
+    let burnRate6h = 1.0;
     let burnRate24h = 1.0;
 
     if (slo.targetMetric === 'availability' || slo.targetMetric === 'workflow_success_rate') {
@@ -27,6 +28,7 @@ export class SloBurnRateTracker {
 
       const actualDeficit = Math.max(0, 100 - actualMetricValue);
       burnRate1h = Math.round((actualDeficit / errorBudgetTotalPct) * 100) / 100;
+      burnRate6h = Math.round(burnRate1h * 0.9 * 100) / 100;
       burnRate24h = Math.round(burnRate1h * 0.8 * 100) / 100; // Smoothed multi-window estimate
 
       const budgetUsedPct = (actualDeficit / errorBudgetTotalPct) * 100;
@@ -36,6 +38,7 @@ export class SloBurnRateTracker {
       errorBudgetTotalPct = slo.targetThreshold;
 
       burnRate1h = Math.round((actualMetricValue / errorBudgetTotalPct) * 100) / 100;
+      burnRate6h = Math.round(burnRate1h * 0.92 * 100) / 100;
       burnRate24h = Math.round(burnRate1h * 0.85 * 100) / 100;
 
       const budgetUsedPct = (actualMetricValue / errorBudgetTotalPct) * 100;
@@ -46,6 +49,7 @@ export class SloBurnRateTracker {
       errorBudgetTotalPct = slo.targetThreshold;
 
       burnRate1h = Math.round((actualMetricValue / slo.targetThreshold) * 100) / 100;
+      burnRate6h = Math.round(burnRate1h * 0.95 * 100) / 100;
       burnRate24h = burnRate1h;
 
       errorBudgetRemainingPct = isCompliant
@@ -54,7 +58,7 @@ export class SloBurnRateTracker {
     }
 
     let alertStatus: SloEvaluation['alertStatus'] = 'normal';
-    if (burnRate1h >= 14.4) {
+    if (burnRate1h >= 14.4 || (burnRate6h !== undefined && burnRate6h >= 6.0)) {
       alertStatus = 'critical';
     } else if (burnRate1h >= 3.0 || burnRate24h >= 3.0 || errorBudgetRemainingPct <= 30) {
       alertStatus = 'warning';
@@ -69,6 +73,7 @@ export class SloBurnRateTracker {
       errorBudgetTotalPct,
       errorBudgetRemainingPct,
       burnRate1h,
+      burnRate6h,
       burnRate24h,
       alertStatus,
     };

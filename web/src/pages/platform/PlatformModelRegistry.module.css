@@ -1,0 +1,148 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.titleGroup h1 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text2);
+  margin: 0;
+}
+
+.advisoryBanner {
+  background: var(--surface2);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+.sectionCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: inset 0 1px 0 var(--rim), var(--shadow);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(155%);
+  backdrop-filter: blur(var(--blur)) saturate(155%);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.matrixTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.matrixTable th {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text2);
+  letter-spacing: 0.05em;
+}
+
+.matrixTable td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.matrixTable tr:hover {
+  background: var(--surface2);
+}
+
+.tierBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.tierT1 { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.tierT2 { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.tierT3 { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.tierT4 { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+.statusBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statusCertified { background: rgba(63, 166, 107, 0.15); color: var(--green); }
+.statusUncertified { background: rgba(148, 163, 184, 0.15); color: var(--text2); }
+.statusExpired { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+.statusStale { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+
+.shadowPill {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+  margin-left: var(--space-2);
+}
+
+.reportCard {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

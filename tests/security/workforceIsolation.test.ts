@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Customer Lifecycle Workforce Isolation Security Tests
+ * Kriya AI — Adversarial Customer Lifecycle Workforce Isolation Security Tests
  * Verifies cross-tenant boundaries for lead qualification, bookings, support, and retention operations (§23-§28 of CLAUDE.md).
  */
 

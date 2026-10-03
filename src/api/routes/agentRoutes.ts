@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Registry & Lifecycle REST Routes
+ * Kriya AI — Agent Registry & Lifecycle REST Routes
  * Fastify route definitions for agent management, template bootstrap, and state machine transitions.
  */
 

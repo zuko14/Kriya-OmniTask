@@ -3,6 +3,7 @@ import { apiFetch, ApiError } from '../../lib/apiClient';
 import { useAsync } from '../../lib/useAsync';
 import { DataTable, Column } from '../../components/DataTable';
 import { AsyncState } from '../../components/AsyncState';
+import { DecisionTraceDrawer } from '../../components/DecisionTraceDrawer';
 import styles from './HumanAttention.module.css';
 
 export interface AttentionItem {
@@ -10,6 +11,7 @@ export interface AttentionItem {
   organization_id: string;
   correlation_id: string;
   trace_id?: string;
+  task_id?: string;
   customer_id?: string;
   channel: string;
   source_agent_id: string;
@@ -46,6 +48,7 @@ export function HumanAttention() {
   const [resolutionAction, setResolutionAction] = useState<string>('approved');
   const [resolutionNotes, setResolutionNotes] = useState<string>('');
   const [submittingResolution, setSubmittingResolution] = useState<boolean>(false);
+  const [activeTraceTaskId, setActiveTraceTaskId] = useState<string | null>(null);
 
   const fetchItems = useCallback(() => {
     const params = new URLSearchParams();
@@ -151,9 +154,9 @@ export function HumanAttention() {
       header: 'Exception / Summary',
       render: (item) => (
         <div>
-          <div style={{ fontWeight: 600, color: 'var(--color-ink)', marginBottom: '2px' }}>{item.title}</div>
-          <div style={{ fontSize: '12px', color: 'var(--color-ink-muted)' }}>{item.description}</div>
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>{item.title}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{item.description}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
             Category: {item.reason_category} · Agent: {item.source_agent_id}
           </div>
         </div>
@@ -185,10 +188,13 @@ export function HumanAttention() {
       width: '150px',
       render: (item) => {
         const expiresAt = new Date(item.sla_expires_at);
+        if (!item.sla_expires_at || Number.isNaN(expiresAt.getTime())) {
+          return <span style={{ fontSize: '12px', color: 'var(--text3)' }}>No SLA</span>;
+        }
         const isBreached = Date.now() > expiresAt.getTime();
         return (
-          <span style={{ fontSize: '12px', color: isBreached ? 'var(--color-critical)' : 'var(--color-ink-muted)' }}>
-            {isBreached ? '⚠️ Breached' : expiresAt.toLocaleTimeString()}
+          <span style={{ fontSize: '12px', color: isBreached ? 'var(--red)' : 'var(--text2)' }}>
+            {isBreached ? 'Breached' : expiresAt.toLocaleTimeString()}
           </span>
         );
       },
@@ -196,21 +202,28 @@ export function HumanAttention() {
     {
       key: 'actions',
       header: 'Actions',
-      width: '200px',
+      width: '240px',
       render: (item) => (
         <div className={styles.actionGroup}>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => setActiveTraceTaskId(item.task_id || item.id)}
+            title="Inspect full escalation decision trace"
+          >
+            Trace
+          </button>
           {item.status === 'pending' && (
-            <button className={styles.btnSecondary} onClick={() => handleClaim(item)}>
+            <button className="btn btn-ghost btn-sm" onClick={() => handleClaim(item)}>
               Claim
             </button>
           )}
           {item.status !== 'resolved' && (
-            <button className={styles.btnSecondary} onClick={() => handleOpenResolve(item)}>
+            <button className="btn btn-ghost btn-sm" onClick={() => handleOpenResolve(item)}>
               Resolve
             </button>
           )}
           {item.customer_id && item.status !== 'resolved' && (
-            <button className={styles.btnSecondary} onClick={() => handleTakeover(item)}>
+            <button className="btn btn-ghost btn-sm" onClick={() => handleTakeover(item)}>
               Takeover
             </button>
           )}
@@ -226,13 +239,13 @@ export function HumanAttention() {
           <h1>Human Attention Center</h1>
           <p className={styles.subtitle}>Priority escalation queue, SLA enforcement, and live agent conversation takeover.</p>
         </div>
-        <button className={styles.btnPrimary} onClick={handleRefresh}>
+        <button className="btn btn-accent" onClick={handleRefresh}>
           Refresh Queue
         </button>
       </header>
 
-      {actionError && <div className={styles.errorBanner}>⚠️ {actionError}</div>}
-      {actionSuccess && <div className={styles.successBanner}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Metrics Strip */}
       {metricsState.status === 'success' && (
@@ -257,7 +270,7 @@ export function HumanAttention() {
           </div>
           <div className={styles.metricCard}>
             <span className={styles.metricLabel}>Avg Resolution</span>
-            <span className={styles.metricValue}>{metricsState.data.avgResolutionMinutes}m</span>
+            <span className={styles.metricValue}>{typeof metricsState.data.avgResolutionMinutes === 'number' ? `${metricsState.data.avgResolutionMinutes}m` : '—'}</span>
           </div>
         </div>
       )}
@@ -321,7 +334,7 @@ export function HumanAttention() {
         <div className={styles.modalBackdrop} role="dialog" aria-modal="true" aria-labelledby="modal-title">
           <div className={styles.modal}>
             <h2 className={styles.modalTitle} id="modal-title">Resolve Attention Item</h2>
-            <p style={{ fontSize: '13px', color: 'var(--color-ink-muted)', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text2)', margin: 0 }}>
               Resolving: <strong>{resolvingItem.title}</strong>
             </p>
 
@@ -356,7 +369,7 @@ export function HumanAttention() {
               <div className={styles.modalActions}>
                 <button
                   type="button"
-                  className={styles.btnSecondary}
+                  className="btn btn-ghost btn-sm"
                   onClick={() => setResolvingItem(null)}
                   disabled={submittingResolution}
                 >
@@ -364,7 +377,7 @@ export function HumanAttention() {
                 </button>
                 <button
                   type="submit"
-                  className={styles.btnPrimary}
+                  className="btn btn-accent"
                   disabled={submittingResolution}
                 >
                   {submittingResolution ? 'Submitting...' : 'Submit Resolution'}
@@ -373,6 +386,13 @@ export function HumanAttention() {
             </form>
           </div>
         </div>
+      )}
+
+      {activeTraceTaskId && (
+        <DecisionTraceDrawer
+          taskId={activeTraceTaskId}
+          onClose={() => setActiveTraceTaskId(null)}
+        />
       )}
     </div>
   );

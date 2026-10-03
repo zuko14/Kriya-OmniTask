@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Expand-Migrate-Contract Zero-Downtime Schema Transition Manager
+ * Kriya AI — Expand-Migrate-Contract Zero-Downtime Schema Transition Manager
  * Enforces phased database evolution state machines to guarantee continuous uptime during migrations.
  */
 

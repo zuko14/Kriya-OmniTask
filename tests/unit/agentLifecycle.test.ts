@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Lifecycle State Machine Unit Tests
+ * Kriya AI — Agent Lifecycle State Machine Unit Tests
  * Verifies valid state transitions, pre-publish validation, and invalid transition rejections (§17 of CLAUDE.md).
  */
 

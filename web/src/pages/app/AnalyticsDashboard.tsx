@@ -65,7 +65,7 @@ export function AnalyticsDashboard() {
   };
 
   const summary = summaryState.status === 'success' ? summaryState.data : null;
-  const economics = economicsState.status === 'success' ? economicsState.data.economics : [];
+  const economics = economicsState.status === 'success' ? (economicsState.data?.economics ?? []) : [];
   const budget = budgetState.status === 'success' ? budgetState.data : null;
 
   // Calculate total outcome value
@@ -101,7 +101,7 @@ export function AnalyticsDashboard() {
       key: 'totalValueUsd',
       header: 'Value Generated',
       width: '140px',
-      render: (e) => <span style={{ color: 'var(--color-verify)', fontWeight: 600 }}>${e.totalValueUsd.toFixed(2)}</span>,
+      render: (e) => <span style={{ color: 'var(--green)', fontWeight: 600 }}>${e.totalValueUsd.toFixed(2)}</span>,
     },
     {
       key: 'roiMultiplier',
@@ -120,8 +120,8 @@ export function AnalyticsDashboard() {
         </div>
       </header>
 
-      {actionError && <div style={{ color: 'var(--color-critical)', background: 'rgba(216,87,75,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>⚠️ {actionError}</div>}
-      {actionSuccess && <div style={{ color: 'var(--color-verify)', background: 'rgba(63,166,107,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Top Metrics Strip */}
       <div className={styles.metricsGrid}>
@@ -131,11 +131,11 @@ export function AnalyticsDashboard() {
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Value Delivered</span>
-          <span className={styles.metricValue} style={{ color: 'var(--color-verify)' }}>${totalOutcomeValue.toFixed(2)}</span>
+          <span className={styles.metricValue}>${totalOutcomeValue.toFixed(2)}</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Net ROI Multiplier</span>
-          <span className={styles.metricValue} style={{ color: 'var(--color-signal)' }}>{netRoi}x</span>
+          <span className={styles.metricValue}>{netRoi}x</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Active Period</span>
@@ -149,14 +149,14 @@ export function AnalyticsDashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
             <div>
               <h2 className={styles.cardTitle}>
-                {budget.isCircuitBreakerTripped ? '🚨 Circuit Breaker Tripped (Hard Spend Cap Reached)' : '🛡️ Budget Circuit Breaker Active'}
+                {budget.isCircuitBreakerTripped ? 'Circuit Breaker Tripped (Hard Spend Cap Reached)' : 'Budget Circuit Breaker Active'}
               </h2>
-              <div style={{ fontSize: '13px', color: 'var(--color-ink-muted)', marginTop: '2px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '2px' }}>
                 Monthly Spend: <strong>${budget.currentMonthSpendUsd?.toFixed(2) || '0.00'}</strong> / Limit: <strong>${budget.monthlyBudgetLimitUsd?.toFixed(2) || 'Unlimited'}</strong> (Alert threshold: {budget.alertThresholdPct}%)
               </div>
             </div>
             {budget.isCircuitBreakerTripped && (
-              <button className={styles.btnPrimary} onClick={handleResetCircuit} disabled={isResetting}>
+              <button className="btn btn-accent" onClick={handleResetCircuit} disabled={isResetting}>
                 {isResetting ? 'Resetting...' : 'Reset Circuit Breaker'}
               </button>
             )}
@@ -170,7 +170,7 @@ export function AnalyticsDashboard() {
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Spend by Cost Category</h2>
           {categoryEntries.length === 0 ? (
-            <div style={{ color: 'var(--color-ink-muted)', fontSize: '13px' }}>No category spend recorded yet.</div>
+            <div style={{ color: 'var(--text2)', fontSize: '13px' }}>No category spend recorded yet.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               {categoryEntries.map(([cat, val]) => {
@@ -182,7 +182,7 @@ export function AnalyticsDashboard() {
                       <strong>${val.toFixed(3)}</strong>
                     </div>
                     <div className={styles.barChartTrack}>
-                      <div className={styles.barChartFill} style={{ width: `${pct}%`, background: 'var(--color-signal)' }} />
+                      <div className={styles.barChartFill} style={{ width: `${pct}%`, background: 'var(--accent)' }} />
                     </div>
                   </div>
                 );
@@ -195,7 +195,7 @@ export function AnalyticsDashboard() {
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Spend by Model Provider</h2>
           {providerEntries.length === 0 ? (
-            <div style={{ color: 'var(--color-ink-muted)', fontSize: '13px' }}>No provider spend recorded yet.</div>
+            <div style={{ color: 'var(--text2)', fontSize: '13px' }}>No provider spend recorded yet.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               {providerEntries.map(([prov, val]) => {
@@ -207,7 +207,7 @@ export function AnalyticsDashboard() {
                       <strong>${val.toFixed(3)}</strong>
                     </div>
                     <div className={styles.barChartTrack}>
-                      <div className={styles.barChartFill} style={{ width: `${pct}%`, background: 'var(--color-verify)' }} />
+                      <div className={styles.barChartFill} style={{ width: `${pct}%`, background: 'var(--green)' }} />
                     </div>
                   </div>
                 );

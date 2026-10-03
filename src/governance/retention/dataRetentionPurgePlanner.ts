@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Data Retention Purge Planner
+ * Kriya AI — Data Retention Purge Planner
  * Plans and evaluates automated compliance purging across classified resources.
  */
 

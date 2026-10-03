@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Fastify API Server
+ * Kriya AI — Production Fastify API Server
  * Configures security headers, correlation IDs, structured error handling, and routing.
  */
 
@@ -9,6 +9,8 @@ import rateLimit from '@fastify/rate-limit';
 import { AppError } from '../core/errors/errors.js';
 import { logger } from '../core/logger/logger.js';
 import { CryptoUtils } from '../core/utils/crypto.js';
+import { DistributedContextManager } from '../observability/tracing/distributedContext.js';
+import { PlatformMetrics } from '../observability/metrics/platformMetrics.js';
 import { healthRoutes } from './routes/healthRoutes.js';
 import { authRoutes } from './routes/authRoutes.js';
 import { tenantRoutes } from './routes/tenantRoutes.js';
@@ -29,6 +31,7 @@ import { observabilityRoutes } from './routes/observabilityRoutes.js';
 import { verificationRoutes } from './routes/verificationRoutes.js';
 import { attentionRoutes } from './routes/attentionRoutes.js';
 import { simulationRoutes } from './routes/simulationRoutes.js';
+import { trustRoutes } from './routes/trustRoutes.js';
 import { evaluationRoutes } from './routes/evaluationRoutes.js';
 import { multilingualRoutes } from './routes/multilingualRoutes.js';
 import { securityHardeningRoutes } from './routes/securityHardeningRoutes.js';
@@ -42,7 +45,19 @@ import { infrastructureRoutes } from './routes/infrastructureRoutes.js';
 import { sreRoutes } from './routes/sreRoutes.js';
 import { deploymentRoutes } from './routes/deploymentRoutes.js';
 import { hardeningRoutes } from './routes/hardeningRoutes.js';
-import { adminUiRoutes } from './routes/adminUiRoutes.js';
+import { dnaRoutes } from './routes/dnaRoutes.js';
+import { contextRoutes } from './routes/contextRoutes.js';
+import { skillRoutes } from './routes/skillRoutes.js';
+import { escalationRoutes } from './routes/escalationRoutes.js';
+import { modelCertificationRoutes } from './routes/modelCertificationRoutes.js';
+import { brainRoutes } from './routes/brainRoutes.js';
+import { externalRetrievalRoutes } from './routes/externalRetrievalRoutes.js';
+import { realtimeStreamRoutes } from './routes/realtimeStreamRoutes.js';
+import { adaptationRoutes } from './routes/adaptationRoutes.js';
+import { mcpRoutes } from './routes/mcpRoutes.js';
+import { outcomeRoutes } from './routes/outcomeRoutes.js';
+import { autonomyRoutes } from './routes/autonomyRoutes.js';
+import { dpdpRoutes } from './routes/dpdpRoutes.js';
 
 export async function buildServer(): Promise<FastifyInstance> {
   const fastify = Fastify({
@@ -63,11 +78,45 @@ export async function buildServer(): Promise<FastifyInstance> {
     timeWindow: '1 minute',
   });
 
-  // 3. Correlation ID & Request Hook
+  // 3. W3C Distributed Tracing Context & Request Hook
   fastify.addHook('onRequest', async (request, reply) => {
-    const correlationId = (request.headers['x-correlation-id'] as string) || CryptoUtils.generateId();
-    request.headers['x-correlation-id'] = correlationId;
-    reply.header('x-correlation-id', correlationId);
+    const traceCtx = DistributedContextManager.extractFromHeaders(request.headers);
+    (request as any).traceContext = traceCtx;
+    (request as any).startTime = Date.now();
+
+    request.headers['x-correlation-id'] = traceCtx.correlationId;
+    reply.header('x-correlation-id', traceCtx.correlationId);
+    reply.header(
+      'traceparent',
+      DistributedContextManager.formatTraceparent(traceCtx.traceId, traceCtx.spanId, traceCtx.traceFlags)
+    );
+    if (traceCtx.tracestate && Object.keys(traceCtx.tracestate).length > 0) {
+      reply.header('tracestate', DistributedContextManager.formatTracestate(traceCtx.tracestate));
+    }
+  });
+
+  // Prometheus HTTP Request Metrics Hook
+  fastify.addHook('onResponse', async (request, reply) => {
+    const startTime = (request as any).startTime || Date.now();
+    const durationSeconds = Math.max(0.0001, (Date.now() - startTime) / 1000);
+    const route = (request as any).routerPath || request.url.split('?')[0] || 'unknown';
+    const tenantId = (request as any).user?.tenantId || 'anonymous';
+
+    PlatformMetrics.httpRequestsTotal.inc({
+      method: request.method,
+      route,
+      status_code: reply.statusCode,
+      tenant_id: tenantId,
+    });
+
+    PlatformMetrics.httpRequestDurationSeconds.observe(
+      {
+        method: request.method,
+        route,
+        status_code: reply.statusCode,
+      },
+      durationSeconds
+    );
   });
 
   // 4. Centralized Domain Error Handler
@@ -94,8 +143,20 @@ export async function buildServer(): Promise<FastifyInstance> {
       });
     }
 
-    // Fastify / Schema Validation errors
+    // Zod & Schema Validation errors
     const errObj = error as any;
+    if (errObj?.name === 'ZodError' || (errObj && errObj.issues)) {
+      return reply.status(400).send({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Request payload validation failed',
+          statusCode: 400,
+          correlationId,
+          details: errObj.issues,
+        },
+      });
+    }
+
     if (errObj && errObj.validation) {
       return reply.status(400).send({
         error: {
@@ -159,7 +220,20 @@ export async function buildServer(): Promise<FastifyInstance> {
   await fastify.register(sreRoutes);
   await fastify.register(deploymentRoutes);
   await fastify.register(hardeningRoutes);
-  await fastify.register(adminUiRoutes);
+  await fastify.register(dnaRoutes);
+  await fastify.register(contextRoutes);
+  await fastify.register(modelCertificationRoutes);
+  await fastify.register(skillRoutes);
+  await fastify.register(escalationRoutes);
+  await fastify.register(brainRoutes);
+  await fastify.register(externalRetrievalRoutes);
+  await fastify.register(realtimeStreamRoutes);
+  await fastify.register(adaptationRoutes);
+  await fastify.register(trustRoutes);
+  await fastify.register(mcpRoutes);
+  await fastify.register(outcomeRoutes);
+  await fastify.register(autonomyRoutes);
+  await fastify.register(dpdpRoutes);
 
   return fastify;
 }

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Support Specialist
+ * Kriya AI — Customer Support Specialist
  * Diagnoses customer issues, calculates sentiment & churn risk, provides resolution answers, or escalates to human (§25 of CLAUDE.md).
  */
 

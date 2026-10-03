@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Enterprise Governance Service
+ * Kriya AI — Enterprise Governance Service
  * High-level orchestration for org units, ABAC evaluations, SSO auth, and compliance retention purging.
  */
 

@@ -35,7 +35,7 @@ describe('Business Intelligence & Executive Daily Briefing REST Integration Test
     adminToken = JwtService.sign({
       userId: 'usr_admin_bi',
       tenantId,
-      email: 'biadmin@xylarc.ai',
+      email: 'biadmin@kriya.ai',
       roles: ['admin'],
     });
   });

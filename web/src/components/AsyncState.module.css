@@ -3,14 +3,12 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-4);
-  color: var(--color-ink-muted);
-  font-size: 13px;
+  color: var(--text2);
+  font-size: 0.85rem;
 }
 
-.error {
-  color: var(--color-critical);
-}
-
-.denied {
-  color: var(--color-caution);
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
 }

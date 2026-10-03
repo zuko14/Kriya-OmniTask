@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Indirect Prompt Injection & Knowledge Safety Shield
+ * Kriya AI — Indirect Prompt Injection & Knowledge Safety Shield
  * Protects agent runtime from malicious document injection, hidden override instructions, and data exfiltration (§7 of CLAUDE.md).
  */
 

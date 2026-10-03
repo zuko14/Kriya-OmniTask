@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Environment & Configuration Manager
+ * Kriya AI — Environment & Configuration Manager
  * Strict schema validation using Zod with zero unvalidated environment access.
  */
 
@@ -30,6 +30,9 @@ const optEnum = <T extends [string, ...string[]]>(values: T, defaultValue?: T[nu
 export const ConfigSchema = z.object({
   // Server & Environment
   NODE_ENV: z.enum(['development', 'test', 'staging', 'production']).default('development'),
+  // Runtime mode gate (docs/kriya WP-0.3). Unset → derived from NODE_ENV in runtimeMode.ts.
+  // Only 'sandbox' and 'test' may load simulated adapters/tools.
+  APP_MODE: optEnum(['production', 'staging', 'sandbox', 'test']),
   PORT: z.coerce.number().int().positive().default(3000),
   HOST: z.string().default('0.0.0.0'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
@@ -64,6 +67,11 @@ export const ConfigSchema = z.object({
   // AI Model Provider API Keys & Gateways
   OPENROUTER_API_KEY: optString(),
   OPENROUTER_BASE_URL: optUrl('https://openrouter.ai/api/v1'),
+  // Optional display rate for INR cost disclosures. Unset → costs are shown in USD only (never a guessed rate).
+  USD_INR_RATE: optNumber(),
+  // Kriya Proof receipt signing key: Ed25519 PKCS#8 PEM (raw or base64). Required outside sandbox/test.
+  // Generate: node -e "const k=require('crypto').generateKeyPairSync('ed25519').privateKey.export({type:'pkcs8',format:'pem'});console.log(Buffer.from(k).toString('base64'))"
+  PROOF_SIGNING_PRIVATE_KEY: optString(),
   GEMINI_API_KEY: optString(),
   GOOGLE_VERTEX_PROJECT_ID: optString(),
   GOOGLE_VERTEX_LOCATION: optString('us-central1'),
@@ -75,9 +83,10 @@ export const ConfigSchema = z.object({
   HUGGINGFACE_API_KEY: optString(),
   OLLAMA_BASE_URL: optUrl(),
 
-  // Knowledge Fabric & Vector Embeddings
-  EMBEDDING_PROVIDER: optEnum(['openai', 'gemini', 'huggingface', 'local'], 'gemini'),
-  EMBEDDING_MODEL: optString('text-embedding-004'),
+  // Knowledge Fabric & Vector Embeddings (WP-5.8)
+  EMBEDDING_PROVIDER: optEnum(['openai', 'openrouter', 'gemini', 'huggingface', 'local'], 'openrouter'),
+  EMBEDDING_MODEL: optString('openai/text-embedding-3-small'),
+  EMBEDDING_DIMENSIONS: optNumber(1536),
   PINECONE_API_KEY: optString(),
   PINECONE_INDEX: optString(),
   QDRANT_URL: optUrl(),

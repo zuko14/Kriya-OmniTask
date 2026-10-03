@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Human Attention Items & Takeovers Relational Repository
+ * Kriya AI — Human Attention Items & Takeovers Relational Repository
  * Persistence for exception items, SLAs, and conversation overrides (§14, §16 of CLAUDE.md).
  */
 
@@ -30,7 +30,16 @@ export class AttentionRepository extends BaseRepository<AttentionItemRecord> {
   public async createItem(
     request: CreateAttentionItemRequest,
     priority: AttentionPriority,
-    slaExpiresAt: string
+    slaExpiresAt: string,
+    routing?: {
+      assignedRole?: string;
+      assignedUserId?: string | null;
+      branchId?: string | null;
+      routingRuleId?: string | null;
+      afterHours?: number;
+      nextAvailableAt?: string | null;
+      routedAt?: string;
+    }
   ): Promise<AttentionItemRecord> {
     const tenantId = this.getTenantId();
     const id = CryptoUtils.generateId();
@@ -50,6 +59,13 @@ export class AttentionRepository extends BaseRepository<AttentionItemRecord> {
       reason_category: request.reasonCategory,
       priority,
       status: 'pending',
+      assigned_user_id: routing?.assignedUserId ?? undefined,
+      assigned_role: routing?.assignedRole ?? request.assignedRole,
+      branch_id: routing?.branchId ?? request.branchId,
+      routed_at: routing?.routedAt ?? now,
+      routing_rule_id: routing?.routingRuleId ?? undefined,
+      after_hours: routing?.afterHours ?? 0,
+      next_available_at: routing?.nextAvailableAt ?? undefined,
       context_data_json: JSON.stringify(request.contextData || {}),
       recommended_action: request.recommendedAction,
       sla_expires_at: slaExpiresAt,
@@ -61,9 +77,10 @@ export class AttentionRepository extends BaseRepository<AttentionItemRecord> {
       `INSERT INTO attention_items (
         id, tenant_id, organization_id, correlation_id, trace_id, customer_id,
         channel, source_agent_id, title, description, reason_category, priority,
-        status, context_data_json, recommended_action, sla_expires_at,
+        status, assigned_user_id, assigned_role, branch_id, routed_at, routing_rule_id,
+        after_hours, next_available_at, context_data_json, recommended_action, sla_expires_at,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         record.id,
         record.tenant_id,
@@ -78,6 +95,13 @@ export class AttentionRepository extends BaseRepository<AttentionItemRecord> {
         record.reason_category,
         record.priority,
         record.status,
+        record.assigned_user_id || null,
+        record.assigned_role || null,
+        record.branch_id || null,
+        record.routed_at || null,
+        record.routing_rule_id || null,
+        record.after_hours || 0,
+        record.next_available_at || null,
         record.context_data_json,
         record.recommended_action || null,
         record.sla_expires_at,
@@ -87,6 +111,52 @@ export class AttentionRepository extends BaseRepository<AttentionItemRecord> {
     );
 
     return record;
+  }
+
+  /**
+   * Re-routes an attention item to a new role or user.
+   */
+  public async routeItem(
+    itemId: string,
+    routing: {
+      assignedRole: string;
+      assignedUserId?: string | null;
+      branchId?: string | null;
+      routingRuleId?: string | null;
+      afterHours?: number;
+      nextAvailableAt?: string | null;
+      routedAt?: string;
+    }
+  ): Promise<AttentionItemRecord> {
+    const tenantId = this.getTenantId();
+    const now = new Date().toISOString();
+
+    await this.client.execute(
+      `UPDATE attention_items SET
+        assigned_role = ?,
+        assigned_user_id = ?,
+        branch_id = ?,
+        routing_rule_id = ?,
+        after_hours = ?,
+        next_available_at = ?,
+        routed_at = ?,
+        updated_at = ?
+       WHERE id = ? AND tenant_id = ?;`,
+      [
+        routing.assignedRole,
+        routing.assignedUserId || null,
+        routing.branchId || null,
+        routing.routingRuleId || null,
+        routing.afterHours || 0,
+        routing.nextAvailableAt || null,
+        routing.routedAt || now,
+        now,
+        itemId,
+        tenantId,
+      ]
+    );
+
+    return (await this.findById(itemId))!;
   }
 
   /**
@@ -136,11 +206,20 @@ export class AttentionRepository extends BaseRepository<AttentionItemRecord> {
   /**
    * Lists attention items with optional filtering.
    */
+  public async findByCorrelationId(correlationId: string): Promise<AttentionItemRecord | null> {
+    return this.client.queryOne<AttentionItemRecord>(
+      'SELECT * FROM attention_items WHERE tenant_id = ? AND correlation_id = ? ORDER BY created_at ASC LIMIT 1',
+      [this.getTenantId(), correlationId]
+    );
+  }
+
   public async listItems(filter?: {
     status?: AttentionStatus;
     priority?: AttentionPriority;
     reasonCategory?: AttentionReasonCategory;
     assignedUserId?: string;
+    assignedRole?: string;
+    branchId?: string;
     limit?: number;
   }): Promise<AttentionItemRecord[]> {
     const tenantId = this.getTenantId();
@@ -162,6 +241,14 @@ export class AttentionRepository extends BaseRepository<AttentionItemRecord> {
     if (filter?.assignedUserId) {
       sql += ' AND assigned_user_id = ?';
       params.push(filter.assignedUserId);
+    }
+    if (filter?.assignedRole) {
+      sql += ' AND assigned_role = ?';
+      params.push(filter.assignedRole);
+    }
+    if (filter?.branchId) {
+      sql += ' AND branch_id = ?';
+      params.push(filter.branchId);
     }
 
     // Order by priority (P0 first) and SLA expiration

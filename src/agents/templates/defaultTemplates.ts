@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Built-in Agent System Templates
+ * Kriya AI — Built-in Agent System Templates
  * Canonical enterprise agent specifications defined in §12 & §39 of CLAUDE.md.
  */
 
@@ -17,7 +17,8 @@ export const SYSTEM_AGENT_TEMPLATES: AgentSpecification[] = [
     version: '1.0.0',
     isSystem: true,
     config: {
-      systemPrompt: 'You are the Xylarc Business Orchestrator. You analyze strategic business objectives, decompose them into structured sub-tasks, delegate to specialized department agents, and synthesize verified business results.',
+      capabilityTier: 'T3',
+      systemPrompt: 'You are the Kriya Business Orchestrator. You analyze strategic business objectives, decompose them into structured sub-tasks, delegate to specialized department agents, and synthesize verified business results.',
       tools: ['dispatch_agent_task', 'query_customer_360', 'evaluate_policy_rules', 'escalate_to_human'],
       dataAccessScope: ['customer_timeline', 'agent_registry', 'metrics_read', 'policy_read'],
       modelPolicy: {
@@ -52,7 +53,8 @@ export const SYSTEM_AGENT_TEMPLATES: AgentSpecification[] = [
     version: '1.0.0',
     isSystem: true,
     config: {
-      systemPrompt: 'You are the Xylarc Sales Lead Qualifier. You evaluate lead fit, extract requirements, calculate BANT qualification scores, and prepare consultation recommendations.',
+      capabilityTier: 'T2',
+      systemPrompt: 'You are the Kriya Sales Lead Qualifier. You evaluate lead fit, extract requirements, calculate BANT qualification scores, and prepare consultation recommendations.',
       tools: ['extract_lead_profile', 'score_lead_intent', 'whatsapp_send_template', 'schedule_meeting'],
       dataAccessScope: ['customer_profile', 'product_catalog', 'pricing_read'],
       modelPolicy: {
@@ -87,7 +89,8 @@ export const SYSTEM_AGENT_TEMPLATES: AgentSpecification[] = [
     version: '1.0.0',
     isSystem: true,
     config: {
-      systemPrompt: 'You are the Xylarc Booking Specialist. You inspect slot availability, confirm participant timezones, reserve confirmed slots, and trigger instant confirmations.',
+      capabilityTier: 'T2',
+      systemPrompt: 'You are the Kriya Booking Specialist. You inspect slot availability, confirm participant timezones, reserve confirmed slots, and trigger instant confirmations.',
       tools: ['calendar_check_slots', 'calendar_book_slot', 'calendar_cancel_slot', 'whatsapp_send_message'],
       dataAccessScope: ['customer_profile', 'calendar_schedule', 'location_read'],
       modelPolicy: {
@@ -121,7 +124,8 @@ export const SYSTEM_AGENT_TEMPLATES: AgentSpecification[] = [
     version: '1.0.0',
     isSystem: true,
     config: {
-      systemPrompt: 'You are the Xylarc Customer Support Agent. You provide helpful, factual, and compliant answers to customer questions based strictly on verified business knowledge.',
+      capabilityTier: 'T2',
+      systemPrompt: 'You are the Kriya Customer Support Agent. You provide helpful, factual, and compliant answers to customer questions based strictly on verified business knowledge.',
       tools: ['knowledge_base_search', 'order_status_lookup', 'ticket_create', 'ticket_escalate'],
       dataAccessScope: ['customer_timeline', 'knowledge_base', 'order_history'],
       modelPolicy: {
@@ -155,7 +159,8 @@ export const SYSTEM_AGENT_TEMPLATES: AgentSpecification[] = [
     version: '1.0.0',
     isSystem: true,
     config: {
-      systemPrompt: 'You are the Xylarc Quality & Policy Reviewer. You deterministically inspect agent claims against source facts, verifying evidence attribution and policy rules.',
+      capabilityTier: 'T2',
+      systemPrompt: 'You are the Kriya Quality & Policy Reviewer. You deterministically inspect agent claims against source facts, verifying evidence attribution and policy rules.',
       tools: ['policy_rule_checker', 'evidence_grounding_evaluator', 'pii_leakage_detector'],
       dataAccessScope: ['agent_execution_trace', 'source_documents', 'policy_definitions'],
       modelPolicy: {

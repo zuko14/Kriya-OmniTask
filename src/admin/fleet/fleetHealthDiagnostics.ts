@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Fleet Health & Node Diagnostics
+ * Kriya AI — Fleet Health & Node Diagnostics
  * Aggregates cluster liveness, worker concurrency, and distributed node telemetry.
  */
 
@@ -17,15 +17,16 @@ export class FleetHealthDiagnostics {
    */
   public static evaluateDiagnostics(nodes: NodeFleetRecord[], now = new Date()): FleetDiagnosticsSummary {
     const totalNodes = nodes.length;
-    let onlineNodes = 0;
+    let healthyNodes = 0;
     let degradedNodes = 0;
+    let drainingNodes = 0;
     let offlineNodes = 0;
     let totalCpu = 0;
     let totalMemory = 0;
     let totalActiveThreads = 0;
     let totalActiveExecutions = 0;
 
-    const evaluatedNodes: NodeFleetRecord[] = nodes.map((node) => {
+    nodes.forEach((node) => {
       const lastHbTime = new Date(node.lastHeartbeatAt).getTime();
       const isStale = now.getTime() - lastHbTime > this.STALE_HEARTBEAT_THRESHOLD_MS;
 
@@ -35,9 +36,11 @@ export class FleetHealthDiagnostics {
       }
 
       if (effectiveStatus === 'healthy') {
-        onlineNodes++;
-      } else if (effectiveStatus === 'degraded' || effectiveStatus === 'draining') {
+        healthyNodes++;
+      } else if (effectiveStatus === 'degraded') {
         degradedNodes++;
+      } else if (effectiveStatus === 'draining') {
+        drainingNodes++;
       } else {
         offlineNodes++;
       }
@@ -46,34 +49,23 @@ export class FleetHealthDiagnostics {
       totalMemory += node.memoryUsagePct;
       totalActiveThreads += node.activeWorkerThreads;
       totalActiveExecutions += node.activeAgentExecutions;
-
-      return {
-        ...node,
-        status: effectiveStatus,
-      };
     });
 
     const avgCpuUsagePct = totalNodes > 0 ? Number((totalCpu / totalNodes).toFixed(1)) : 0;
     const avgMemoryUsagePct = totalNodes > 0 ? Number((totalMemory / totalNodes).toFixed(1)) : 0;
 
-    let clusterHealth: 'healthy' | 'degraded' | 'critical' = 'healthy';
-    if (totalNodes === 0 || offlineNodes > onlineNodes) {
-      clusterHealth = 'critical';
-    } else if (degradedNodes > 0 || avgCpuUsagePct > 85.0 || avgMemoryUsagePct > 85.0) {
-      clusterHealth = 'degraded';
-    }
-
     return {
       totalNodes,
-      onlineNodes,
+      healthyNodes,
+      onlineNodes: healthyNodes,
       degradedNodes,
+      drainingNodes,
       offlineNodes,
       avgCpuUsagePct,
       avgMemoryUsagePct,
-      totalActiveThreads,
       totalActiveExecutions,
-      clusterHealth,
-      nodes: evaluatedNodes,
+      totalActiveThreads,
+      generatedAt: now.toISOString(),
     };
   }
 }

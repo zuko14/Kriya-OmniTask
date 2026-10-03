@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Knowledge Fabric Type Definitions & Zod Schemas
+ * Kriya AI — Knowledge Fabric Type Definitions & Zod Schemas
  * Typed contracts for Document Ingestion, Hybrid Vector/BM25 Retrieval, Quality Verification & Provenance Lineage (§10, §11, §12 of CLAUDE.md).
  */
 
@@ -93,6 +93,8 @@ export interface KnowledgeChunkRecord extends BaseEntity {
   content: string;
   token_count: number;
   embedding_json?: string; // JSON array of numbers
+  embedding_model?: string;
+  embedding_dimensions?: number;
   quality_status: KnowledgeQualityStatus;
   metadata_json: string;
 }

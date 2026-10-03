@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Model Router & Cost Intelligence Unit Tests
+ * Kriya AI — Model Router & Cost Intelligence Unit Tests
  * Verifies model routing, token cost calculations, and automatic fallback failover (§24 of CLAUDE.md).
  */
 

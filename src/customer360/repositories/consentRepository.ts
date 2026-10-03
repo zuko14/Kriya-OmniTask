@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Consent Repository
+ * Kriya AI — Customer Consent Repository
  * Manages privacy consent records and channel opt-in/opt-out preferences.
  */
 

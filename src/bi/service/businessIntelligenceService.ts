@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Business Intelligence & Executive Briefing Controller Service
+ * Kriya AI — Business Intelligence & Executive Briefing Controller Service
  * High-level orchestration service for metric aggregation, briefing synthesis, and outbound delivery (§13, §14 of CLAUDE.md).
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Quality Reviewer Engine (Dual-Pass Verification & LLM Judge)
+ * Kriya AI — Quality Reviewer Engine (Dual-Pass Verification & LLM Judge)
  * Multi-dimensional quality evaluation and verdict generation (§14, §15 of CLAUDE.md).
  */
 
@@ -40,9 +40,13 @@ export class QualityReviewer {
     }
     policyComplianceScore = Math.max(0, policyComplianceScore);
 
-    // 2. Compute Faithfulness / Fact Grounding Score
-    const faithfulnessScore = DriftDetector.evaluateGrounding(targetContent, retrievedEvidence);
-    if (faithfulnessScore < 0.60 && retrievedEvidence.length > 0) {
+    // 2. Compute Faithfulness / Fact Grounding Score (S24: Claim-level and paraphrase-tolerant)
+    const faithfulnessScore = DriftDetector.evaluateGrounding(
+      targetContent,
+      retrievedEvidence,
+      declaredFacts as Record<string, unknown> | undefined
+    );
+    if (faithfulnessScore < 0.60 && (retrievedEvidence.length > 0 || (declaredFacts && Object.keys(declaredFacts).length > 0))) {
       flaggedIssues.push(`[HIGH] Content fact grounding score is low (${Math.round(faithfulnessScore * 100)}%). Potential hallucination.`);
     }
 

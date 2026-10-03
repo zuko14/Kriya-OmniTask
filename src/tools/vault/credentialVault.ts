@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tenant Credential Vault Service
+ * Kriya AI — Tenant Credential Vault Service
  * Isolated, AES-256-GCM encrypted credential vault for third-party integrations (§8.4 of CLAUDE.md).
  */
 

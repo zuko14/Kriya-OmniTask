@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Scoped API Key Authentication
+ * Kriya AI — Scoped API Key Authentication
  * Generates and validates machine-to-machine integration API keys.
  */
 

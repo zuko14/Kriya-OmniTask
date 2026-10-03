@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Deterministic Executive Briefing Synthesizer
+ * Kriya AI — Deterministic Executive Briefing Synthesizer
  * Evidence-first narrative generator for Executive Summaries & WhatsApp Morning Briefings (§13, §14 of CLAUDE.md).
  */
 
@@ -27,7 +27,7 @@ export class BriefingSynthesizer {
     roi: RoiMetrics,
     tenantName: string = 'Enterprise'
   ): SynthesizedBriefing {
-    const title = `Xylarc AI Executive Daily Briefing — ${snapshot.date}`;
+    const title = `Kriya AI Executive Daily Briefing — ${snapshot.date}`;
 
     // 1. Key Highlights
     const keyHighlights: KeyHighlight[] = [
@@ -121,7 +121,7 @@ ${
 `;
 
     // 4. WhatsApp Formatted Text
-    const whatsappFormattedText = `☀️ *XYLARC AI — EXECUTIVE MORNING BRIEFING*
+    const whatsappFormattedText = `☀️ *KRIYA AI — EXECUTIVE MORNING BRIEFING*
 📅 *Date:* ${snapshot.date}
 🏢 *Organization:* ${tenantName}
 

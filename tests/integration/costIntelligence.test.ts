@@ -27,7 +27,7 @@ describe('Cost Intelligence REST Integration Tests', () => {
     adminToken = JwtService.sign({
       userId: 'usr_cost_admin',
       tenantId,
-      email: 'costadmin@xylarc.ai',
+      email: 'costadmin@kriya.ai',
       roles: ['admin', 'finance_manager'],
     });
   });

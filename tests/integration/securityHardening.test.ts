@@ -27,7 +27,7 @@ describe('Security Hardening & Zero-Trust Audit REST Integration Tests', () => {
     adminToken = JwtService.sign({
       userId: 'usr_sec_admin',
       tenantId,
-      email: 'secadmin@xylarc.ai',
+      email: 'secadmin@kriya.ai',
       roles: ['admin', 'security_admin'],
     });
   });
@@ -97,7 +97,7 @@ describe('Security Hardening & Zero-Trust Audit REST Integration Tests', () => {
       headers: { authorization: `Bearer ${adminToken}` },
       payload: {
         secretName: 'STRIPE_WEBHOOK_SECRET',
-        newSecretValue: 'whsec_998877665544332211aabbcc',
+        newSecretValue: 'a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90',
         gracePeriodSeconds: 3600,
       },
     });

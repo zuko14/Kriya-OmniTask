@@ -137,7 +137,7 @@ export function KnowledgeCenter() {
     }
   };
 
-  const documents = docsState.status === 'success' ? docsState.data.documents : [];
+  const documents = docsState.status === 'success' ? (docsState.data?.documents ?? []) : [];
   const verifiedCount = documents.filter((d) => d.quality_status === 'VERIFIED').length;
 
   const columns: Column<KnowledgeDocument>[] = [
@@ -146,9 +146,9 @@ export function KnowledgeCenter() {
       header: 'Document Title',
       render: (d) => (
         <div>
-          <div style={{ fontWeight: 600, color: 'var(--color-ink)' }}>{d.title}</div>
-          {d.summary && <div style={{ fontSize: '12px', color: 'var(--color-ink-muted)' }}>{d.summary}</div>}
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontWeight: 600, color: 'var(--text)' }}>{d.title}</div>
+          {d.summary && <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{d.summary}</div>}
+          <div style={{ fontSize: '11px', color: 'var(--text2)', fontFamily: 'var(--font-mono)' }}>
             v{d.version} · Stale after {d.stale_after_days}d
           </div>
         </div>
@@ -181,15 +181,15 @@ export function KnowledgeCenter() {
       render: (d) => (
         <div style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}>
           {d.quality_status !== 'VERIFIED' ? (
-            <button className={styles.btnSecondary} onClick={() => handleVerify(d.id, 'VERIFIED')}>
-              ✓ Verify
+            <button className="btn btn-ghost btn-sm" onClick={() => handleVerify(d.id, 'VERIFIED')}>
+              Verify
             </button>
           ) : (
-            <button className={styles.btnSecondary} onClick={() => handleVerify(d.id, 'STALE')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => handleVerify(d.id, 'STALE')}>
               Mark Stale
             </button>
           )}
-          <button className={styles.btnDanger} onClick={() => handleDelete(d.id, d.title)}>
+          <button className="btn btn-danger btn-sm" onClick={() => handleDelete(d.id, d.title)}>
             Delete
           </button>
         </div>
@@ -205,14 +205,14 @@ export function KnowledgeCenter() {
           <p className={styles.subtitle}>Document ingestion, hybrid vector/BM25 retrieval, and quality provenance verification.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnPrimary} onClick={() => setIsIngesting(true)}>
+          <button className="btn btn-accent" onClick={() => setIsIngesting(true)}>
             + Ingest Document
           </button>
         </div>
       </header>
 
-      {actionError && <div style={{ color: 'var(--color-critical)', background: 'rgba(216,87,75,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>⚠️ {actionError}</div>}
-      {actionSuccess && <div style={{ color: 'var(--color-verify)', background: 'rgba(63,166,107,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Top Metrics Strip */}
       <div className={styles.metricsGrid}>
@@ -222,11 +222,11 @@ export function KnowledgeCenter() {
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Verified Quality</span>
-          <span className={styles.metricValue} style={{ color: 'var(--color-verify)' }}>{verifiedCount}</span>
+          <span className={styles.metricValue}>{verifiedCount}</span>
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Unverified / Stale</span>
-          <span className={styles.metricValue} style={{ color: 'var(--color-caution)' }}>
+          <span className={styles.metricValue} style={{ color: documents.length - verifiedCount > 0 ? 'var(--amber)' : undefined }}>
             {documents.length - verifiedCount}
           </span>
         </div>
@@ -234,23 +234,24 @@ export function KnowledgeCenter() {
 
       {/* Hybrid Search Test Console */}
       <div className={styles.searchCard}>
-        <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: 'var(--color-ink)' }}>Hybrid Vector & Keyword Query Sandbox</h2>
+        <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: 'var(--text)' }}>Hybrid Vector & Keyword Query Sandbox</h2>
         <form onSubmit={handleSearch} className={styles.searchForm}>
           <input
             type="text"
             className={styles.searchInput}
+            aria-label="Test live RAG retrieval query"
             placeholder="Test live RAG retrieval (e.g. refund policy, enterprise SLA, pricing tiers)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <button type="submit" className={styles.btnPrimary} disabled={isSearching}>
-            {isSearching ? 'Searching...' : '🔍 Hybrid Query'}
+          <button type="submit" className="btn btn-accent" disabled={isSearching}>
+            {isSearching ? 'Searching...' : 'Hybrid Query'}
           </button>
         </form>
 
         {searchResults && (
           <div className={styles.searchResults}>
-            <div style={{ fontSize: '12px', color: 'var(--color-ink-muted)' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text2)' }}>
               Found <strong>{searchResults.totalMatches}</strong> matched chunks for query <em>"{searchResults.query}"</em>:
             </div>
             {searchResults.results.map((chunk) => (
@@ -340,10 +341,10 @@ export function KnowledgeCenter() {
               </div>
 
               <div className={styles.modalActions}>
-                <button type="button" className={styles.btnSecondary} onClick={() => setIsIngesting(false)} disabled={isSubmitting}>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIsIngesting(false)} disabled={isSubmitting}>
                   Cancel
                 </button>
-                <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
+                <button type="submit" className="btn btn-accent" disabled={isSubmitting}>
                   {isSubmitting ? 'Ingesting & Chunking...' : 'Ingest Document'}
                 </button>
               </div>

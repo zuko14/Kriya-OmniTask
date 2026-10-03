@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Organization & Workspace Repository
+ * Kriya AI — Organization & Workspace Repository
  * Manages customer commercial organizations and operational workspace scopes.
  */
 

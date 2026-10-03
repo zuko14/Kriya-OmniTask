@@ -21,7 +21,8 @@ describe('StripePaymentAdapter Unit Tests', () => {
 
   it('should generate a valid payment intent structure from an invoice', () => {
     const intent = StripePaymentAdapter.createPaymentIntent(invoice);
-    expect(intent.paymentIntentId).toContain('pi_stripe_test');
+    // Sandbox-only simulated intent: the ID must be visibly labelled as sandbox.
+    expect(intent.paymentIntentId).toContain('pi_sandbox_stripe_test');
     expect(intent.amountCents).toBe(19900);
     expect(intent.currency).toBe('usd');
     expect(intent.status).toBe('requires_confirmation');

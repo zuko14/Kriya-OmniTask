@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Security Hardening & Zero-Trust Audit Type Definitions
+ * Kriya AI — Security Hardening & Zero-Trust Audit Type Definitions
  * Typed contracts for chained cryptographic audit logs, key rotation, and zero-trust verification (§14, §20 of CLAUDE.md).
  */
 
@@ -47,6 +47,19 @@ export interface SecretRotationResult {
   status: SecretStatus;
   rotatedAt: string;
   expiresAt?: string;
+  proofReceiptId?: string;
+  receiptHash?: string;
+}
+
+export interface SecretHygieneReport {
+  totalSecrets: number;
+  activeSecrets: number;
+  gracePeriodSecrets: number;
+  expiredGraceSecretsRevoked: number;
+  revokedSecrets: number;
+  entropyCompliant: boolean;
+  hygieneStatus: 'HEALTHY' | 'ACTION_REQUIRED';
+  details: string[];
 }
 
 export interface SecurityScanFinding {

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Hardening Service
+ * Kriya AI — Production Hardening Service
  * Orchestrates multi-tenant stress benchmarks, chaos experiments, red-team validations, and production certification.
  */
 
@@ -16,9 +16,22 @@ import {
   ProductionReadinessCertificate,
 } from '../types/hardeningTypes.js';
 import { logger } from '../../core/logger/logger.js';
+import { config } from '../../core/config/config.js';
+import { ForbiddenError } from '../../core/errors/errors.js';
 
 export class HardeningService {
   constructor(private repo: HardeningRepository) {}
+
+  private assertStagingOnly(operation: string): void {
+    const appMode = config.get('APP_MODE') || process.env.APP_MODE || 'development';
+    if (appMode === 'production') {
+      logger.error(`CRITICAL: Attempted to run ${operation} in production mode!`, { appMode });
+      throw new ForbiddenError(
+        `${operation} is strictly prohibited in production mode. Set APP_MODE=staging or APP_MODE=test to execute.`,
+        { appMode, code: 'CHAOS_DISABLED_IN_PRODUCTION' }
+      );
+    }
+  }
 
   public async runStressBenchmark(params: {
     runName?: string;
@@ -26,6 +39,7 @@ export class HardeningService {
     requestsPerWorker?: number;
     tenantCount?: number;
   }): Promise<StressRunRecord> {
+    this.assertStagingOnly('Stress benchmarks');
     const run = await ConcurrencyStressTester.runStressTest(params);
     await this.repo.saveStressRun(run);
     logger.info(`Completed Stress Benchmark '${run.runName}' (Concurrency: ${run.concurrencyLevel}, Throughput: ${run.throughputRps} RPS, P95: ${run.p95LatencyMs}ms)`);
@@ -42,6 +56,7 @@ export class HardeningService {
     faultProbability?: number;
     iterations?: number;
   }): Promise<ChaosExperimentRecord> {
+    this.assertStagingOnly('Chaos injection experiments');
     const exp = await ChaosInjectionEngine.runExperiment(params);
     await this.repo.saveChaosExperiment(exp);
     logger.info(`Executed Chaos Experiment '${exp.experimentName}' (Fault: ${exp.faultType}, Status: ${exp.status}, Survived: ${exp.survivedCount}/${exp.injectedCount})`);

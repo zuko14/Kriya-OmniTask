@@ -28,7 +28,7 @@ describe('Deterministic Verification & Quality Reviewer REST Integration Tests',
     adminToken = JwtService.sign({
       userId: 'usr_admin_verif',
       tenantId,
-      email: 'verifadmin@xylarc.ai',
+      email: 'verifadmin@kriya.ai',
       roles: ['admin'],
     });
   });

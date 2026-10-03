@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Cost Intelligence REST API Routes
+ * Kriya AI — Cost Intelligence REST API Routes
  * Endpoints for cost attribution, business outcome unit economics, and hard budget policies (§10–§14, §24).
  */
 

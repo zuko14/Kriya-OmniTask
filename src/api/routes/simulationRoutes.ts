@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Simulation & Dry-Run Sandbox REST Routes
+ * Kriya AI — Agent Simulation & Dry-Run Sandbox REST Routes
  * Endpoints for Scenario Management, Dry-Run Executions, and Behavioral Regression Reports (§14, §17 of CLAUDE.md).
  */
 

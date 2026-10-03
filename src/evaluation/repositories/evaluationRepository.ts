@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Evaluation Datasets & Benchmarks Relational Repository
+ * Kriya AI — Evaluation Datasets & Benchmarks Relational Repository
  * Persistence for golden datasets and benchmark execution reports (§14, §18 of CLAUDE.md).
  */
 

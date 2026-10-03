@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Deployment & Release Service
+ * Kriya AI — Deployment & Release Service
  * Orchestrates automated CI/CD release gates, canary traffic shifting, dynamic feature flags, and zero-downtime schema migrations.
  */
 
@@ -8,7 +8,13 @@ import { DeploymentRepository } from '../repositories/deploymentRepository.js';
 import { DeploymentGateEvaluator } from '../gates/deploymentGateEvaluator.js';
 import { FeatureFlagEngine } from '../flags/featureFlagEngine.js';
 import { CanaryTrafficShifter, CanaryHealthMetrics } from '../canary/canaryTrafficShifter.js';
+import { CanaryRoutingEngine, CanaryRouteDecision, TelemetryEvaluationResult } from '../canary/canaryRoutingEngine.js';
+import { OneStepRollbackEngine } from '../rollback/oneStepRollbackEngine.js';
+import { ApiVersionManager, VersionNegotiationResult } from '../versioning/apiVersionManager.js';
+import { DataResidencyEngine, ResidencyValidationResult, IndiaHostingBlueprint } from '../residency/dataResidencyEngine.js';
 import { SchemaTransitionManager } from '../schema/schemaTransitionManager.js';
+import { AttentionService } from '../../attention/service/attentionService.js';
+import { ProofService } from '../../trust/proof/proofService.js';
 import {
   ReleaseDeployment,
   FeatureFlag,
@@ -17,12 +23,35 @@ import {
   SchemaTransitionPhase,
   GateEvaluationInput,
   DeploymentEnvironment,
+  ApiVersionRegistration,
+  RegisterApiVersionInput,
+  CanaryRoutingConfig,
+  CanaryTelemetrySnapshot,
+  IngestCanaryTelemetryInput,
+  DeploymentRollbackEvent,
+  ExecuteRollbackInput,
+  RollbackExecutionResult,
+  DataResidencyConfig,
+  UpsertDataResidencyInput,
+  ValidateResidencyRequestInput,
 } from '../types/deploymentTypes.js';
 import { NotFoundError, ValidationError } from '../../core/errors/errors.js';
 import { logger } from '../../core/logger/logger.js';
 
 export class DeploymentService {
-  constructor(private repo: DeploymentRepository) {}
+  private rollbackEngine: OneStepRollbackEngine;
+  private apiVersionManager: ApiVersionManager;
+  private dataResidencyEngine: DataResidencyEngine;
+
+  constructor(
+    private repo: DeploymentRepository,
+    private attentionService?: AttentionService,
+    private proofService?: ProofService
+  ) {
+    this.rollbackEngine = new OneStepRollbackEngine(repo, attentionService, proofService);
+    this.apiVersionManager = new ApiVersionManager(repo);
+    this.dataResidencyEngine = new DataResidencyEngine(repo);
+  }
 
   // 1. Deployments & Quality Gates
   public async createDeployment(
@@ -208,4 +237,141 @@ export class DeploymentService {
   public async listSchemaTransitions(tableName?: string): Promise<SchemaTransition[]> {
     return this.repo.listSchemaTransitions(tableName);
   }
+
+  // 4. One-Step Rollback Automation
+  public async executeInstantRollback(
+    deploymentId: string,
+    input: ExecuteRollbackInput
+  ): Promise<RollbackExecutionResult> {
+    return this.rollbackEngine.executeRollback(deploymentId, input);
+  }
+
+  public async listRollbackEvents(deploymentId?: string, limit = 50): Promise<DeploymentRollbackEvent[]> {
+    return this.repo.listRollbackEvents(deploymentId, limit);
+  }
+
+  // 5. Canary Routing & Phased Progression Engine
+  public async routeTenantForCanary(deploymentId: string, tenantId: string): Promise<CanaryRouteDecision> {
+    const deployment = await this.repo.getDeploymentById(deploymentId);
+    if (!deployment) {
+      throw new NotFoundError(`Deployment '${deploymentId}' not found.`);
+    }
+
+    return CanaryRoutingEngine.routeTenant(tenantId, deployment.canaryWeightPct);
+  }
+
+  public async evaluateAndIngestCanaryTelemetry(
+    input: IngestCanaryTelemetryInput
+  ): Promise<{
+    snapshot: CanaryTelemetrySnapshot;
+    evaluation: TelemetryEvaluationResult;
+    rollbackResult?: RollbackExecutionResult;
+  }> {
+    const deployment = await this.repo.getDeploymentById(input.deploymentId);
+    if (!deployment) {
+      throw new NotFoundError(`Deployment '${input.deploymentId}' not found.`);
+    }
+
+    const errorRatePct = input.totalRequests > 0
+      ? Number(((input.errorCount / input.totalRequests) * 100).toFixed(2))
+      : 0;
+
+    const evaluation = CanaryRoutingEngine.evaluateTelemetry(deployment.canaryWeightPct, {
+      errorRatePct,
+      p99LatencyMs: input.p99LatencyMs,
+      maxAllowedErrorRatePct: 1.0,
+      maxAllowedP99LatencyMs: 1500,
+    });
+
+    const snapshotId = `tel_${CryptoUtils.generateId()}`;
+    const now = new Date().toISOString();
+
+    const snapshot: CanaryTelemetrySnapshot = {
+      id: snapshotId,
+      deploymentId: input.deploymentId,
+      sampleWindowSeconds: input.sampleWindowSeconds,
+      totalRequests: input.totalRequests,
+      errorCount: input.errorCount,
+      errorRatePct,
+      p95LatencyMs: input.p95LatencyMs,
+      p99LatencyMs: input.p99LatencyMs,
+      verdict: evaluation.verdict,
+      actionTaken: evaluation.action,
+      reason: evaluation.reason,
+      evaluatedAt: now,
+    };
+
+    await this.repo.saveCanaryTelemetrySnapshot(snapshot);
+
+    let rollbackResult: RollbackExecutionResult | undefined;
+    if (evaluation.action === 'rollback') {
+      logger.warn(`Canary telemetry tripwire breached for deployment '${input.deploymentId}'. Initiating instant rollback.`);
+      rollbackResult = await this.rollbackEngine.executeRollback(input.deploymentId, {
+        rollbackType: 'automated_telemetry',
+        reason: evaluation.reason,
+        executedBy: 'automated_canary_guardian',
+      });
+    } else if (evaluation.action === 'advance' && evaluation.recommendedWeightPct !== deployment.canaryWeightPct) {
+      await this.repo.updateCanaryWeight(input.deploymentId, evaluation.recommendedWeightPct);
+      logger.info(`Advancing canary weight for deployment '${input.deploymentId}' to ${evaluation.recommendedWeightPct}%.`);
+    }
+
+    return {
+      snapshot,
+      evaluation,
+      rollbackResult,
+    };
+  }
+
+  public async listCanaryTelemetrySnapshots(
+    deploymentId: string,
+    limit = 50
+  ): Promise<CanaryTelemetrySnapshot[]> {
+    return this.repo.listCanaryTelemetrySnapshots(deploymentId, limit);
+  }
+
+  // 6. API Versioning & Contract-Locked Gate
+  public async registerApiVersion(input: RegisterApiVersionInput): Promise<ApiVersionRegistration> {
+    return this.apiVersionManager.registerApiVersion(input);
+  }
+
+  public async validateClientContract(
+    apiVersion: string,
+    clientVersionHeader?: string
+  ): Promise<VersionNegotiationResult> {
+    return this.apiVersionManager.validateClientContract(apiVersion, clientVersionHeader);
+  }
+
+  public async listApiVersions(status?: string): Promise<ApiVersionRegistration[]> {
+    return this.apiVersionManager.listVersions(status);
+  }
+
+  // 7. Data Residency & India Sovereign Hosting
+  public async upsertDataResidency(
+    tenantId: string,
+    input: UpsertDataResidencyInput
+  ): Promise<DataResidencyConfig> {
+    return this.dataResidencyEngine.upsertResidencyConfig(tenantId, input);
+  }
+
+  public async getDataResidency(tenantId: string): Promise<DataResidencyConfig> {
+    return this.dataResidencyEngine.getResidencyConfig(tenantId);
+  }
+
+  public async validateDataResidency(
+    tenantId: string,
+    input: ValidateResidencyRequestInput
+  ): Promise<ResidencyValidationResult> {
+    return this.dataResidencyEngine.validateOperation(
+      tenantId,
+      input.targetRegion,
+      input.isLlmInference,
+      input.crossBorderTransfer
+    );
+  }
+
+  public getIndiaHostingBlueprint(): IndiaHostingBlueprint {
+    return DataResidencyEngine.getIndiaHostingBlueprint();
+  }
 }
+

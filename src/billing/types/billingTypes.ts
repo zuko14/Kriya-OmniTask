@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Billing and Usage Types & Contracts
+ * Kriya AI — Billing and Usage Types & Contracts
  * Production definitions for event-driven usage metering, channel plans, overage calculations, and invoicing.
  */
 

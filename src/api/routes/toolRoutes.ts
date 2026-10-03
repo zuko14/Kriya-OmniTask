@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tool Gateway & Credential Vault REST Routes
+ * Kriya AI — Tool Gateway & Credential Vault REST Routes
  * Fastify routes for tool discovery, credential management, permissions, and mediated execution.
  */
 

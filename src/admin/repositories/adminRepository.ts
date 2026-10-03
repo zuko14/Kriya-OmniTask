@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Platform Administration Repository
+ * Kriya AI — Platform Administration Repository
  * Persistence for operator audit logs, fleet heartbeats, system announcements, and maintenance state.
  */
 

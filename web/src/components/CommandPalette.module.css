@@ -1,8 +1,9 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+  background: rgba(2, 6, 12, 0.62);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -11,10 +12,13 @@
 }
 
 .modal {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(155%);
+  backdrop-filter: blur(var(--blur)) saturate(155%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 1px 0 var(--rim), var(--shadow-lg);
+  animation: fadeUp 0.3s var(--ease-out) both;
   width: 100%;
   max-width: 600px;
   overflow: hidden;
@@ -27,13 +31,13 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-raised);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
 }
 
 .searchIcon {
-  color: var(--color-ink-muted);
-  font-size: 16px;
+  display: inline-flex;
+  color: var(--text3);
 }
 
 .searchInput {
@@ -42,22 +46,22 @@
   border: none;
   font-family: var(--font-body);
   font-size: 15px;
-  color: var(--color-ink);
+  color: var(--text);
   outline: none;
 }
 
 .searchInput::placeholder {
-  color: var(--color-ink-muted);
+  color: var(--text2);
 }
 
 .shortcutBadge {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 2px 6px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--color-ink-muted);
+  color: var(--text2);
 }
 
 .resultsList {
@@ -74,7 +78,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-ink-muted);
+  color: var(--text2);
   padding: var(--space-2) var(--space-3) var(--space-1) var(--space-3);
 }
 
@@ -86,13 +90,13 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   text-decoration: none;
-  color: var(--color-ink);
+  color: var(--text);
   font-size: 13px;
 }
 
 .resultItemActive {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .itemLabel {
@@ -103,7 +107,7 @@
 
 .itemCategory {
   font-size: 11px;
-  color: var(--color-ink-muted);
+  color: var(--text2);
   font-family: var(--font-mono);
 }
 
@@ -111,15 +115,15 @@
   padding: var(--space-5);
   text-align: center;
   font-size: 13px;
-  color: var(--color-ink-muted);
+  color: var(--text2);
 }
 
 .footer {
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--border);
   padding: var(--space-2) var(--space-4);
-  background: var(--color-surface-raised);
+  background: var(--surface2);
   display: flex;
   gap: var(--space-4);
   font-size: 11px;
-  color: var(--color-ink-muted);
+  color: var(--text2);
 }

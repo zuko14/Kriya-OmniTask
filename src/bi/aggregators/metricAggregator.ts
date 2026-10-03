@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Business Intelligence Multi-Source Metric Aggregator
+ * Kriya AI — Business Intelligence Multi-Source Metric Aggregator
  * Gathers operational, workforce, and commercial metrics across the tenant's data fabric (§13, §14 of CLAUDE.md).
  */
 

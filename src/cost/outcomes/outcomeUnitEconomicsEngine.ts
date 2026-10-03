@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Outcome Unit Economics Engine
+ * Kriya AI — Outcome Unit Economics Engine
  * Calculates true cost-per-outcome, ROI multipliers, and aggregate economic efficiency metrics.
  */
 

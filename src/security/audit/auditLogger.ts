@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Immutable Audit Ledger & Event Recorder
+ * Kriya AI — Immutable Audit Ledger & Event Recorder
  * Records all security-relevant, administrative, and agent execution events
  * with cryptographic actor attribution and correlation tracking.
  */

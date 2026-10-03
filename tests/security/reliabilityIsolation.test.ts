@@ -35,21 +35,21 @@ describe('Adversarial Reliability Engineering Multi-Tenant Isolation Security Te
     tokenA = JwtService.sign({
       userId: 'usr_admin_rel_a',
       tenantId: tenantA,
-      email: 'admina@xylarc.ai',
+      email: 'admina@kriya.ai',
       roles: ['admin', 'operations_manager'],
     });
 
     tokenB = JwtService.sign({
       userId: 'usr_admin_rel_b',
       tenantId: tenantB,
-      email: 'adminb@xylarc.ai',
+      email: 'adminb@kriya.ai',
       roles: ['admin', 'operations_manager'],
     });
 
     unauthorizedToken = JwtService.sign({
       userId: 'usr_readonly_rel',
       tenantId: tenantA,
-      email: 'readonly@xylarc.ai',
+      email: 'readonly@kriya.ai',
       roles: ['read_only'],
     });
 

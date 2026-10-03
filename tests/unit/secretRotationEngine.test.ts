@@ -6,10 +6,10 @@ describe('Secret & Key Rotation Engine Unit Tests', () => {
   const encKey = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
   it('should plan initial secret creation and subsequent versioned rotations', () => {
-    // 1. Initial version (v1)
+    // 1. Initial version (v1) with >= 256-bit entropy (64 hex characters = 32 bytes)
     const plan1 = SecretRotationEngine.planRotation({
       secretName: 'WHATSAPP_ACCESS_TOKEN',
-      newSecretValue: 'secret_token_val_123',
+      newSecretValue: 'a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90',
       gracePeriodSeconds: 3600,
       encryptionKey: encKey,
     });
@@ -35,7 +35,7 @@ describe('Secret & Key Rotation Engine Unit Tests', () => {
 
     const plan2 = SecretRotationEngine.planRotation({
       secretName: 'WHATSAPP_ACCESS_TOKEN',
-      newSecretValue: 'secret_token_val_456',
+      newSecretValue: 'f0e1d2c3b4a5968778695a4b3c2d1e0ff0e1d2c3b4a5968778695a4b3c2d1e0f',
       currentActiveRecord: currentActive,
       gracePeriodSeconds: 1800,
       encryptionKey: encKey,
@@ -46,6 +46,28 @@ describe('Secret & Key Rotation Engine Unit Tests', () => {
     expect(plan2.updatedPreviousRecord).toBeDefined();
     expect(plan2.updatedPreviousRecord?.status).toBe('grace_period');
     expect(plan2.updatedPreviousRecord?.expiresAt).toBeDefined();
+  });
+
+  it('should enforce minimum 256-bit entropy and reject weak secrets', () => {
+    // Too short
+    expect(() =>
+      SecretRotationEngine.planRotation({
+        secretName: 'API_KEY',
+        newSecretValue: 'short_key',
+        gracePeriodSeconds: 3600,
+        encryptionKey: encKey,
+      })
+    ).toThrow('Secret does not satisfy minimum 256-bit entropy requirement');
+
+    // Repeated low-entropy characters
+    expect(() =>
+      SecretRotationEngine.planRotation({
+        secretName: 'API_KEY',
+        newSecretValue: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+        gracePeriodSeconds: 3600,
+        encryptionKey: encKey,
+      })
+    ).toThrow('Secret does not satisfy minimum 256-bit entropy requirement');
   });
 
   it('should detect expired grace-period secrets', () => {

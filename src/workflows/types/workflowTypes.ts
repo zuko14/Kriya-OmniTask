@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Workflow DAG Engine Type Definitions & Schemas
+ * Kriya AI — Workflow DAG Engine Type Definitions & Schemas
  * Typed contracts for multi-step DAG pipelines, step types, and human approval steps (§13, §15 of CLAUDE.md).
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Adversarial Workflow & Approval Isolation Security Tests
+ * Kriya AI — Adversarial Workflow & Approval Isolation Security Tests
  * Verifies cross-tenant isolation for workflow definitions, execution traces, and approval requests (§13, §15 of CLAUDE.md).
  */
 

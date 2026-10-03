@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Policy-as-Code Engine REST Routes
+ * Kriya AI — Policy-as-Code Engine REST Routes
  * Fastify routes for policy evaluations, rule management, and compliance audit inspection.
  */
 

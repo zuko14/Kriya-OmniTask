@@ -1,31 +1,21 @@
 import { NavLink } from 'react-router';
+import { useBusinessDna } from '../lib/dnaContext';
+import { Icon } from '../components/brand/Icon';
 import styles from './Sidebar.module.css';
 
 interface NavItem {
   label: string;
-  to?: string;
+  to: string;
+  capability?: string;
 }
 
-const CLIENT_NAV: NavItem[] = [
-  { label: 'Overview', to: '/app/overview' },
-  { label: 'Customers', to: '/app/customers' },
-  { label: 'Conversations', to: '/app/conversations' },
-  { label: 'Digital Workforce', to: '/app/agents' },
-  { label: 'Agents', to: '/app/agents' },
-  { label: 'Workflows', to: '/app/workflows' },
-  { label: 'Human Attention', to: '/app/attention' },
-  { label: 'Analytics', to: '/app/analytics' },
-  { label: 'Business Intelligence', to: '/app/bi' },
-  { label: 'Knowledge', to: '/app/knowledge' },
-  { label: 'Billing', to: '/app/billing' },
-  { label: 'Settings', to: '/app/settings' },
-];
-
-const PLATFORM_NAV: NavItem[] = [
+const PLATFORM_NAV = [
   { label: 'Overview', to: '/platform/overview' },
   { label: 'Tenants', to: '/platform/tenants' },
   { label: 'Agent Fleet', to: '/platform/fleet' },
   { label: 'Model Health', to: '/platform/models' },
+  { label: 'Model Registry', to: '/platform/models/registry' },
+  { label: 'Skills', to: '/platform/skills' },
   { label: 'Security', to: '/platform/security' },
   { label: 'Billing', to: '/platform/billing' },
   { label: 'Audit', to: '/platform/audit' },
@@ -38,7 +28,35 @@ export interface SidebarProps {
 }
 
 export function Sidebar({ plane, isOpen = false, onClose }: SidebarProps) {
-  const items = plane === 'client' ? CLIENT_NAV : PLATFORM_NAV;
+  const { vocabulary, hasCapability } = useBusinessDna();
+
+  // Dynamic 10-item client navigation rail (§18)
+  const clientNav: NavItem[] = [
+    { label: 'Today', to: '/app/overview' },
+    { label: 'Workforce', to: '/app/agents' },
+    { label: vocabulary.customer_plural || 'Customers', to: '/app/customers', capability: 'lead_qualification' },
+    { label: 'Conversations', to: '/app/conversations' },
+    { label: 'Human Attention', to: '/app/attention' },
+    { label: 'Automation', to: '/app/workflows' },
+    { label: 'Run Traces', to: '/app/traces' },
+    { label: 'Proof Receipts', to: '/app/proof' },
+    { label: 'Verification Queue', to: '/app/verification' },
+    { label: 'Mandates', to: '/app/mandates' },
+    { label: 'Cost per Outcome', to: '/app/cost' },
+    { label: 'Analytics', to: '/app/analytics' },
+    { label: 'Insights', to: '/app/bi' },
+    { label: 'Knowledge', to: '/app/knowledge' },
+    { label: 'Brain', to: '/app/brain' },
+    { label: 'Settings', to: '/app/settings' },
+  ];
+
+  // "Everything the DNA profile doesn't activate is absent, not greyed out." (§3, §18)
+  const filteredClientNav = clientNav.filter((item) => {
+    if (!item.capability) return true;
+    return hasCapability(item.capability);
+  });
+
+  const items = plane === 'client' ? filteredClientNav : PLATFORM_NAV;
   const sectionTitle = plane === 'client' ? 'Business Control' : 'Platform Control';
 
   return (
@@ -63,26 +81,19 @@ export function Sidebar({ plane, isOpen = false, onClose }: SidebarProps) {
             className={styles.mobileCloseBtn}
             aria-label="Close navigation drawer"
           >
-            ✕
+            <Icon name="close" />
           </button>
         </div>
-        {items.map((item) =>
-          item.to ? (
-            <NavLink
-              key={item.label}
-              to={item.to}
-              onClick={onClose}
-              className={({ isActive }) => (isActive ? `${styles.link} ${styles.linkActive}` : styles.link)}
-            >
-              {item.label}
-            </NavLink>
-          ) : (
-            <div key={item.label} className={styles.linkDisabled} aria-disabled="true">
-              {item.label}
-              <span className={styles.soon}>Soon</span>
-            </div>
-          )
-        )}
+        {items.map((item) => (
+          <NavLink
+            key={item.to + item.label}
+            to={item.to}
+            onClick={onClose}
+            className={({ isActive }) => (isActive ? `${styles.link} ${styles.linkActive}` : styles.link)}
+          >
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
     </>
   );

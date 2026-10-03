@@ -1,9 +1,10 @@
 /**
- * Xylarc AI — Idempotency Manager Engine
+ * Kriya AI — Idempotency Manager Engine
  * Cryptographic request deduplication, concurrent lock assertion, and atomic response caching.
  */
 
 import { CryptoUtils } from '../../core/utils/crypto.js';
+import { sha256Canonical } from '../../core/utils/canonicalJson.js';
 import { IdempotencyRecord } from '../types/reliabilityTypes.js';
 import { ConflictError } from '../../core/errors/errors.js';
 
@@ -12,8 +13,9 @@ export class IdempotencyManager {
    * Computes a deterministic SHA-256 canonical hash of the request payload.
    */
   public static computePayloadHash(payload: Record<string, unknown>): string {
-    const canonicalJson = JSON.stringify(payload, Object.keys(payload).sort());
-    return CryptoUtils.hashSha256(canonicalJson);
+    // Canonical at every depth (docs/kriya S32): the old key-array replacer dropped nested fields,
+    // so different requests sharing an idempotency key looked identical.
+    return sha256Canonical(payload);
   }
 
   /**

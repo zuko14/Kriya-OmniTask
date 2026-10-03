@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Multi-Tenant Context Manager
+ * Kriya AI — Multi-Tenant Context Manager
  * Enforces AsyncLocalStorage-based tenant boundary isolation on every execution frame.
  */
 

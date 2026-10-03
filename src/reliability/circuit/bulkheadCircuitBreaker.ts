@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Bulkhead & Adaptive Circuit Breaker
+ * Kriya AI — Bulkhead & Adaptive Circuit Breaker
  * Concurrency limiting, failure rate monitoring, fast-failing open circuits, and jittered exponential backoff.
  */
 

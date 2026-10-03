@@ -1,10 +1,11 @@
 /**
- * Xylarc AI — Traces & Spans Relational Repository
+ * Kriya AI — Traces & Spans Relational Repository
  * Persistence for distributed agent interaction traces and execution telemetry (§14, §16 of CLAUDE.md).
  */
 
 import { BaseRepository } from '../../storage/repositories/baseRepository.js';
 import { DatabaseClient } from '../../storage/db.js';
+import { TenantContextManager } from '../../core/context/tenantContext.js';
 import {
   ExecutionTraceRecord,
   ExecutionSpanRecord,
@@ -14,6 +15,7 @@ import {
   ObservabilityMetricsOverview,
 } from '../types/observabilityTypes.js';
 import { CryptoUtils } from '../../core/utils/crypto.js';
+import { PiiScrubber } from '../../retrieval/external/scrubber/piiScrubber.js';
 
 export class TraceRepository extends BaseRepository<ExecutionTraceRecord> {
   protected readonly tableName = 'execution_traces';
@@ -22,17 +24,37 @@ export class TraceRepository extends BaseRepository<ExecutionTraceRecord> {
     super(client);
   }
 
+  public getClient(): DatabaseClient {
+    return this.client;
+  }
+
+  protected override getTenantId(): string {
+    const ctx = TenantContextManager.get();
+    return ctx?.tenantId || 'default';
+  }
+
+  public override async findById(id: string, tenantId?: string): Promise<ExecutionTraceRecord | null> {
+    const targetTenant = tenantId || this.getTenantId();
+    const sql = `SELECT * FROM ${this.tableName} WHERE id = ? AND tenant_id = ?;`;
+    return this.client.queryOne<ExecutionTraceRecord>(sql, [id, targetTenant]);
+  }
+
   /**
    * Starts a new distributed execution trace.
    */
   public async createTrace(params: {
+    id?: string;
     correlationId: string;
     rootAgentId: string;
     customerId?: string;
     channel?: string;
+    tenantId?: string;
   }): Promise<ExecutionTraceRecord> {
-    const tenantId = this.getTenantId();
-    const id = CryptoUtils.generateId();
+    const tenantId = params.tenantId || this.getTenantId();
+    const id = params.id || CryptoUtils.generateId();
+    const existing = await this.findById(id, tenantId);
+    if (existing) return existing;
+
     const now = new Date().toISOString();
 
     const record: ExecutionTraceRecord = {
@@ -105,10 +127,15 @@ export class TraceRepository extends BaseRepository<ExecutionTraceRecord> {
     inputSummary?: string;
     outputSummary?: string;
     attributes?: Record<string, unknown>;
+    tenantId?: string;
   }): Promise<ExecutionSpanRecord> {
-    const tenantId = this.getTenantId();
+    const tenantId = params.tenantId || this.getTenantId();
     const id = CryptoUtils.generateId();
     const now = new Date().toISOString();
+
+    const sanitizedInput = params.inputSummary ? PiiScrubber.redact(params.inputSummary) : undefined;
+    const sanitizedOutput = params.outputSummary ? PiiScrubber.redact(params.outputSummary) : undefined;
+    const sanitizedAttributes = PiiScrubber.redactObject(params.attributes || {});
 
     const record: ExecutionSpanRecord = {
       id,
@@ -125,9 +152,9 @@ export class TraceRepository extends BaseRepository<ExecutionTraceRecord> {
       tokens_input: params.tokensInput || 0,
       tokens_output: params.tokensOutput || 0,
       cost_usd: params.costUsd || 0.0,
-      input_summary: params.inputSummary,
-      output_summary: params.outputSummary,
-      attributes_json: JSON.stringify(params.attributes || {}),
+      input_summary: sanitizedInput,
+      output_summary: sanitizedOutput,
+      attributes_json: JSON.stringify(sanitizedAttributes),
       started_at: now,
       ended_at: now,
       created_at: now,
@@ -165,6 +192,30 @@ export class TraceRepository extends BaseRepository<ExecutionTraceRecord> {
     );
 
     return record;
+  }
+
+  /**
+   * Alias for addSpan to support standard OpenTelemetry span recording interface.
+   */
+  public async recordSpan(params: {
+    traceId: string;
+    parentSpanId?: string;
+    spanName: string;
+    agentId: string;
+    stepType: SpanStepType;
+    modelId?: string;
+    toolName?: string;
+    status?: SpanStatus;
+    latencyMs: number;
+    tokensInput?: number;
+    tokensOutput?: number;
+    costUsd?: number;
+    inputSummary?: string;
+    outputSummary?: string;
+    attributes?: Record<string, unknown>;
+    tenantId?: string;
+  }): Promise<ExecutionSpanRecord> {
+    return this.addSpan(params);
   }
 
   /**
@@ -219,12 +270,77 @@ export class TraceRepository extends BaseRepository<ExecutionTraceRecord> {
   /**
    * Retrieves all spans belonging to a trace.
    */
-  public async listSpans(traceId: string): Promise<ExecutionSpanRecord[]> {
-    const tenantId = this.getTenantId();
+  public async listSpans(traceId: string, tenantId?: string): Promise<ExecutionSpanRecord[]> {
+    const targetTenant = tenantId || this.getTenantId();
     return this.client.query<ExecutionSpanRecord>(
       'SELECT * FROM execution_spans WHERE tenant_id = ? AND trace_id = ? ORDER BY started_at ASC;',
-      [tenantId, traceId]
+      [targetTenant, traceId]
     );
+  }
+
+  /**
+   * Finds a trace by either primary ID or correlationId (e.g. workflow runId).
+   */
+  public async findTraceByCorrelationOrId(idOrCorrelationId: string, tenantId?: string): Promise<ExecutionTraceRecord | null> {
+    const targetTenant = tenantId || this.getTenantId();
+    const rows = await this.client.query<ExecutionTraceRecord>(
+      'SELECT * FROM execution_traces WHERE (id = ? OR correlation_id = ?) AND tenant_id = ? ORDER BY started_at DESC LIMIT 1;',
+      [idOrCorrelationId, idOrCorrelationId, targetTenant]
+    );
+    return rows.length ? rows[0] : null;
+  }
+
+  /**
+   * Retrieves all spans for a trace resolved by either trace ID or correlationId.
+   */
+  public async listSpansByTraceOrCorrelation(idOrCorrelationId: string, tenantId?: string): Promise<ExecutionSpanRecord[]> {
+    const targetTenant = tenantId || this.getTenantId();
+    const trace = await this.findTraceByCorrelationOrId(idOrCorrelationId, targetTenant);
+    const traceId = trace ? trace.id : idOrCorrelationId;
+    return this.listSpans(traceId, targetTenant);
+  }
+
+  /**
+   * Searches and filters spans across traces for a tenant.
+   */
+  public async searchSpans(filter: {
+    tenantId?: string;
+    traceId?: string;
+    parentSpanId?: string;
+    agentId?: string;
+    stepType?: SpanStepType;
+    status?: SpanStatus;
+    limit?: number;
+  }): Promise<ExecutionSpanRecord[]> {
+    const tenantId = filter.tenantId || this.getTenantId();
+    let sql = 'SELECT * FROM execution_spans WHERE tenant_id = ?';
+    const params: unknown[] = [tenantId];
+
+    if (filter.traceId) {
+      sql += ' AND trace_id = ?';
+      params.push(filter.traceId);
+    }
+    if (filter.parentSpanId) {
+      sql += ' AND parent_span_id = ?';
+      params.push(filter.parentSpanId);
+    }
+    if (filter.agentId) {
+      sql += ' AND agent_id = ?';
+      params.push(filter.agentId);
+    }
+    if (filter.stepType) {
+      sql += ' AND step_type = ?';
+      params.push(filter.stepType);
+    }
+    if (filter.status) {
+      sql += ' AND status = ?';
+      params.push(filter.status);
+    }
+
+    sql += ' ORDER BY started_at DESC LIMIT ?;';
+    params.push(filter.limit || 50);
+
+    return this.client.query<ExecutionSpanRecord>(sql, params);
   }
 
   /**
@@ -277,7 +393,7 @@ export class TraceRepository extends BaseRepository<ExecutionTraceRecord> {
         avgLatencyMs: 0,
         totalTokens: 0,
         totalCostUsd: 0,
-        avgGroundingScore: 1.0,
+        avgGroundingScore: null,
         driftRatePct: 0,
       };
     }

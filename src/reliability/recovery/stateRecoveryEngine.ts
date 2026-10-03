@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — State Recovery & Lifecycle Checkpoint Engine
+ * Kriya AI — State Recovery & Lifecycle Checkpoint Engine
  * Comprehensive multi-step transaction checkpointing, state validation, and compensation rollbacks.
  */
 

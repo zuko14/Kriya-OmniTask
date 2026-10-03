@@ -9,7 +9,7 @@ function jsonResponse(body: unknown, ok = true, status = 200) {
 describe('Golden Paths Integration & E2E Validation', () => {
   beforeEach(() => {
     sessionStorage.clear();
-    sessionStorage.setItem('xylarc_access_token', 'mock_e2e_token');
+    sessionStorage.setItem('kriya_access_token', 'mock_e2e_token');
 
     vi.stubGlobal(
       'fetch',
@@ -25,6 +25,12 @@ describe('Golden Paths Integration & E2E Validation', () => {
         }
 
         // Overview / Telemetry
+        if (url.includes('/api/v1/observability/metrics')) {
+          return Promise.resolve(jsonResponse({ totalTraces: 30, completedTraces: 27, failedTraces: 2, escalatedTraces: 1 }));
+        }
+        if (url.includes('/api/v1/attention/metrics')) {
+          return Promise.resolve(jsonResponse({ pendingCount: 3, claimedCount: 1, slaBreachCount: 0 }));
+        }
         if (url.includes('/api/v1/workforce/telemetry')) {
           return Promise.resolve(
             jsonResponse({
@@ -290,8 +296,11 @@ describe('Golden Paths Integration & E2E Validation', () => {
     render(<App />);
 
     // Renders Executive Overview
-    expect(await screen.findByText('Executive Overview')).toBeInTheDocument();
-    expect(await screen.findByText('$1250.00')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Executive Overview/i })).toBeInTheDocument();
+    // Values come from the mocked metrics endpoints (S40: the former hardcoded "8,421" is gone).
+    expect(await screen.findByText('Completed runs')).toBeInTheDocument();
+    expect(await screen.findByText('27')).toBeInTheDocument();
+    expect(screen.queryByText('8,421')).not.toBeInTheDocument();
 
     // Navigates via Command Palette
     fireEvent.keyDown(window, { key: 'k', metaKey: true });

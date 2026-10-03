@@ -1,16 +1,18 @@
 /**
- * Xylarc AI — Autonomous Business Workforce Platform Bootloader
+ * Kriya AI — Autonomous Business Workforce Platform Bootloader
  * Initializes foundation services, executes pending database migrations,
  * and verifies system invariants.
  */
 
 import { config } from './core/config/config.js';
+import { assertRuntimeReadiness, getAppMode } from './core/config/runtimeMode.js';
 import { logger } from './core/logger/logger.js';
 import { db } from './storage/db.js';
 import { SchemaMigrator } from './storage/migrations/migrator.js';
 import { buildServer } from './api/server.js';
 
 export * from './core/config/config.js';
+export * from './core/config/runtimeMode.js';
 export * from './core/context/tenantContext.js';
 export * from './core/errors/errors.js';
 export * from './core/logger/logger.js';
@@ -190,9 +192,50 @@ export * from './hardening/security/redTeamValidator.js';
 export * from './hardening/readiness/productionReadinessAuditor.js';
 export * from './hardening/repositories/hardeningRepository.js';
 export * from './hardening/service/hardeningService.js';
-export * from './admin/ui/dashboardHtml.js';
-export * from './admin/ui/dashboardCss.js';
-export * from './admin/ui/dashboardJs.js';
+export * from './retrieval/external/types/externalRetrievalTypes.js';
+export * from './retrieval/external/query/queryBuilder.js';
+export * from './retrieval/external/scrubber/piiScrubber.js';
+export * from './retrieval/external/gateway/egressGateway.js';
+export * from './retrieval/external/fetcher/isolatedFetcher.js';
+export * from './retrieval/external/sanitizer/contentSanitizer.js';
+export * from './retrieval/external/wrapper/isolationWrapper.js';
+export * from './retrieval/external/governance/externalFactGovernance.js';
+export * from './retrieval/external/repositories/externalRetrievalRepository.js';
+export * from './retrieval/external/services/securedRetrievalPipeline.js';
+export * from './realtime/types/realtimeTypes.js';
+export * from './realtime/repositories/realtimeEventRepository.js';
+export * from './realtime/services/realtimeStreamHub.js';
+export * from './adaptation/types/adaptationTypes.js';
+export * from './adaptation/repositories/adaptationRepository.js';
+export * from './adaptation/services/failureClusteringService.js';
+export * from './adaptation/services/remediationProposalService.js';
+export * from './adaptation/services/adaptationSimulationEngine.js';
+export * from './adaptation/services/governedAdaptationService.js';
+export * from './reach/types/reachTypes.js';
+export * from './reach/security/reachSecurityPolicy.js';
+export * from './reach/security/reachKillSwitch.js';
+export * from './reach/driver/browserDriver.js';
+export * from './reach/repositories/reachSessionRepository.js';
+export * from './reach/service/reachBrowserService.js';
+export * from './reach/service/reachTools.js';
+export * from './interop/mcp/types/mcpTypes.js';
+export * from './interop/mcp/service/mcpSchemaConverter.js';
+export * from './interop/mcp/service/mcpActionServer.js';
+export * from './interop/mcp/transport/stdioTransport.js';
+export * from './api/routes/mcpRoutes.js';
+export * from './outcomes/types/outcomeKpiTypes.js';
+export * from './outcomes/repositories/outcomeKpiRepository.js';
+export * from './outcomes/service/outcomeInstrumentationService.js';
+export * from './deployment/types/deploymentTypes.js';
+export * from './deployment/repositories/deploymentRepository.js';
+export * from './deployment/canary/canaryRoutingEngine.js';
+export * from './deployment/rollback/oneStepRollbackEngine.js';
+export * from './deployment/versioning/apiVersionManager.js';
+export * from './deployment/residency/dataResidencyEngine.js';
+export * from './deployment/gate/launchGateTypes.js';
+export * from './deployment/gate/launchGateReviewEngine.js';
+export * from './api/routes/outcomeRoutes.js';
+export * from './api/routes/deploymentRoutes.js';
 export * from './api/server.js';
 
 export interface PlatformHealth {
@@ -206,12 +249,15 @@ export interface PlatformHealth {
   };
 }
 
-export class XylarcPlatform {
+export class KriyaPlatform {
   private static startTime = Date.now();
 
   public static async bootstrap(): Promise<void> {
-    logger.info('Bootstrapping Xylarc AI Platform Foundation...');
+    logger.info('Bootstrapping Kriya AI Platform Foundation...');
     logger.info('Active configuration:', config.getRedacted());
+    // Fail fast on unsafe configuration (docs/kriya WP-0.3) — before touching storage.
+    assertRuntimeReadiness();
+    logger.info(`Runtime mode: ${getAppMode()}`);
 
     try {
       const client = db.getClient();
@@ -219,7 +265,7 @@ export class XylarcPlatform {
       const applied = await migrator.applyMigrations();
       logger.info(`Schema migrations checked. Applied: ${applied.length} new migrations.`);
 
-      logger.info('Xylarc AI Platform Foundation successfully initialized.');
+      logger.info('Kriya AI Platform Foundation successfully initialized.');
     } catch (err) {
       logger.fatal('Fatal error during platform bootstrap', err);
       throw err;
@@ -253,9 +299,9 @@ export class XylarcPlatform {
   }
 
   public static async shutdown(): Promise<void> {
-    logger.info('Gracefully shutting down Xylarc Platform...');
+    logger.info('Gracefully shutting down Kriya Platform...');
     await db.close();
-    logger.info('Xylarc Platform shutdown complete.');
+    logger.info('Kriya Platform shutdown complete.');
   }
 
   public static async startServer(port = 3000): Promise<void> {
@@ -263,7 +309,7 @@ export class XylarcPlatform {
     const server = await buildServer();
     const listenPort = Number(config.get('PORT') || port);
     await server.listen({ port: listenPort, host: '0.0.0.0' });
-    logger.info(`🚀 Xylarc AI Autonomous Business Workforce Server running at http://localhost:${listenPort}`);
+    logger.info(`🚀 Kriya AI Autonomous Business Workforce Server running at http://localhost:${listenPort}`);
     logger.info(`📊 Operator Control Plane UI available at http://localhost:${listenPort}/admin`);
   }
 }
@@ -277,7 +323,7 @@ const isMain = process.argv[1] && (
 );
 
 if (isMain) {
-  XylarcPlatform.startServer().catch((err) => {
+  KriyaPlatform.startServer().catch((err) => {
     logger.fatal('Failed to start server', err);
     process.exit(1);
   });

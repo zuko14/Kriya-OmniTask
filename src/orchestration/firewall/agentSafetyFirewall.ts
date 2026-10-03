@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Safety Firewall
+ * Kriya AI — Agent Safety Firewall
  * Centralized, deterministic runtime policy firewall independent of LLMs (§26 of CLAUDE.md).
  * Enforces prompt injection defenses, PII leakage prevention, data scope boundaries,
  * and risk-based autonomy validation.

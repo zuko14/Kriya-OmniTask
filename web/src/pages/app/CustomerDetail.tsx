@@ -4,6 +4,7 @@ import { apiFetch, ApiError } from '../../lib/apiClient';
 import { useAsync } from '../../lib/useAsync';
 import { AsyncState } from '../../components/AsyncState';
 import styles from './CustomerDetail.module.css';
+import { Icon } from '../../components/brand/Icon';
 
 export interface CustomerProfile {
   id: string;
@@ -152,8 +153,8 @@ export function CustomerDetail() {
     <div className={styles.container}>
       <Link to="/app/customers" className={styles.backLink}>← Back to Customer Directory</Link>
 
-      {actionError && <div className={styles.errorBanner}>⚠️ {actionError}</div>}
-      {actionSuccess && <div className={styles.successBanner}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Header Profile Card */}
       <div className={styles.headerCard}>
@@ -170,7 +171,7 @@ export function CustomerDetail() {
           <span className={`${styles.badge} ${styles.badgeSuccess}`}>
             {profile.lifecycle_stage}
           </span>
-          <span className={styles.badge} style={{ background: 'var(--color-surface-raised)', color: 'var(--color-ink-muted)' }}>
+          <span className={styles.badge} style={{ background: 'var(--surface2)', color: 'var(--text2)' }}>
             {profile.preferred_channel} ({profile.preferred_language.toUpperCase()})
           </span>
         </div>
@@ -180,13 +181,13 @@ export function CustomerDetail() {
       <div className={styles.signalsGrid}>
         <div className={styles.signalCard}>
           <span className={styles.signalLabel}>Sentiment</span>
-          <span className={styles.signalValue} style={{ color: signals.sentiment >= 0 ? 'var(--color-verify)' : 'var(--color-critical)' }}>
+          <span className={styles.signalValue} style={{ color: signals.sentiment >= 0 ? 'var(--green)' : 'var(--red)' }}>
             {signals.sentiment.toFixed(1)}
           </span>
         </div>
         <div className={styles.signalCard}>
           <span className={styles.signalLabel}>Churn Risk</span>
-          <span className={styles.signalValue} style={{ color: signals.churnRisk > 0.5 ? 'var(--color-critical)' : 'var(--color-ink)' }}>
+          <span className={styles.signalValue} style={{ color: signals.churnRisk > 0.5 ? 'var(--red)' : 'var(--text)' }}>
             {(signals.churnRisk * 100).toFixed(0)}%
           </span>
         </div>
@@ -235,7 +236,7 @@ export function CustomerDetail() {
         {activeTab === 'timeline' && (
           <div>
             {timeline.length === 0 ? (
-              <div style={{ color: 'var(--color-ink-muted)', fontSize: '13px', textAlign: 'center', padding: 'var(--space-4)' }}>
+              <div style={{ color: 'var(--text2)', fontSize: '13px', textAlign: 'center', padding: 'var(--space-4)' }}>
                 No interaction events recorded for this customer yet.
               </div>
             ) : (
@@ -250,7 +251,7 @@ export function CustomerDetail() {
                         </span>
                         <span>{new Date(event.occurred_at).toLocaleString()}</span>
                       </div>
-                      <div style={{ fontSize: '13px', color: 'var(--color-ink)' }}>{event.summary}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text)' }}>{event.summary}</div>
                     </div>
                   </div>
                 ))}
@@ -262,16 +263,16 @@ export function CustomerDetail() {
         {activeTab === 'identities' && (
           <div>
             {identities.length === 0 ? (
-              <div style={{ color: 'var(--color-ink-muted)', fontSize: '13px', textAlign: 'center', padding: 'var(--space-4)' }}>
+              <div style={{ color: 'var(--text2)', fontSize: '13px', textAlign: 'center', padding: 'var(--space-4)' }}>
                 No alternate resolved identities linked.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
                 {identities.map((ident) => (
-                  <div key={ident.id} style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--space-3)', background: 'var(--color-surface-raised)', borderRadius: 'var(--radius-sm)' }}>
+                  <div key={ident.id} style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--space-3)', background: 'var(--surface2)', borderRadius: 'var(--radius-sm)' }}>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-ink)' }}>{ident.identity_val}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Type: {ident.identity_type} {ident.is_primary ? '· (Primary)' : ''}</div>
+                      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>{ident.identity_val}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Type: {ident.identity_type} {ident.is_primary ? '· (Primary)' : ''}</div>
                     </div>
                     <div>
                       <span className={`${styles.badge} ${ident.verified ? styles.badgeSuccess : styles.badgeWarning}`}>
@@ -287,11 +288,11 @@ export function CustomerDetail() {
 
         {activeTab === 'consent' && (
           <div>
-            <div style={{ fontSize: '13px', color: 'var(--color-ink-muted)', marginBottom: 'var(--space-4)' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text2)', marginBottom: 'var(--space-4)' }}>
               Regulatory consent tracking under GDPR / DPDP Article 6 & 7 compliance.
             </div>
             {consents.length === 0 ? (
-              <div style={{ color: 'var(--color-ink-muted)', fontSize: '13px', textAlign: 'center', padding: 'var(--space-4)' }}>
+              <div style={{ color: 'var(--text2)', fontSize: '13px', textAlign: 'center', padding: 'var(--space-4)' }}>
                 No explicit consent records registered.
               </div>
             ) : (
@@ -299,14 +300,14 @@ export function CustomerDetail() {
                 {consents.map((c) => (
                   <div key={c.id} className={styles.consentRow}>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-ink)' }}>{c.consent_type.replace('_', ' ').toUpperCase()}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Source: {c.source}</div>
+                      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>{c.consent_type.replace('_', ' ').toUpperCase()}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Source: {c.source}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
                       <span className={`${styles.badge} ${c.status === 'granted' ? styles.badgeSuccess : styles.badgeDanger}`}>
                         {c.status}
                       </span>
-                      <button className={styles.btnSecondary} onClick={() => handleToggleConsent(c.consent_type, c.status)}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleToggleConsent(c.consent_type, c.status)}>
                         Toggle
                       </button>
                     </div>
@@ -320,34 +321,34 @@ export function CustomerDetail() {
         {activeTab === 'governance' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
             <div>
-              <h3 style={{ fontSize: '14px', margin: '0 0 var(--space-2) 0', color: 'var(--color-ink)' }}>Data Portability (GDPR Article 20 / DPDP)</h3>
-              <p style={{ fontSize: '13px', color: 'var(--color-ink-muted)', margin: '0 0 var(--space-3) 0' }}>
+              <h3 style={{ fontSize: '14px', margin: '0 0 var(--space-2) 0', color: 'var(--text)' }}>Data Portability (GDPR Article 20 / DPDP)</h3>
+              <p style={{ fontSize: '13px', color: 'var(--text2)', margin: '0 0 var(--space-3) 0' }}>
                 Generate a machine-readable JSON package containing all profile, identity, timeline, and consent records for this individual.
               </p>
-              <button className={styles.btnPrimary} onClick={handleExportData}>
+              <button className="btn btn-accent" onClick={handleExportData}>
                 Export Customer 360 Package (JSON)
               </button>
             </div>
 
-            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-4)' }}>
-              <h3 style={{ fontSize: '14px', margin: '0 0 var(--space-2) 0', color: 'var(--color-critical)' }}>Right to Erasure / Anonymization (GDPR Article 17)</h3>
-              <p style={{ fontSize: '13px', color: 'var(--color-ink-muted)', margin: '0 0 var(--space-3) 0' }}>
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 'var(--space-4)' }}>
+              <h3 style={{ fontSize: '14px', margin: '0 0 var(--space-2) 0', color: 'var(--red)' }}>Right to Erasure / Anonymization (GDPR Article 17)</h3>
+              <p style={{ fontSize: '13px', color: 'var(--text2)', margin: '0 0 var(--space-3) 0' }}>
                 Irreversibly anonymize customer PII (email, phone, name, attributes) and set status to forgotten.
               </p>
               {!showConfirmDelete ? (
-                <button className={styles.btnDanger} onClick={() => setShowConfirmDelete(true)}>
+                <button className="btn btn-danger btn-sm" onClick={() => setShowConfirmDelete(true)}>
                   Request Erasure / Anonymize Customer
                 </button>
               ) : (
-                <div style={{ background: 'rgba(216, 87, 75, 0.1)', padding: 'var(--space-4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-critical)' }}>
-                  <p style={{ fontSize: '13px', color: 'var(--color-critical)', margin: '0 0 var(--space-3) 0', fontWeight: 600 }}>
-                    ⚠️ Are you sure you want to permanently anonymize {profile.full_name}? This action is irreversible.
+                <div style={{ background: 'rgba(216, 87, 75, 0.1)', padding: 'var(--space-4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--red)' }}>
+                  <p style={{ fontSize: '13px', color: 'var(--red)', margin: '0 0 var(--space-3) 0', fontWeight: 600 }}>
+                    <Icon name="alert" /> Are you sure you want to permanently anonymize {profile.full_name}? This action is irreversible.
                   </p>
                   <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                    <button className={styles.btnDanger} onClick={handleDeleteCustomer} disabled={isDeleting}>
+                    <button className="btn btn-danger btn-sm" onClick={handleDeleteCustomer} disabled={isDeleting}>
                       {isDeleting ? 'Anonymizing...' : 'Yes, Permanently Anonymize'}
                     </button>
-                    <button className={styles.btnSecondary} onClick={() => setShowConfirmDelete(false)}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setShowConfirmDelete(false)}>
                       Cancel
                     </button>
                   </div>

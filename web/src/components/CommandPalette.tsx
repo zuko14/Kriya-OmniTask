@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { apiFetch } from '../lib/apiClient';
+import { Icon } from './brand/Icon';
 import styles from './CommandPalette.module.css';
 
 export interface CommandItem {
@@ -179,7 +180,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
     <div className={styles.backdrop} onClick={onClose} data-testid="command-palette-backdrop">
       <div className={styles.modal} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Command Palette">
         <div className={styles.inputWrapper}>
-          <span className={styles.searchIcon}>🔍</span>
+          <span className={styles.searchIcon}><Icon name="search" /></span>
           <input
             ref={inputRef}
             type="text"
@@ -210,7 +211,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
                 >
                   <div className={styles.itemLabel}>
                     <strong>{item.title}</strong>
-                    {item.subtitle && <span style={{ color: 'var(--color-ink-muted)', fontSize: '12px' }}>{item.subtitle}</span>}
+                    {item.subtitle && <span style={{ color: 'var(--text2)', fontSize: '12px' }}>{item.subtitle}</span>}
                   </div>
                   <span className={styles.itemCategory}>{item.category}</span>
                 </div>

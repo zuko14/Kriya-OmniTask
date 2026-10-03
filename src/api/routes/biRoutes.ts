@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Business Intelligence & Executive Daily Briefing REST Routes
+ * Kriya AI — Business Intelligence & Executive Daily Briefing REST Routes
  * Endpoints for multi-source daily summaries, metric snapshots, and outbound delivery (§13, §14 of CLAUDE.md).
  */
 

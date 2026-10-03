@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Business Digital Twin & Organization KPI Model Type Definitions
+ * Kriya AI — Business Digital Twin & Organization KPI Model Type Definitions
  * Typed contracts for Organization Context Graphs, KPI Trees & Operational Diagnostics (§13, §14, §15 of CLAUDE.md).
  */
 

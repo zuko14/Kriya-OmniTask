@@ -79,10 +79,10 @@ export function CustomerList() {
       header: 'Customer',
       render: (c) => (
         <div>
-          <Link to={`/app/customers/${c.id}`} style={{ color: 'var(--color-signal)', fontWeight: 600, textDecoration: 'none' }}>
+          <Link to={`/app/customers/${c.id}`} style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
             {c.full_name || c.name || c.id}
           </Link>
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text2)', fontFamily: 'var(--font-mono)' }}>
             ID: {c.id}
           </div>
         </div>
@@ -94,7 +94,7 @@ export function CustomerList() {
       render: (c) => (
         <div style={{ fontSize: '12px' }}>
           <div>{c.primary_email || '—'}</div>
-          <div style={{ color: 'var(--color-ink-muted)', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+          <div style={{ color: 'var(--text2)', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
             {c.primary_phone || ''}
           </div>
         </div>
@@ -131,9 +131,9 @@ export function CustomerList() {
       header: 'Signals',
       width: '120px',
       render: (c) => (
-        <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>
-          <div>Sentiment: <strong style={{ color: (c.sentiment_score ?? 0.8) >= 0.7 ? 'var(--color-verify)' : 'var(--color-ink)' }}>{(c.sentiment_score ?? 0.8).toFixed(2)}</strong></div>
-          <div>Risk: <strong style={{ color: (c.churn_risk_score ?? 0.1) > 0.5 ? 'var(--color-critical)' : 'var(--color-verify)' }}>{(c.churn_risk_score ?? 0.1).toFixed(2)}</strong></div>
+        <div style={{ fontSize: '11px', color: 'var(--text2)' }}>
+          <div>Sentiment: <strong style={{ color: (c.sentiment_score ?? 0.8) >= 0.7 ? 'var(--green)' : 'var(--text)' }}>{(c.sentiment_score ?? 0.8).toFixed(2)}</strong></div>
+          <div>Risk: <strong style={{ color: (c.churn_risk_score ?? 0.1) > 0.5 ? 'var(--red)' : 'var(--green)' }}>{(c.churn_risk_score ?? 0.1).toFixed(2)}</strong></div>
         </div>
       ),
     },
@@ -142,7 +142,7 @@ export function CustomerList() {
       header: 'Actions',
       width: '100px',
       render: (c) => (
-        <Link to={`/app/customers/${c.id}`} className={styles.btnSecondary}>
+        <Link to={`/app/customers/${c.id}`} className="btn btn-ghost btn-sm">
           View 360 →
         </Link>
       ),
@@ -156,12 +156,12 @@ export function CustomerList() {
           <h1>Customer 360 Directory</h1>
           <p className={styles.subtitle}>Unified customer profiles, deterministic identity resolution, and relationship intelligence.</p>
         </div>
-        <button className={styles.btnPrimary} onClick={() => setIsCreating(true)}>
+        <button className="btn btn-accent" onClick={() => setIsCreating(true)}>
           + Add Customer
         </button>
       </header>
 
-      {actionError && <div className={styles.errorBanner}>⚠️ {actionError}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
 
       <div className={styles.controlsBar}>
         <div className={styles.searchGroup}>
@@ -284,7 +284,7 @@ export function CustomerList() {
               <div className={styles.modalActions}>
                 <button
                   type="button"
-                  className={styles.btnSecondary}
+                  className="btn btn-ghost btn-sm"
                   onClick={() => setIsCreating(false)}
                   disabled={isSubmitting}
                 >
@@ -292,7 +292,7 @@ export function CustomerList() {
                 </button>
                 <button
                   type="submit"
-                  className={styles.btnPrimary}
+                  className="btn btn-accent"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Creating...' : 'Create Customer'}

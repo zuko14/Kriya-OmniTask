@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Dynamic Model Router
+ * Kriya AI — Dynamic Model Router
  * Capability matching, policy enforcement, data privacy gates, and fallback sequence generation.
  */
 

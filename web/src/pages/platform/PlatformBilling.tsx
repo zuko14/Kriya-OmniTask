@@ -82,7 +82,7 @@ export function PlatformBilling() {
       render: (t) => (
         <div>
           <strong>{t.name}</strong>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-ink-muted)' }}>{t.id}</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text2)' }}>{t.id}</div>
         </div>
       ),
     },
@@ -111,7 +111,7 @@ export function PlatformBilling() {
       key: 'created_at',
       header: 'Subscribed Since',
       width: '130px',
-      render: (t) => <span style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>{new Date(t.created_at).toLocaleDateString()}</span>,
+      render: (t) => <span style={{ fontSize: '11px', color: 'var(--text2)' }}>{new Date(t.created_at).toLocaleDateString()}</span>,
     },
   ];
 
@@ -150,25 +150,25 @@ export function PlatformBilling() {
           title="Projected MRR"
           value={`$${totalMrr.toLocaleString()}`}
         >
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Monthly recurring revenue</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Monthly recurring revenue</div>
         </KpiCard>
         <KpiCard
           title="Annual Run-Rate (ARR)"
           value={`$${arr.toLocaleString()}`}
         >
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Projected annual volume</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Projected annual volume</div>
         </KpiCard>
         <KpiCard
           title="Active Subscriptions"
           value={String(activeTenants.length)}
         >
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>Paying tenant organizations</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>Paying tenant organizations</div>
         </KpiCard>
         <KpiCard
           title="Enterprise Contracts"
           value={String(enterpriseCount)}
         >
-          <div style={{ fontSize: '11px', color: 'var(--color-ink-muted)' }}>High-volume workforce fleets</div>
+          <div style={{ fontSize: '11px', color: 'var(--text2)' }}>High-volume workforce fleets</div>
         </KpiCard>
       </div>
 
@@ -179,8 +179,8 @@ export function PlatformBilling() {
           {plans.map((p) => (
             <div key={p.id} className={styles.planCard}>
               <h3 style={{ margin: 0, textTransform: 'capitalize' }}>{p.name}</h3>
-              <div className={styles.planPrice}>${p.priceMonthlyUsd}<span style={{ fontSize: '12px', fontWeight: 'normal', color: 'var(--color-ink-muted)' }}>/mo</span></div>
-              <div style={{ fontSize: '12px', color: 'var(--color-ink-muted)' }}>
+              <div className={styles.planPrice}>${p.priceMonthlyUsd}<span style={{ fontSize: '12px', fontWeight: 'normal', color: 'var(--text2)' }}>/mo</span></div>
+              <div style={{ fontSize: '12px', color: 'var(--text2)' }}>
                 Up to <strong>{p.maxAgents}</strong> agents · <strong>{p.maxMonthlyWorkflows.toLocaleString()}</strong> runs
               </div>
             </div>

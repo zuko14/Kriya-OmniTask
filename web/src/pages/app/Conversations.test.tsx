@@ -58,6 +58,7 @@ describe('Conversations Page', () => {
       );
     });
 
-    expect(await screen.findByText(/Message dispatched successfully/i)).toBeInTheDocument();
+    expect(await screen.findByText(/accepted by the server · status: queued · id: msg_test_999/i)).toBeInTheDocument();
+    expect(screen.queryByText(/dispatched successfully/i)).not.toBeInTheDocument();
   });
 });

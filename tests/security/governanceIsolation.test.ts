@@ -34,21 +34,21 @@ describe('Adversarial Enterprise Governance Multi-Tenant Isolation Security Test
     tokenA = JwtService.sign({
       userId: 'usr_admin_gov_a',
       tenantId: tenantA,
-      email: 'admina@xylarc.ai',
+      email: 'admina@kriya.ai',
       roles: ['admin', 'compliance_officer'],
     });
 
     tokenB = JwtService.sign({
       userId: 'usr_admin_gov_b',
       tenantId: tenantB,
-      email: 'adminb@xylarc.ai',
+      email: 'adminb@kriya.ai',
       roles: ['admin', 'compliance_officer'],
     });
 
     unauthorizedToken = JwtService.sign({
       userId: 'usr_readonly_gov',
       tenantId: tenantA,
-      email: 'readonly@xylarc.ai',
+      email: 'readonly@kriya.ai',
       roles: ['read_only'],
     });
 

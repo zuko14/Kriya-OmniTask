@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tool Gateway & Credential Vault Types & Schemas
+ * Kriya AI — Tool Gateway & Credential Vault Types & Schemas
  * Type-safe contracts for tool definitions, permissions, risk gating, and credential storage (§8.4, §15, §18 of CLAUDE.md).
  */
 

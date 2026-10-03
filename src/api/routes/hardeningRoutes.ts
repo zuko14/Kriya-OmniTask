@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Hardening REST Routes
+ * Kriya AI — Production Hardening REST Routes
  * API endpoints for multi-tenant stress testing, chaos experiments, red-team scans, and readiness certification.
  */
 

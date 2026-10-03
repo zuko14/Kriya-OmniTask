@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Cryptography & Security Utilities
+ * Kriya AI — Cryptography & Security Utilities
  * Zero-trust encryption, secure hashing, deterministic token generation,
  * and AES-256-GCM authenticated encryption for sensitive data.
  */

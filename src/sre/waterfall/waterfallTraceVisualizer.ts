@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Distributed Waterfall Trace Visualizer
+ * Kriya AI — Distributed Waterfall Trace Visualizer
  * Hierarchical span tree builder with relative time-offset alignment and critical path bottleneck detection.
  */
 
@@ -43,7 +43,7 @@ export class WaterfallTraceVisualizer {
         spanId: span.id,
         parentSpanId: span.parent_span_id,
         name: span.span_name,
-        service: span.agent_id || 'xylarc-core',
+        service: span.agent_id || 'kriya-omnitask',
         startOffsetMs,
         durationMs: span.latency_ms,
         isCriticalPath: false,

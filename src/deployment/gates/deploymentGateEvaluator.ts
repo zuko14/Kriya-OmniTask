@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Deployment Gate Evaluator
+ * Kriya AI — Production Deployment Gate Evaluator
  * Multi-dimensional quality gate scoring test pass rates, drift tolerance, zero security vulnerabilities, and latency budgets.
  */
 

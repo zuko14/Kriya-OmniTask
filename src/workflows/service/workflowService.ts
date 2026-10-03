@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Workflow Orchestration Service
+ * Kriya AI — Workflow Orchestration Service
  * Top-level management for DAG definitions, execution dispatching, and human approval resolutions (§13, §15 of CLAUDE.md).
  */
 

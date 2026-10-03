@@ -3,7 +3,7 @@
  * Applies and tracks SQL DDL migrations with versioning and idempotency.
  */
 
-import { DatabaseClient, SQLiteDatabaseClient } from '../db.js';
+import { DatabaseClient, SQLiteDatabaseClient, PostgresDatabaseClient, translateDdlForPostgres } from '../db.js';
 import { logger } from '../../core/logger/logger.js';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -27,6 +27,10 @@ export class SchemaMigrator {
     this.migrationsDir = migrationsDir || __dirname;
   }
 
+  public get isPostgres(): boolean {
+    return this.client instanceof PostgresDatabaseClient || ('getPool' in (this.client as any));
+  }
+
   public async initialize(): Promise<void> {
     const initSql = `
       CREATE TABLE IF NOT EXISTS _schema_migrations (
@@ -35,8 +39,8 @@ export class SchemaMigrator {
         applied_at TEXT NOT NULL
       );
     `;
-    if ('execRaw' in this.client) {
-      await (this.client as SQLiteDatabaseClient).execRaw(initSql);
+    if ('execRaw' in this.client && typeof (this.client as any).execRaw === 'function') {
+      await (this.client as any).execRaw(initSql);
     } else {
       await this.client.execute(initSql);
     }
@@ -78,6 +82,7 @@ export class SchemaMigrator {
     const files = sqlFiles.sort();
 
     const executed: string[] = [];
+    const isPg = this.client instanceof PostgresDatabaseClient || ('getPool' in this.client);
 
     for (const file of files) {
       const match = file.match(/^(\d+)_(.+)\.sql$/);
@@ -89,11 +94,12 @@ export class SchemaMigrator {
       if (!appliedSet.has(version)) {
         logger.info(`Applying migration ${version}: ${name}`);
         const sqlPath = join(dir, file);
-        const sql = readFileSync(sqlPath, 'utf8');
+        const rawSql = readFileSync(sqlPath, 'utf8');
+        const sql = isPg ? translateDdlForPostgres(rawSql) : rawSql;
 
         await this.client.transaction(async (tx) => {
-          if ('execRaw' in tx) {
-            await (tx as SQLiteDatabaseClient).execRaw(sql);
+          if ('execRaw' in tx && typeof (tx as any).execRaw === 'function') {
+            await (tx as any).execRaw(sql);
           } else {
             const statements = sql.split(';').map((s) => s.trim()).filter((s) => s.length > 0);
             for (const statement of statements) {

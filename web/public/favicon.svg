@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- Kriya mark, DS §1.1 canonical paths. Keep in sync with web/src/components/brand/KriyaMark.tsx -->
+  <defs>
+    <linearGradient id="h" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#43E2A6"/><stop offset="1" stop-color="#3D8BFD"/>
+    </linearGradient>
+    <linearGradient id="s" x1="11.2" y1="7.6" x2="11.2" y2="24.4" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#43E2A6"/><stop offset="1" stop-color="#0C9668"/>
+    </linearGradient>
+    <linearGradient id="a" x1="18.5" y1="24.4" x2="18.5" y2="7.6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3D8BFD"/><stop offset="0.5" stop-color="#2FA8D8"/><stop offset="1" stop-color="#43E2A6"/>
+    </linearGradient>
+  </defs>
+  <path d="M16 2.2 27.9 9v13.6L16 29.4 4.1 22.6V9z" fill="#040A11" stroke="url(#h)" stroke-width="1.4" stroke-opacity="0.4" stroke-linejoin="round"/>
+  <path d="M11.2 7.6v16.8" stroke="url(#s)" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M22.9 7.6 14.2 16l8.7 8.4" stroke="url(#a)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14.2 13.3 16.9 16l-2.7 2.7L11.5 16z" fill="#9FF0D2"/>
+</svg>

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Reliability Engineering Relational Repository
+ * Kriya AI — Reliability Engineering Relational Repository
  * Persistence for idempotency keys, dead-letter jobs, dependency health, and transaction checkpoints.
  */
 
@@ -13,6 +13,10 @@ import {
   DependencyHealthState,
   OperationRecoveryCheckpoint,
   OperationLifecycleState,
+  ReliabilityDrillRun,
+  PitrSnapshot,
+  PitrRestoreOperation,
+  FailoverDrillResult,
 } from '../types/reliabilityTypes.js';
 import { CryptoUtils } from '../../core/utils/crypto.js';
 
@@ -337,4 +341,217 @@ export class ReliabilityRepository extends BaseRepository<any> {
       updatedAt: row.updated_at,
     };
   }
+
+  // --- WP-8.4: Reliability Drills Persistence ---
+
+  public async saveReliabilityDrillRun(run: ReliabilityDrillRun): Promise<ReliabilityDrillRun> {
+    await this.client.execute(
+      `INSERT INTO reliability_drill_runs
+       (id, tenant_id, drill_name, fault_type, environment, status, injected_count, survived_count, recovery_time_ms, details_json, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        run.id,
+        run.tenantId,
+        run.drillName,
+        run.faultType,
+        run.environment,
+        run.status,
+        run.injectedCount,
+        run.survivedCount,
+        run.recoveryTimeMs,
+        JSON.stringify(run.details),
+        run.createdAt,
+      ]
+    );
+    return run;
+  }
+
+  public async listReliabilityDrillRuns(tenantId: string, limit = 20): Promise<ReliabilityDrillRun[]> {
+    const rows = await this.client.query<any>(
+      `SELECT id, tenant_id, drill_name, fault_type, environment, status, injected_count, survived_count, recovery_time_ms, details_json, created_at
+       FROM reliability_drill_runs
+       WHERE tenant_id = ?
+       ORDER BY created_at DESC
+       LIMIT ?;`,
+      [tenantId, limit]
+    );
+
+    return rows.map((r) => ({
+      id: r.id,
+      tenantId: r.tenant_id,
+      drillName: r.drill_name,
+      faultType: r.fault_type,
+      environment: r.environment,
+      status: r.status,
+      injectedCount: Number(r.injected_count),
+      survivedCount: Number(r.survived_count),
+      recoveryTimeMs: Number(r.recovery_time_ms),
+      details: typeof r.details_json === 'string' ? JSON.parse(r.details_json) : (r.details_json || {}),
+      createdAt: r.created_at,
+    }));
+  }
+
+  // --- WP-8.4: Point-In-Time Recovery (PITR) Snapshots Persistence ---
+
+  public async savePitrSnapshot(snapshot: PitrSnapshot): Promise<PitrSnapshot> {
+    await this.client.execute(
+      `INSERT INTO pitr_snapshots
+       (id, tenant_id, snapshot_name, snapshot_type, checksum_sha256, record_counts_json, metadata_json, data_payload_json, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        snapshot.id,
+        snapshot.tenantId,
+        snapshot.snapshotName,
+        snapshot.snapshotType,
+        snapshot.checksumSha256,
+        JSON.stringify(snapshot.recordCounts),
+        JSON.stringify(snapshot.metadata),
+        snapshot.dataPayload || null,
+        snapshot.status,
+        snapshot.createdAt,
+      ]
+    );
+    return snapshot;
+  }
+
+  public async getPitrSnapshot(tenantId: string, snapshotId: string): Promise<PitrSnapshot | null> {
+    const rows = await this.client.query<any>(
+      `SELECT id, tenant_id, snapshot_name, snapshot_type, checksum_sha256, record_counts_json, metadata_json, data_payload_json, status, created_at
+       FROM pitr_snapshots
+       WHERE tenant_id = ? AND id = ?;`,
+      [tenantId, snapshotId]
+    );
+
+    if (rows.length === 0) return null;
+    const r = rows[0];
+    return {
+      id: r.id,
+      tenantId: r.tenant_id,
+      snapshotName: r.snapshot_name,
+      snapshotType: r.snapshot_type,
+      checksumSha256: r.checksum_sha256,
+      recordCounts: typeof r.record_counts_json === 'string' ? JSON.parse(r.record_counts_json) : (r.record_counts_json || {}),
+      metadata: typeof r.metadata_json === 'string' ? JSON.parse(r.metadata_json) : (r.metadata_json || {}),
+      dataPayload: r.data_payload_json || null,
+      status: r.status,
+      createdAt: r.created_at,
+    };
+  }
+
+  public async listPitrSnapshots(tenantId: string, limit = 20): Promise<PitrSnapshot[]> {
+    const rows = await this.client.query<any>(
+      `SELECT id, tenant_id, snapshot_name, snapshot_type, checksum_sha256, record_counts_json, metadata_json, data_payload_json, status, created_at
+       FROM pitr_snapshots
+       WHERE tenant_id = ?
+       ORDER BY created_at DESC
+       LIMIT ?;`,
+      [tenantId, limit]
+    );
+
+    return rows.map((r) => ({
+      id: r.id,
+      tenantId: r.tenant_id,
+      snapshotName: r.snapshot_name,
+      snapshotType: r.snapshot_type,
+      checksumSha256: r.checksum_sha256,
+      recordCounts: typeof r.record_counts_json === 'string' ? JSON.parse(r.record_counts_json) : (r.record_counts_json || {}),
+      metadata: typeof r.metadata_json === 'string' ? JSON.parse(r.metadata_json) : (r.metadata_json || {}),
+      dataPayload: r.data_payload_json || null,
+      status: r.status,
+      createdAt: r.created_at,
+    }));
+  }
+
+  // --- WP-8.4: PITR Restore Operations Persistence ---
+
+  public async savePitrRestoreOperation(op: PitrRestoreOperation): Promise<PitrRestoreOperation> {
+    await this.client.execute(
+      `INSERT INTO pitr_restore_operations
+       (id, tenant_id, snapshot_id, target_timestamp, status, restored_records_count, verified, error_message, executed_at, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        op.id,
+        op.tenantId,
+        op.snapshotId,
+        op.targetTimestamp,
+        op.status,
+        op.restoredRecordsCount,
+        op.verified ? 1 : 0,
+        op.errorMessage || null,
+        op.executedAt,
+        op.createdAt,
+      ]
+    );
+    return op;
+  }
+
+  public async listPitrRestoreOperations(tenantId: string, limit = 20): Promise<PitrRestoreOperation[]> {
+    const rows = await this.client.query<any>(
+      `SELECT id, tenant_id, snapshot_id, target_timestamp, status, restored_records_count, verified, error_message, executed_at, created_at
+       FROM pitr_restore_operations
+       WHERE tenant_id = ?
+       ORDER BY created_at DESC
+       LIMIT ?;`,
+      [tenantId, limit]
+    );
+
+    return rows.map((r) => ({
+      id: r.id,
+      tenantId: r.tenant_id,
+      snapshotId: r.snapshot_id,
+      targetTimestamp: r.target_timestamp,
+      status: r.status,
+      restoredRecordsCount: Number(r.restored_records_count),
+      verified: Boolean(r.verified),
+      errorMessage: r.error_message || null,
+      executedAt: r.executed_at,
+      createdAt: r.created_at,
+    }));
+  }
+
+  // --- WP-8.4: Failover Drill Persistence ---
+
+  public async saveFailoverDrillRun(drill: FailoverDrillResult): Promise<FailoverDrillResult> {
+    await this.client.execute(
+      `INSERT INTO failover_drill_runs
+       (id, tenant_id, drill_name, primary_node_id, promoted_replica_id, status, failover_time_ms, steps_json, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        drill.id,
+        drill.tenantId,
+        drill.drillName,
+        drill.primaryNodeId,
+        drill.promotedReplicaId,
+        drill.status,
+        drill.failoverTimeMs,
+        JSON.stringify(drill.steps),
+        drill.createdAt,
+      ]
+    );
+    return drill;
+  }
+
+  public async listFailoverDrillRuns(tenantId: string, limit = 20): Promise<FailoverDrillResult[]> {
+    const rows = await this.client.query<any>(
+      `SELECT id, tenant_id, drill_name, primary_node_id, promoted_replica_id, status, failover_time_ms, steps_json, created_at
+       FROM failover_drill_runs
+       WHERE tenant_id = ?
+       ORDER BY created_at DESC
+       LIMIT ?;`,
+      [tenantId, limit]
+    );
+
+    return rows.map((r) => ({
+      id: r.id,
+      tenantId: r.tenant_id,
+      drillName: r.drill_name,
+      primaryNodeId: r.primary_node_id,
+      promotedReplicaId: r.promoted_replica_id,
+      status: r.status,
+      failoverTimeMs: Number(r.failover_time_ms),
+      steps: typeof r.steps_json === 'string' ? JSON.parse(r.steps_json) : (r.steps_json || []),
+      createdAt: r.created_at,
+    }));
+  }
 }
+

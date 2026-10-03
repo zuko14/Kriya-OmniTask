@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Evaluation Benchmark & Golden Test Suite Type Definitions
+ * Kriya AI — Agent Evaluation Benchmark & Golden Test Suite Type Definitions
  * Typed contracts for golden test datasets, benchmark executions, and release gating (§14, §18 of CLAUDE.md).
  */
 
@@ -36,7 +36,8 @@ export interface TestCaseEvaluationResult {
   faithfulnessScore: number;
   policyVerdict: 'approved' | 'revise' | 'reject_escalate';
   toolsInvoked: string[];
-  simulatedOutput: string;
+  /** The candidate's actual answer that was graded. */
+  candidateOutput: string;
   latencyMs: number;
   tokensUsed: number;
   costUsd: number;
@@ -53,6 +54,8 @@ export interface BenchmarkSummaryReport {
   totalCostUsd: number;
   verdict: ReleaseGateVerdict;
   releaseGateNotes: string[];
+  /** 'sandbox' = answers came from the simulated adapter and prove nothing about real quality. */
+  executionMode: 'live' | 'sandbox';
   results: TestCaseEvaluationResult[];
 }
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Lead Qualification Specialist Unit Tests
+ * Kriya AI — Lead Qualification Specialist Unit Tests
  * Verifies BANT lead scoring, tier assignment, and lifecycle stage promotion (§23 of CLAUDE.md).
  */
 

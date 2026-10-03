@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Hardening Repository
+ * Kriya AI — Production Hardening Repository
  * Database access layer for stress benchmarks, chaos experiments, red-team audits, and readiness checks.
  */
 

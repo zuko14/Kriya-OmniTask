@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Lifecycle Workforce Controller Service
+ * Kriya AI — Customer Lifecycle Workforce Controller Service
  * Coordinates the 4 specialized customer lifecycle agents and governs state transitions (§23-§28 of CLAUDE.md).
  */
 

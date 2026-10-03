@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Enterprise Governance REST API Routes
+ * Kriya AI — Enterprise Governance REST API Routes
  * Endpoints for organization hierarchy, ABAC evaluation, SSO/OIDC config, and data retention policies (§10–§14, §24).
  */
 

@@ -13,7 +13,7 @@ export function RouteGuard({ children, requirePlatformRole = false }: { children
   const { auth, status } = useAuth();
 
   if (status === 'checking') {
-    return <div style={{ padding: 'var(--space-5)', color: 'var(--color-ink-muted)' }}>Loading session…</div>;
+    return <div style={{ padding: 'var(--space-5)', color: 'var(--text2)' }}>Loading session…</div>;
   }
 
   if (status === 'unauthenticated' || !auth) {
@@ -22,7 +22,7 @@ export function RouteGuard({ children, requirePlatformRole = false }: { children
 
   if (requirePlatformRole && !auth.user.roles.some((r) => PLATFORM_ROLES.includes(r))) {
     return (
-      <div style={{ padding: 'var(--space-5)', color: 'var(--color-caution)' }}>
+      <div style={{ padding: 'var(--space-5)', color: 'var(--amber)' }}>
         Access denied — you don't have permission to view this.
       </div>
     );

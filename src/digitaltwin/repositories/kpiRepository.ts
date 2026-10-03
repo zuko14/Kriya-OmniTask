@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Organization KPIs & Bottlenecks Repository
+ * Kriya AI — Organization KPIs & Bottlenecks Repository
  * Relational storage for business metric trees and operational bottleneck diagnosis (§14, §15 of CLAUDE.md).
  */
 

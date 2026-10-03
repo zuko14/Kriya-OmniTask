@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tenant Credential Vault Unit Tests
+ * Kriya AI — Tenant Credential Vault Unit Tests
  * Verifies AES-256-GCM encryption at rest, tenant isolation, and zero plaintext secret leakage (§8.4 of CLAUDE.md).
  */
 

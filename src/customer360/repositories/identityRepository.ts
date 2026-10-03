@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer Identity Repository
+ * Kriya AI — Customer Identity Repository
  * Manages multi-identifier alias records for deterministic entity resolution.
  */
 

@@ -27,7 +27,7 @@ describe('Business Digital Twin & KPI Model REST Integration Tests', () => {
     adminToken = JwtService.sign({
       userId: 'usr_admin_twin',
       tenantId,
-      email: 'twinadmin@xylarc.ai',
+      email: 'twinadmin@kriya.ai',
       roles: ['admin'],
     });
   });

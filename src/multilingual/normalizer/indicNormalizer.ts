@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Indic & Multilingual Text Normalizer
+ * Kriya AI — Indic & Multilingual Text Normalizer
  * Unicode NFC canonical normalization, diacritic stripping, zero-width cleaning, and Hinglish standardization (§14, §19 of CLAUDE.md).
  */
 

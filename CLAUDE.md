@@ -1,11 +1,11 @@
-# CLAUDE.md — Xylarc AI: Autonomous Business Workforce Platform
+# CLAUDE.md — Kriya AI: Autonomous Business Workforce Platform
 
 **Document type:** Root-level operating specification for Claude / Claude Code
 **Status:** Living document — governs architecture, engineering, and product decisions
-**Revision:** v1.3 — channel-plan-aware dashboards (§8), typography/token system & chart-selection discipline (§31), contract-locked frontend/backend deploys (§32); v1.2 added channel-based service plans (§30) and a complete voice pipeline with per-language voice validation (§19); v1.1 added §37 (Reliability Commitment & Forward-Looking Upgrades)
-**Applies to:** the entire Xylarc AI repository and every subsystem within it
+**Revision:** v1.4 — renamed to Kriya AI / Kriya Omnitask per founder decision (2026-10-01); category set to Verified Action Infrastructure; Kriya design system made canonical (§31). v1.3 — channel-plan-aware dashboards (§8), typography/token system & chart-selection discipline (§31), contract-locked frontend/backend deploys (§32); v1.2 added channel-based service plans (§30) and a complete voice pipeline with per-language voice validation (§19); v1.1 added §37 (Reliability Commitment & Forward-Looking Upgrades)
+**Applies to:** the entire Kriya AI repository and every subsystem within it
 
-> Read this file before modifying the product. Inspect the existing codebase before proposing architecture changes. This document defines what Xylarc AI *is*, how it must be built, and how an AI coding agent should behave while working on it.
+> Read this file before modifying the product. Inspect the existing codebase before proposing architecture changes. This document defines what Kriya AI *is*, how it must be built, and how an AI coding agent should behave while working on it.
 
 ---
 
@@ -17,7 +17,7 @@
 4. [Core Vision](#4-core-vision)
 5. [The Fundamental Principle](#5-the-fundamental-principle)
 6. [Multi-Tenant Architecture](#6-multi-tenant-architecture)
-7. [Platform Administration](#7-platform-administration-xylarc-operator-console)
+7. [Platform Administration](#7-platform-administration-kriya-operator-console)
 8. [Customer Administration Dashboard](#8-customer-administration-dashboard)
 9. [Customer 360 / Digital Twin](#9-customer-360--digital-twin)
 10. [Customer Lifecycle Engine](#10-customer-lifecycle-engine)
@@ -59,7 +59,7 @@
 
 ## 1. What This Document Is
 
-This file is the constitution for Xylarc AI. It is read by every engineer and every AI coding agent (including Claude Code) before touching the repository. It defines the product's architecture, its non-negotiable safety and governance rules, and the operating discipline expected of anyone — human or AI — who extends it.
+This file is the constitution for Kriya AI. It is read by every engineer and every AI coding agent (including Claude Code) before touching the repository. It defines the product's architecture, its non-negotiable safety and governance rules, and the operating discipline expected of anyone — human or AI — who extends it.
 
 This document describes the **destination architecture**. The repository will not implement all of it on day one. Section 33 (Roadmap) defines what gets built when. Do not read "the platform must support X" as "implement X today" — read it as "never build something that makes X structurally impossible later."
 
@@ -67,7 +67,7 @@ This document describes the **destination architecture**. The repository will no
 
 ## 2. Identity & Positioning
 
-Working product category: **Xylarc Autonomous Business Workforce**.
+Working product category: **Kriya Omnitask — Verified Action Infrastructure** (per the Kriya AI 2040 Master Strategy Blueprint, KAI-MSP-2040-V1). Kriya AI is the master brand; Kriya Omnitask is the autonomous-operations runtime; Kriya Health is the first solution pack. Promise: *"Verified action. AI that acts, and proves it acted right."* The program plan and live status live in `docs/kriya/` (start at `docs/kriya/00_STATUS.md`).
 
 Acceptable positioning language: AI Business Operating System · Autonomous Business Workforce · AI Workforce Control Plane · Autonomous Customer & Business Operations Platform · Business Autonomy Platform.
 
@@ -77,9 +77,9 @@ The final commercial name is not locked by this document. **Branding is not arch
 
 ## 3. Company Context
 
-Xylarc already operates around AI-native product engineering, SaaS platforms, multi-tenant systems, workflow automation, AI agents, LLM orchestration, NLU, document AI, voice AI, WhatsApp automation, browser automation, RPA, enterprise integrations, CRM/ERP/business-system connectivity, healthcare technology, production-grade security, tenant isolation, authentication/authorization, audit logging, and privacy-aware automation.
+Kriya already operates around AI-native product engineering, SaaS platforms, multi-tenant systems, workflow automation, AI agents, LLM orchestration, NLU, document AI, voice AI, WhatsApp automation, browser automation, RPA, enterprise integrations, CRM/ERP/business-system connectivity, healthcare technology, production-grade security, tenant isolation, authentication/authorization, audit logging, and privacy-aware automation.
 
-Xylarc AI is the **horizontal layer** that unifies these existing capabilities into one reusable autonomous workforce platform, capable of powering future Xylarc products and vertical solutions (healthcare, finance, retail, logistics, education, hospitality, real estate, automotive, professional services, and others).
+Kriya AI is the **horizontal layer** that unifies these existing capabilities into one reusable autonomous workforce platform, capable of powering future Kriya products and vertical solutions (healthcare, finance, retail, logistics, education, hospitality, real estate, automotive, professional services, and others).
 
 **The system must not be designed as healthcare-specific.** Healthcare is one industry vertical with additional regulatory controls layered on top of the same core platform — not a separate build.
 
@@ -87,7 +87,7 @@ Xylarc AI is the **horizontal layer** that unifies these existing capabilities i
 
 ## 4. Core Vision
 
-> "Xylarc AI gives every business an intelligent digital workforce that operates continuously, understands the business, coordinates specialized agents, executes real work, measures its own performance, and keeps humans in control of risk-sensitive decisions."
+> "Kriya AI gives every business an intelligent digital workforce that operates continuously, understands the business, coordinates specialized agents, executes real work, measures its own performance, and keeps humans in control of risk-sensitive decisions."
 
 The product should let a business say: *"Here is my business. Here are my systems, policies, goals and data. Build me a digital workforce that handles my customer lifecycle and selected business operations."*
 
@@ -117,7 +117,7 @@ Every new subsystem must declare which plane(s) it belongs to before implementat
 ## 6. Multi-Tenant Architecture
 
 ```
-Xylarc Platform
+Kriya Platform
  ├── Platform Organization
  ├── Customer Organization
  │     ├── Workspace → Business Units → Departments → Locations → Teams
@@ -133,9 +133,9 @@ The platform must support one company with multiple branches, multiple brands, f
 
 ---
 
-## 7. Platform Administration (Xylarc Operator Console)
+## 7. Platform Administration (Kriya Operator Console)
 
-Xylarc needs its own platform administration console, separate from any customer's admin panel. Platform operators can: create/approve organizations, assign customer administrators and workspaces, enable/disable products and agent capabilities, assign plans/quotas/feature flags, configure platform-wide policy, monitor tenant activity and agent/infrastructure health, inspect system metrics, review escalated failures and security events, manage model providers/routing/fallbacks, manage the integrations catalog and agent template library, publish official agent templates, manage marketplace offerings, control dangerous capabilities, suspend or emergency-stop agents/tenants, monitor usage and cost (tokens, comms, voice, automation, storage, API), manage billing/subscriptions/support, maintain platform-wide announcements, and view audit logs/deployment status.
+Kriya needs its own platform administration console, separate from any customer's admin panel. Platform operators can: create/approve organizations, assign customer administrators and workspaces, enable/disable products and agent capabilities, assign plans/quotas/feature flags, configure platform-wide policy, monitor tenant activity and agent/infrastructure health, inspect system metrics, review escalated failures and security events, manage model providers/routing/fallbacks, manage the integrations catalog and agent template library, publish official agent templates, manage marketplace offerings, control dangerous capabilities, suspend or emergency-stop agents/tenants, monitor usage and cost (tokens, comms, voice, automation, storage, API), manage billing/subscriptions/support, maintain platform-wide announcements, and view audit logs/deployment status.
 
 **Platform operators must never casually bypass tenant boundaries.** Every administrative elevation is itself authenticated, authorized, time-limited where appropriate, logged, auditable, and attributable.
 
@@ -509,9 +509,9 @@ Define measurable SLOs: API availability, workflow completion, queue processing,
 
 **White-label / OEM readiness:** architect for future partner resellers, agencies, franchise networks, enterprise groups, embedded AI workforce, and API-only customers, with configurable tenant branding.
 
-**API-first:** everything important (tenants, agents, workflows, tasks, conversations, customers, executions, analytics, events, integrations, policies) is exposed through secure APIs, with webhooks for important events. A future developer platform layer (Xylarc SDK, Agent SDK, Tool SDK, Workflow SDK, Events, Webhooks) lets developers build custom agents and tools, extended by a **plugin/extension model** with permission manifests (agents, tools, channels, integrations, dashboards, workflow actions, industry packs, analytics modules).
+**API-first:** everything important (tenants, agents, workflows, tasks, conversations, customers, executions, analytics, events, integrations, policies) is exposed through secure APIs, with webhooks for important events. A future developer platform layer (Kriya SDK, Agent SDK, Tool SDK, Workflow SDK, Events, Webhooks) lets developers build custom agents and tools, extended by a **plugin/extension model** with permission manifests (agents, tools, channels, integrations, dashboards, workflow actions, industry packs, analytics modules).
 
-**Industry packs** compose on top of Xylarc Core (Healthcare Pack, Retail Pack, Finance Pack, Logistics Pack, Hospitality Pack, Education Pack, ...), each bundling templates, agents, workflows, compliance rules, dashboards, terminology, and integrations — instead of separate products built from scratch.
+**Industry packs** compose on top of Kriya Core (Healthcare Pack, Retail Pack, Finance Pack, Logistics Pack, Hospitality Pack, Education Pack, ...), each bundling templates, agents, workflows, compliance rules, dashboards, terminology, and integrations — instead of separate products built from scratch.
 
 **Deployment models:** shared SaaS, regional SaaS, dedicated tenant, private cloud, enterprise-managed environment. Do not implement every variant immediately — keep the architecture deployment-aware from day one. Design for internationalization (languages, currencies, timezones, date formats, regional practices), data residency (region, jurisdiction, storage location, processing policy, preventing unauthorized cross-region processing where required), and enterprise-contractual controls (customer-specific retention, model/provider/tool restrictions, logging requirements, access policies, SLAs).
 
@@ -525,7 +525,9 @@ Core navigation: Overview · Customers · Conversations · Digital Workforce · 
 
 Visual language: futuristic, enterprise-grade, intelligent, trustworthy, clean, high-performance, premium, minimal, data-rich. Avoid childish chatbot aesthetics, generic AI purple gradients, excessive animation, noisy dashboards, unnecessary 3D, and meaningless AI decoration; every chart must be actionable or informative (lifecycle funnel, customer journey, agent hierarchy, workflow graph, operations timeline, KPI cards, trend lines, cohort charts, churn map, geographic activity, agent health matrix, workload distribution, automation savings, sentiment, review intelligence, opportunity/risk matrix). An optional **Real-Time Agent Map** visualizes orchestrator → teams → fleets → customers/cases/workflows, click-through to execution traces.
 
-**Typography and color follow a deliberate, named token system — never framework defaults left untouched.** A bounded palette (4–6 named colors, not an open theme picker) and typefaces assigned by role, not one family stretched over everything: a display face for headlines and hero numbers, a body face for UI text and tables, and a monospace face for IDs, logs, and numeric tables where digit alignment matters. A reasonable starting point for this platform's register — a geometric or grotesk sans (e.g., Inter or IBM Plex Sans) for display and body, paired with a matching mono (e.g., IBM Plex Mono or JetBrains Mono) for data — but this is a placeholder for an actual design pass, not a final answer. Whatever is chosen, avoid the recognizable generic-AI-dashboard defaults (a cream background with a high-contrast serif and one warm accent color; a near-black theme with a single neon accent; a hairline-rule broadsheet layout) — the choice should come from Xylarc's own register (§2–§5), not a design tool's default output.
+**The canonical visual language is the Kriya AI design system (`KRIYA_AI_DESIGN_SYSTEM.md`, "Clinical Depth": deep-navy ground, mint-rimmed glass surfaces, IBM Plex Sans, the emerald→sapphire brand gradient in exactly four places). Where the guidance below differs, the design system wins; migration plan: `docs/kriya/04_UI_UX_KRIYA_DESIGN.md`.**
+
+**Typography and color follow a deliberate, named token system — never framework defaults left untouched.** A bounded palette (4–6 named colors, not an open theme picker) and typefaces assigned by role, not one family stretched over everything: a display face for headlines and hero numbers, a body face for UI text and tables, and a monospace face for IDs, logs, and numeric tables where digit alignment matters. A reasonable starting point for this platform's register — a geometric or grotesk sans (e.g., Inter or IBM Plex Sans) for display and body, paired with a matching mono (e.g., IBM Plex Mono or JetBrains Mono) for data — but this is a placeholder for an actual design pass, not a final answer. Whatever is chosen, avoid the recognizable generic-AI-dashboard defaults (a cream background with a high-contrast serif and one warm accent color; a near-black theme with a single neon accent; a hairline-rule broadsheet layout) — the choice should come from Kriya's own register (§2–§5), not a design tool's default output.
 
 **Match chart type to what the data actually says, not to habit:** trend lines for change over time, funnels for conversion stages, heatmaps for time-of-day/day-of-week density (e.g., call volume by hour for voice tenants, §19), network/graph views for agent hierarchy and relationships, cohort grids for retention. A bar chart because it's the default is exactly the "meaningless AI decoration" this document already rules out above.
 
@@ -547,7 +549,7 @@ Strict environment separation (development / test / staging / production); a **d
 
 **Frontend and backend stay contract-locked, not just environment-separated:** the API is versioned, the frontend targets a specific version explicitly, and a backend change that could break a deployed frontend ships behind a flag or a new version path — never a silent breaking change. Deploy backend before frontend for additive changes; deploy frontend before backend only when it still works against the current API. Every deploy is a one-step rollback, not a forward-only bet — this extends §17's agent-versioning discipline to the platform itself.
 
-**Backward compatibility:** existing Xylarc products must not break. The platform coexists with prior/parallel Xylarc systems (e.g. a healthcare automation deployment, a compliance-copilot product). Shared infrastructure is abstracted carefully, without tight product coupling.
+**Backward compatibility:** existing Kriya products must not break. The platform coexists with prior/parallel Kriya systems (e.g. a healthcare automation deployment, a compliance-copilot product). Shared infrastructure is abstracted carefully, without tight product coupling.
 
 ---
 
@@ -569,7 +571,7 @@ Strict environment separation (development / test / staging / production); a **d
 
 Differentiate through: one AI workforce instead of isolated bots; hierarchical multi-agent organization; cross-department orchestration; customer lifecycle intelligence; business operational automation beyond conversation; evidence-backed autonomous execution; a real agent control plane; agent governance and observability; business-outcome measurement; regional-language-first architecture; enterprise security; human exception management; one unified business command center.
 
-**Never claim "no one else provides this."** Maintain a living competitive matrix (capability × Xylarc × competitors × market maturity × differentiation × difficulty × potential moat) and continuously research the real landscape — enterprise agent platforms, customer engagement platforms, voice-agent platforms, and workflow automation platforms among them. Seek genuine architectural moats: orchestration quality, the business digital twin, accumulated workflow/evaluation data, the lifecycle graph, verified execution records, industry packs, governance depth, outcome intelligence, and integration/operational-data network effects. **Model choice alone is not a moat.**
+**Never claim "no one else provides this."** Maintain a living competitive matrix (capability × Kriya × competitors × market maturity × differentiation × difficulty × potential moat) and continuously research the real landscape — enterprise agent platforms, customer engagement platforms, voice-agent platforms, and workflow automation platforms among them. Seek genuine architectural moats: orchestration quality, the business digital twin, accumulated workflow/evaluation data, the lifecycle graph, verified execution records, industry packs, governance depth, outcome intelligence, and integration/operational-data network effects. **Model choice alone is not a moat.**
 
 ---
 
@@ -579,7 +581,7 @@ Track cost per resolved interaction, cost per qualified lead, cost per booking, 
 
 Generate a periodic **Client Value Report** (tasks completed, customers contacted, issues resolved, leads qualified, bookings created, revenue influenced, customers retained, hours avoided, escalations, agent failures, top opportunities/risks, recommended improvements) — **every number traceable to its evidence.**
 
-Xylarc's own platform-owner dashboard tracks tenants, agents deployed, executions, uptime, growth, agent success, integration failures, usage, revenue, churn, support demand, high-risk events, feature adoption, and model/infrastructure costs — **never exposing one tenant's confidential information to another.**
+Kriya's own platform-owner dashboard tracks tenants, agents deployed, executions, uptime, growth, agent success, integration failures, usage, revenue, churn, support demand, high-risk events, feature adoption, and model/infrastructure costs — **never exposing one tenant's confidential information to another.**
 
 ---
 
@@ -712,6 +714,6 @@ When asked to design or implement any subsystem, always produce: architecture, d
 
 Before implementing anything substantial: inspect the repository and determine what already exists. Do not assume the repository is empty. Do not replace production systems unnecessarily. Do not create duplicate infrastructure. Do not create fake integrations. Do not use mock data in production paths. Do not hardcode credentials. Do not bypass security or tenant isolation. Do not claim unsupported capabilities.
 
-Build Xylarc as though it will eventually serve enterprises whose daily operations depend on it. The standard is not *"the demo works."* The standard is:
+Build Kriya as though it will eventually serve enterprises whose daily operations depend on it. The standard is not *"the demo works."* The standard is:
 
 > **The business can trust the system to perform the approved work, prove what it did, detect when it cannot safely proceed, and recover when something fails.**

@@ -34,21 +34,21 @@ describe('Adversarial Model Provider Resilience Multi-Tenant Isolation Security 
     tokenA = JwtService.sign({
       userId: 'usr_admin_model_a',
       tenantId: tenantA,
-      email: 'admina@xylarc.ai',
+      email: 'admina@kriya.ai',
       roles: ['admin', 'operations_manager'],
     });
 
     tokenB = JwtService.sign({
       userId: 'usr_admin_model_b',
       tenantId: tenantB,
-      email: 'adminb@xylarc.ai',
+      email: 'adminb@kriya.ai',
       roles: ['admin', 'operations_manager'],
     });
 
     unauthorizedToken = JwtService.sign({
       userId: 'usr_readonly_model',
       tenantId: tenantA,
-      email: 'readonly@xylarc.ai',
+      email: 'readonly@kriya.ai',
       roles: ['read_only'],
     });
 

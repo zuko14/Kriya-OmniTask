@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Task Decomposition & Delegation Unit Tests
+ * Kriya AI — Task Decomposition & Delegation Unit Tests
  * Verifies recursion depth limits, confidence-based escalation, and structured output formatting (§6, §12, §16 of CLAUDE.md).
  */
 

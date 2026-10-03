@@ -23,7 +23,7 @@ export function DataTable<T>({
   emptyMessage = 'No records found.',
   ariaLabel = 'Data table',
 }: DataTableProps<T>) {
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     return <div className={styles.emptyState}>{emptyMessage}</div>;
   }
 

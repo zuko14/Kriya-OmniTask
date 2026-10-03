@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Infrastructure REST Routes
+ * Kriya AI — Production Infrastructure REST Routes
  * API endpoints for worker queues, connection pool metrics, scheduled jobs, and secret audits.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Types & Zod Validation Schemas
+ * Kriya AI — Agent Types & Zod Validation Schemas
  * Defines formal agent specifications, lifecycle states, and structured output contracts (§12, §15, §17, §39 of CLAUDE.md).
  */
 
@@ -88,6 +88,8 @@ export const AgentConfigSchema = z.object({
   tools: z.array(z.string()).default([]),
   dataAccessScope: z.array(z.string()).default(['public', 'crm_read']),
   modelPolicy: ModelPolicySchema.default({}),
+  /** Capability tier the agent's work needs; the Model Gateway only uses models certified for it. */
+  capabilityTier: z.enum(['T1', 'T2', 'T3', 'T4']).default('T2'),
   escalationRules: EscalationRulesSchema.default({}),
   limits: AgentLimitsSchema.default({}),
   verificationApproach: z.enum(['deterministic', 'llm_evaluator', 'dual_model']).default('deterministic'),

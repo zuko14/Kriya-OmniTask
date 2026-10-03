@@ -34,21 +34,21 @@ describe('Adversarial Cost Intelligence Multi-Tenant Isolation Security Tests', 
     tokenA = JwtService.sign({
       userId: 'usr_admin_cost_a',
       tenantId: tenantA,
-      email: 'admina@xylarc.ai',
+      email: 'admina@kriya.ai',
       roles: ['admin', 'finance_manager'],
     });
 
     tokenB = JwtService.sign({
       userId: 'usr_admin_cost_b',
       tenantId: tenantB,
-      email: 'adminb@xylarc.ai',
+      email: 'adminb@kriya.ai',
       roles: ['admin', 'finance_manager'],
     });
 
     unauthorizedToken = JwtService.sign({
       userId: 'usr_readonly_cost',
       tenantId: tenantA,
-      email: 'readonly@xylarc.ai',
+      email: 'readonly@kriya.ai',
       roles: ['read_only'],
     });
 

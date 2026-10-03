@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Organization KPI & Metric Evaluation Engine
+ * Kriya AI — Organization KPI & Metric Evaluation Engine
  * Evaluates performance metrics, target thresholds, unit economics & health status (§14 of CLAUDE.md).
  */
 

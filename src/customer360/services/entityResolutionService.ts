@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Deterministic Entity Resolution Engine
+ * Kriya AI — Deterministic Entity Resolution Engine
  * Resolves customer identities across channels (WhatsApp, Voice, Email, CRM, Web)
  * with explainable matching logic (§9 of CLAUDE.md).
  */

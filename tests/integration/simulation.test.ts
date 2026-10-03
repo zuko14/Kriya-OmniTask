@@ -29,7 +29,7 @@ describe('Agent Simulation & Dry-Run Sandbox REST Integration Tests', () => {
     adminToken = JwtService.sign({
       userId: 'usr_admin_sim',
       tenantId,
-      email: 'simadmin@xylarc.ai',
+      email: 'simadmin@kriya.ai',
       roles: ['admin'],
     });
   });

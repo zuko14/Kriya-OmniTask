@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Dead Letter Queue (DLQ) Manager
+ * Kriya AI — Dead Letter Queue (DLQ) Manager
  * Trapping unrecoverable job failures, retry eligibility tracking, and manual/automated remediation.
  */
 

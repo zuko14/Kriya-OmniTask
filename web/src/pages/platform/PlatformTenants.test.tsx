@@ -7,45 +7,63 @@ function jsonResponse(body: unknown, ok = true, status = 200) {
   return { ok, status, json: async () => body };
 }
 
-const mockTenants = {
+const mockRoster = {
   count: 2,
-  tenants: [
+  organizations: [
     {
-      id: 'tenant_acme_123',
-      name: 'Acme Corp',
-      slug: 'acme-corp',
-      status: 'active',
-      plan_tier: 'enterprise',
-      channel_plan: 'combined',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      id: 'tenant_kaveri_456',
+      name: 'Kaveri Motors',
+      slug: 'kaveri-motors',
+      status: 'degraded',
+      planTier: 'enterprise',
+      channelPlan: 'voice_only',
+      brainSupplyMode: 'byo',
+      agentCount: 5,
+      executions24h: 1203,
+      errorRatePct: 6.1,
+      spendInr: 4100,
+      quotaBudgetInr: 10000,
+      spendRatioPct: 41,
+      attentionCount: 12,
+      activeElevation: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     },
     {
-      id: 'tenant_beta_456',
-      name: 'Beta Inc',
-      slug: 'beta-inc',
-      status: 'suspended',
-      plan_tier: 'growth',
-      channel_plan: 'single_channel',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      id: 'tenant_meridian_123',
+      name: 'Meridian Retail',
+      slug: 'meridian-retail',
+      status: 'active',
+      planTier: 'growth',
+      channelPlan: 'combined',
+      brainSupplyMode: 'byo',
+      agentCount: 7,
+      executions24h: 4812,
+      errorRatePct: 0.4,
+      spendInr: 4850,
+      quotaBudgetInr: 10000,
+      spendRatioPct: 49,
+      attentionCount: 0,
+      activeElevation: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     },
   ],
 };
 
-describe('PlatformTenants Page', () => {
+describe('PlatformTenants Page (§17.1 Organizations Roster)', () => {
   beforeEach(() => {
     sessionStorage.clear();
-    sessionStorage.setItem('xylarc_access_token', 'test_platform_token');
+    sessionStorage.setItem('kriya_access_token', 'test_platform_token');
     vi.restoreAllMocks();
   });
 
-  it('renders tenant registry list with lifecycle badges', async () => {
+  it('renders organizations roster table with worst-first sorting and metrics', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn((url: string) => {
-        if (url.includes('/api/v1/admin/tenants')) {
-          return Promise.resolve(jsonResponse(mockTenants));
+        if (url.includes('/api/v1/admin/organizations/roster') || url.includes('/api/v1/admin/tenants')) {
+          return Promise.resolve(jsonResponse(mockRoster));
         }
         return Promise.resolve(jsonResponse({}, false, 404));
       })
@@ -57,34 +75,37 @@ describe('PlatformTenants Page', () => {
       </BrowserRouter>
     );
 
-    expect(await screen.findByText('Platform Tenant Registry & Lifecycle')).toBeInTheDocument();
-    expect(await screen.findByText('Acme Corp')).toBeInTheDocument();
-    expect(await screen.findByText('tenant_acme_123')).toBeInTheDocument();
-    expect(await screen.findByText('Beta Inc')).toBeInTheDocument();
-    expect(await screen.findByText('Suspend')).toBeInTheDocument();
-    expect(await screen.findByText('Reactivate')).toBeInTheDocument();
+    expect(await screen.findByText('Organizations Roster')).toBeInTheDocument();
+    expect(await screen.findByText('Meridian Retail')).toBeInTheDocument();
+    expect(await screen.findByText('Kaveri Motors')).toBeInTheDocument();
+    expect(screen.getByText('4,812')).toBeInTheDocument();
+    expect(screen.getByText('1,203')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Attention items' })).toBeInTheDocument();
+    expect(screen.getByText('12')).toBeInTheDocument();
   });
 
-  it('allows provisioning a new tenant organization', async () => {
+  it('allows guided provisioning of a new tenant organization (§17.2)', async () => {
     const fetchMock = vi.fn((url: string, opts?: RequestInit) => {
       if (url.includes('/api/v1/admin/tenants/provision') && opts?.method === 'POST') {
         return Promise.resolve(
           jsonResponse(
             {
-              id: 'tenant_gamma_789',
-              name: 'Gamma Corp',
-              slug: 'gamma-corp',
-              status: 'active',
-              plan_tier: 'growth',
-              channel_plan: 'combined',
+              tenant: {
+                id: 'tenant_anand_789',
+                name: 'Anand Textiles',
+                slug: 'anand-textiles',
+                status: 'active',
+                plan_tier: 'growth',
+                channel_plan: 'whatsapp_only',
+              },
             },
             true,
             201
           )
         );
       }
-      if (url.includes('/api/v1/admin/tenants')) {
-        return Promise.resolve(jsonResponse(mockTenants));
+      if (url.includes('/api/v1/admin/organizations/roster') || url.includes('/api/v1/admin/tenants')) {
+        return Promise.resolve(jsonResponse(mockRoster));
       }
       return Promise.resolve(jsonResponse({}, false, 404));
     });
@@ -97,17 +118,41 @@ describe('PlatformTenants Page', () => {
       </BrowserRouter>
     );
 
-    const openProvisionBtns = await screen.findAllByRole('button', { name: /Provision New Tenant/i });
+    const openProvisionBtns = await screen.findAllByRole('button', { name: /Provision/i });
     fireEvent.click(openProvisionBtns[0]);
 
-    const nameInput = screen.getByLabelText(/Organization Name \*/i);
-    const emailInput = screen.getByLabelText(/Admin Contact Email \*/i);
+    // Step 1: Identity
+    const nameInput = await screen.findByPlaceholderText(/e\.g\. Kaveri Motors/i);
+    fireEvent.change(nameInput, { target: { value: 'Anand Textiles' } });
 
-    fireEvent.change(nameInput, { target: { value: 'Gamma Corp' } });
-    fireEvent.change(emailInput, { target: { value: 'admin@gamma.com' } });
+    const nextStep1Btn = screen.getByRole('button', { name: /Next Step →/i });
+    fireEvent.click(nextStep1Btn);
 
-    const submitBtns = screen.getAllByRole('button', { name: /Provision Tenant/i });
-    fireEvent.click(submitBtns[0]);
+    // Step 2: DNA Profile
+    const dnaOption = await screen.findByText(/General Enterprise Services DNA/i);
+    fireEvent.click(dnaOption);
+    const nextStep2Btn = screen.getByRole('button', { name: /Next Step →/i });
+    fireEvent.click(nextStep2Btn);
+
+    // Step 3: Channels
+    const channelBtn = await screen.findByRole('button', { name: /WhatsApp Only/i });
+    fireEvent.click(channelBtn);
+    const nextStep3Btn = screen.getByRole('button', { name: /Next Step →/i });
+    fireEvent.click(nextStep3Btn);
+
+    // Step 4: Governance
+    const nextStep4Btn = await screen.findByRole('button', { name: /Next Step →/i });
+    fireEvent.click(nextStep4Btn);
+
+    // Step 5: Admin Email
+    const adminEmailInput = await screen.findByPlaceholderText(/admin@kaverimotors\.com/i);
+    fireEvent.change(adminEmailInput, { target: { value: 'admin@anandtextiles.com' } });
+    const nextStep5Btn = screen.getByRole('button', { name: /Next Step →/i });
+    fireEvent.click(nextStep5Btn);
+
+    // Step 6: Confirm
+    const confirmBtn = await screen.findByRole('button', { name: /Confirm & Provision Tenant/i });
+    fireEvent.click(confirmBtn);
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -116,16 +161,21 @@ describe('PlatformTenants Page', () => {
       );
     });
 
-    expect(await screen.findByText(/Tenant 'Gamma Corp' \(gamma-corp\) provisioned successfully/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Tenant 'Anand Textiles' provisioned and audit entry committed/i)).toBeInTheDocument();
   });
 
-  it('allows updating a tenant status with operator reason', async () => {
+  it('allows temporary operator elevation into tenant (§17.6)', async () => {
     const fetchMock = vi.fn((url: string, opts?: RequestInit) => {
-      if (url.includes('/api/v1/admin/tenants/tenant_acme_123/status') && opts?.method === 'PUT') {
-        return Promise.resolve(jsonResponse({ message: "Tenant 'tenant_acme_123' status updated to 'suspended'." }));
+      if (url.includes('/elevate') && opts?.method === 'POST') {
+        return Promise.resolve(
+          jsonResponse({
+            token: 'elevated_jwt_token_sample',
+            tenant: { id: 'tenant_kaveri_456', name: 'Kaveri Motors' },
+          })
+        );
       }
-      if (url.includes('/api/v1/admin/tenants')) {
-        return Promise.resolve(jsonResponse(mockTenants));
+      if (url.includes('/api/v1/admin/organizations/roster') || url.includes('/api/v1/admin/tenants')) {
+        return Promise.resolve(jsonResponse(mockRoster));
       }
       return Promise.resolve(jsonResponse({}, false, 404));
     });
@@ -138,22 +188,22 @@ describe('PlatformTenants Page', () => {
       </BrowserRouter>
     );
 
-    const suspendBtns = await screen.findAllByRole('button', { name: /Suspend/i });
-    fireEvent.click(suspendBtns[0]);
+    const elevateBtns = await screen.findAllByRole('button', { name: /Elevate/i });
+    fireEvent.click(elevateBtns[0]); // Kaveri Motors
 
-    const reasonInput = screen.getByLabelText(/Operator Audit Reason \*/i);
-    fireEvent.change(reasonInput, { target: { value: 'Payment failure investigation' } });
+    const reasonInput = await screen.findByPlaceholderText(/e\.g\. Investigating escalation ticket/i);
+    fireEvent.change(reasonInput, { target: { value: 'Investigating high error rate on WhatsApp webhook' } });
 
-    const confirmBtn = screen.getByRole('button', { name: /Confirm SUSPENDED/i });
-    fireEvent.click(confirmBtn);
+    const submitElevateBtn = screen.getByRole('button', { name: /Authorize & Enter Workspace/i });
+    fireEvent.click(submitElevateBtn);
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/admin/tenants/tenant_acme_123/status'),
-        expect.objectContaining({ method: 'PUT' })
+        expect.stringContaining('/elevate'),
+        expect.objectContaining({ method: 'POST' })
       );
     });
 
-    expect(await screen.findByText(/Tenant 'Acme Corp' status updated to 'suspended'/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Successfully elevated into tenant 'Kaveri Motors'/i)).toBeInTheDocument();
   });
 });

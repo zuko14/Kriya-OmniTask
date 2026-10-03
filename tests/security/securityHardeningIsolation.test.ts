@@ -34,21 +34,21 @@ describe('Adversarial Security Hardening & Audit Isolation Security Tests', () =
     tokenA = JwtService.sign({
       userId: 'usr_admin_sec_a',
       tenantId: tenantA,
-      email: 'admina@xylarc.ai',
+      email: 'admina@kriya.ai',
       roles: ['admin', 'security_admin'],
     });
 
     tokenB = JwtService.sign({
       userId: 'usr_admin_sec_b',
       tenantId: tenantB,
-      email: 'adminb@xylarc.ai',
+      email: 'adminb@kriya.ai',
       roles: ['admin', 'security_admin'],
     });
 
     unauthorizedToken = JwtService.sign({
       userId: 'usr_readonly_sec',
       tenantId: tenantA,
-      email: 'readonly@xylarc.ai',
+      email: 'readonly@kriya.ai',
       roles: ['read_only'],
     });
 

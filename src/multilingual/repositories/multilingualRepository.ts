@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Multilingual Profiles & Translations Relational Repository
+ * Kriya AI — Multilingual Profiles & Translations Relational Repository
  * Persistence for customer language preferences and translation caches (§14, §19 of CLAUDE.md).
  */
 

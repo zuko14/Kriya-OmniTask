@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Outbound Message Repository
+ * Kriya AI — Outbound Message Repository
  * Manages outbound message queue state, idempotency keys, and delivery receipts.
  */
 

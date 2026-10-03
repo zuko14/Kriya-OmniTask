@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Billing & Usage Repository
+ * Kriya AI — Billing & Usage Repository
  * Database access layer for plans, subscriptions, meter records, invoices, and line items.
  */
 

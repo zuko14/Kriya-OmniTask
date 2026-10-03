@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Authentication & Context Resolution Middleware
+ * Kriya AI — Authentication & Context Resolution Middleware
  * Verifies JWT tokens and wraps request execution in TenantContext.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Zero-Trust Security Compliance Scanner
+ * Kriya AI — Zero-Trust Security Compliance Scanner
  * Automated compliance validation across audit ledgers, role boundaries, and secret vaults (§14, §20 of CLAUDE.md).
  */
 

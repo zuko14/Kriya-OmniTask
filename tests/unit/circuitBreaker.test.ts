@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Tool Circuit Breaker Unit Tests
+ * Kriya AI — Tool Circuit Breaker Unit Tests
  * Verifies fault tolerance, fast-failing during outage, and automatic recovery (§18 of CLAUDE.md).
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Simulation & Dry-Run Sandbox Controller Service
+ * Kriya AI — Agent Simulation & Dry-Run Sandbox Controller Service
  * High-level orchestration for scenario configuration, virtual dry-run execution, and regression reporting (§14, §17 of CLAUDE.md).
  */
 

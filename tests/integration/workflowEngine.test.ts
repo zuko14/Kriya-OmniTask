@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Workflow Engine REST Integration Tests
+ * Kriya AI — Workflow Engine REST Integration Tests
  * Verifies Fastify endpoints for workflow definitions, execution dispatch, and human approval resolutions.
  */
 

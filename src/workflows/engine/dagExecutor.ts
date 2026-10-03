@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Workflow DAG Executor Engine
+ * Kriya AI — Workflow DAG Executor Engine
  * Executes multi-step DAG pipelines, handles conditional branching, and suspends/resumes on human approval steps (§13, §15 of CLAUDE.md).
  */
 

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Reactivation & Retention Specialist
+ * Kriya AI — Reactivation & Retention Specialist
  * Identifies dormant/churn-risk customers, validates policy/consent invariants, and dispatches bounded win-back offers (§26, §27 of CLAUDE.md).
  */
 
@@ -97,7 +97,7 @@ export class ReactivationRetentionSpecialist {
 
     // 3. Craft Personalized Win-back Offer
     const campaignSlug = 'winback_dormant_v1';
-    const messageContent = `Hello ${customer.full_name || 'valued customer'}! We miss you at Xylarc. Enjoy an exclusive ${discount}% discount on your next renewal: CODE WINBACK${discount}.`;
+    const messageContent = `Hello ${customer.full_name || 'valued customer'}! We miss you at Kriya. Enjoy an exclusive ${discount}% discount on your next renewal: CODE WINBACK${discount}.`;
 
     // 4. Enqueue Outbound Message with Anti-spam & Quiet Hours Governance
     let messageSent = false;

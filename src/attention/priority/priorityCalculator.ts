@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Human Attention Priority & SLA Calculator
+ * Kriya AI — Human Attention Priority & SLA Calculator
  * Deterministic rules computing escalation priority scores and SLA countdowns (§14, §16 of CLAUDE.md).
  */
 
@@ -33,6 +33,7 @@ export class PriorityCalculator {
       reasonCategory === 'policy_violation' ||
       reasonCategory === 'sensitive_complaint' ||
       reasonCategory === 'agent_disagreement' ||
+      reasonCategory === 'slo_burn' ||
       (financialValueUsd !== undefined && financialValueUsd >= 1000)
     ) {
       return 'P1_HIGH';

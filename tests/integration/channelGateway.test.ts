@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Omnichannel Communication Gateway Integration Tests
+ * Kriya AI — Omnichannel Communication Gateway Integration Tests
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

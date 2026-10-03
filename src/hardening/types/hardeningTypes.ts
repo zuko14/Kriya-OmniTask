@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Production Hardening, Chaos & Red-Team Audit Type Definitions
+ * Kriya AI — Production Hardening, Chaos & Red-Team Audit Type Definitions
  * Typed contracts for multi-tenant concurrency stress testing, chaos injection, red-team auditing, and production readiness certification.
  */
 

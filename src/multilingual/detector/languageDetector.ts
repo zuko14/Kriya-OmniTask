@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Multi-Script & Indic Language Detector
+ * Kriya AI — Multi-Script & Indic Language Detector
  * Detects scripts, ISO languages, and Latin code-switched dialects (Hinglish) (§14, §19 of CLAUDE.md).
  */
 

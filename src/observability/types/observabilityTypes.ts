@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Observability, Tracing & Drift Detection Type Definitions
+ * Kriya AI — Agent Observability, Tracing & Drift Detection Type Definitions
  * Typed contracts for OpenTelemetry-style distributed spans, drift detection, and telemetry (§14, §16 of CLAUDE.md).
  */
 
@@ -103,7 +103,7 @@ export interface ObservabilityMetricsOverview {
   avgLatencyMs: number;
   totalTokens: number;
   totalCostUsd: number;
-  avgGroundingScore: number;
+  avgGroundingScore: number | null;
   driftRatePct: number;
 }
 
@@ -113,3 +113,63 @@ export const ListTracesQuerySchema = z.object({
   driftOnly: z.enum(['true', 'false']).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
+
+// ============================================================================
+// OpenTelemetry-shaped Attributes for Kriya Workflow Nodes & Agent Steps
+// ============================================================================
+export const SemanticAttributes = {
+  WORKFLOW_RUN_ID: 'workflow.run.id',
+  WORKFLOW_GRAPH_ID: 'workflow.graph.id',
+  WORKFLOW_NODE_ID: 'workflow.node.id',
+  WORKFLOW_NODE_KIND: 'workflow.node.kind',
+  WORKFLOW_NODE_VISIT: 'workflow.node.visit',
+  WORKFLOW_STEP: 'workflow.step',
+  WORKFLOW_ACTION_TIER: 'workflow.action_tier',
+  GEN_AI_MODEL: 'gen_ai.response.model',
+  GEN_AI_TOKENS_INPUT: 'gen_ai.usage.input_tokens',
+  GEN_AI_TOKENS_OUTPUT: 'gen_ai.usage.output_tokens',
+  GEN_AI_COST_USD: 'gen_ai.usage.cost_usd',
+  EXECUTION_OUTCOME: 'execution.outcome',
+  PROOF_RECEIPT_ID: 'proof.receipt_id',
+  PROOF_RECEIPT_HASH: 'proof.receipt_hash',
+  VERIFICATION_STATE: 'verification.state',
+  VERIFICATION_JOB_ID: 'verification.job_id',
+  HUMAN_ATTENTION_ITEM_ID: 'human.attention_item_id',
+} as const;
+
+export interface DecisionTraceTimelineNode {
+  nodeId: string;
+  nodeKind: string;
+  visit: number;
+  step: number;
+  latencyMs: number;
+  tokensInput: number;
+  tokensOutput: number;
+  costUsd: number;
+  status: 'completed' | 'error' | 'parked';
+  actionSummary: string;
+  stateDelta?: Record<string, unknown>;
+  attributes: Record<string, unknown>;
+  timestamp: string;
+  modelId?: string;
+  toolName?: string;
+  proofReceiptId?: string;
+  verificationState?: string;
+}
+
+export interface DecisionTraceTimeline {
+  runId: string;
+  graphId: string;
+  tenantId: string;
+  status: string;
+  outcome?: string;
+  startedAt: string;
+  endedAt?: string;
+  totalDurationMs: number;
+  totalCostUsd: number;
+  totalTokens: number;
+  nodes: DecisionTraceTimelineNode[];
+  spans: TraceWaterfallSpan[];
+  proofReceipts: Array<{ id: string; hash?: string; stateHash?: string }>;
+  verifications: Array<{ jobId: string; status: string; passed?: boolean }>;
+}

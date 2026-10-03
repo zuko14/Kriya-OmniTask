@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Knowledge Document Parser & Normalizer
+ * Kriya AI — Knowledge Document Parser & Normalizer
  * Parses raw text, markdown, HTML, structured JSON, FAQs, and SOPs into clean normalized format.
  */
 

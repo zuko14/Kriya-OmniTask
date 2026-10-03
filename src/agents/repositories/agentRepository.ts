@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent & Lifecycle Event Repositories
+ * Kriya AI — Agent & Lifecycle Event Repositories
  * Manages tenant-isolated agent registrations, state transition audits, and execution logs.
  */
 

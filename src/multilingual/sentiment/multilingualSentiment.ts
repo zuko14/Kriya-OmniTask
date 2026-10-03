@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Cross-Lingual & Indic Sentiment Analyzer
+ * Kriya AI — Cross-Lingual & Indic Sentiment Analyzer
  * Evaluates sentiment, urgency levels, and cultural politeness markers across languages (§14, §19 of CLAUDE.md).
  */
 

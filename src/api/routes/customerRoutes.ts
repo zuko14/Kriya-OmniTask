@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Customer 360 & Entity Resolution REST Routes
+ * Kriya AI — Customer 360 & Entity Resolution REST Routes
  * Implements endpoints for customer profiles, identity resolution, timeline, consent, and GDPR rights.
  */
 

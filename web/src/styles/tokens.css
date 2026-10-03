@@ -1,24 +1,88 @@
+/**
+ * Kriya AI design tokens — "Clinical Depth" (KRIYA_AI_DESIGN_SYSTEM.md).
+ * §2.1 dark (default) · §2.2 light via [data-theme="light"] · §5 glass · §4 radius · §9 motion.
+ * Pre-Kriya token names (--ink, --hairline, --signal-*, --color-*, …) were removed in WP-7.4;
+ * `web/src/styles/tokenUsage.test.ts` fails if any reappear or any used token is undefined.
+ */
+
 :root {
-  /* Neutrals */
-  --color-void: #15171c;
-  --color-surface: #1e212a;
-  --color-surface-raised: #262a35;
-  --color-border: #333846;
-  --color-ink: #e8e9ed;
-  --color-ink-muted: #9aa0ae;
+  color-scheme: dark;
 
-  /* Semantic accents */
-  --color-signal: #4c86d6;
-  --color-verify: #3fa66b;
-  --color-caution: #d9973e;
-  --color-critical: #d8574b;
+  /* Backgrounds (§2.1) */
+  --bg:         #040A11;
+  --bg-aura-1:  rgba(16, 185, 129, 0.18);
+  --bg-aura-2:  rgba(61, 139, 253, 0.16);
 
-  /* Typography */
-  --font-display: 'IBM Plex Sans', -apple-system, sans-serif;
-  --font-body: 'Inter', -apple-system, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  /* Glass surfaces */
+  --surface:       rgba(28, 45, 63, 0.72);
+  --surface-solid: #0E1926;
+  --surface2:      rgba(38, 58, 79, 0.68);
+  --surface3:      rgba(48, 70, 93, 0.60);
 
-  /* Spacing */
+  /* Borders & rims */
+  --border:  rgba(199, 234, 225, 0.13);
+  --border2: rgba(199, 234, 225, 0.22);
+  --rim:     rgba(199, 234, 225, 0.24);
+
+  /* Text */
+  --text-strong: #FFFFFF;
+  --text:        #E4EFF1;
+  --text2:       #9FB6BF;
+  --text3:       #6E8794;
+  --mint:        #C7EAE1;
+
+  /* Accent & interactive */
+  --accent:        #3D8BFD;
+  --accent2:       #7DB2FF;
+  --accent-glow:   rgba(61, 139, 253, 0.16);
+  --accent-soft:   rgba(61, 139, 253, 0.12);
+  --accent-soft2:  rgba(61, 139, 253, 0.16);
+  --accent-row:    rgba(61, 139, 253, 0.06);
+  --accent-border: rgba(61, 139, 253, 0.34);
+
+  /* Semantic */
+  --green:               #10B981;
+  --green-bg:            rgba(16, 185, 129, 0.12);
+  --green-border:        rgba(16, 185, 129, 0.30);
+  --green-border-strong: rgba(16, 185, 129, 0.42);
+  --red:                 #F2555F;
+  --red-bg:              rgba(242, 85, 95, 0.12);
+  --red-border:          rgba(242, 85, 95, 0.30);
+  --red-border-strong:   rgba(242, 85, 95, 0.42);
+  --amber:               #F5A524;
+  --amber-bg:            rgba(245, 165, 36, 0.12);
+  --blue:                #3D8BFD;
+  --blue-bg:             rgba(61, 139, 253, 0.12);
+  --purple:              #B98CF0;
+  --purple-bg:           rgba(185, 140, 240, 0.12);
+  --cyan:                #22D3EE;
+  --cyan-bg:             rgba(34, 211, 238, 0.12);
+  --muted-bg:            rgba(110, 135, 148, 0.12);
+  /* Text on its own 12% tint (badges, alerts) needs a stronger tone to stay >= 4.5:1 (WP-7.6). */
+  --red-text:            #FF7A83;
+  --blue-text:           var(--accent2);
+  --cyan-text:           var(--cyan);
+
+  /* Brand gradient — exactly 4 places (§1.2): logo, primary CTA, active nav bar, stat-card hairline */
+  --brand-grad: linear-gradient(135deg, #10B981 0%, #2FA8D8 55%, #3D8BFD 100%);
+
+  /* Glass recipe inputs (§5) */
+  --blur:      20px;
+  --shadow:    0 8px 32px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.55);
+
+  /* Radius (§4.1) — rises with elevation */
+  --radius:         14px;  /* stat cards */
+  --radius-lg:      18px;  /* cards */
+  --radius-xl:      22px;  /* modals, login card */
+  --radius-control: 10px;  /* inputs, buttons, nav links */
+  --radius-badge:   20px;  /* pills */
+  --radius-sm:      8px;   /* small buttons, nested controls */
+  --radius-md:      10px;  /* = control */
+  --radius-full:    999px; /* status dots */
+
+  /* Spacing (4px base) */
+  --space-0: 0;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -27,13 +91,98 @@
   --space-6: 32px;
   --space-7: 48px;
   --space-8: 64px;
+  --space-9: 96px;
+  --border-width: 1px;
 
-  /* Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
+  /* Motion (§9.1) */
+  --motion-fast: 150ms;
+  --motion-base: 250ms;
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout:  cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-instant: 80ms; /* state-dot colour change */
 
-  /* Elevation */
-  --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.24);
-  --elevation-2: 0 4px 16px rgba(0, 0, 0, 0.32);
+  /* Layout (§4.3) */
+  --sidebar-width: 260px;
+  --main-max:      1400px;
+  --modal-max:     520px;
+  --toast-max:     380px;
+  --reading-max:   720px;
+  --row-height:         44px;
+  --row-height-compact: 34px;
+  --header-height:      56px;
+  --z-modal:            1000;
+
+  /* Typography (§3) — one family; system mono for IDs/hashes */
+  --font-body:    'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+  --font-mono:    ui-monospace, 'SF Mono', Consolas, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-xs:  0.75rem;
+  --text-sm:  0.8125rem;
+  --text-md:  0.875rem;
+  --text-lg:  1rem;
+  --text-xl:  1.25rem;
+  --text-2xl: 1.6rem;   /* page title (§3.2) */
+  --text-3xl: 2rem;     /* stat number (§3.2) */
+  --text-4xl: 2.5rem;
+
+  --elev-0: none;
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --elev-2: var(--shadow);
+  --elev-3: var(--shadow-lg);
+}
+
+/* Light theme (§2.2) — mint-tinted white, never neutral grey. Tenant console only. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg:            #F2F7F7;
+  --surface:       rgba(255, 255, 255, 0.78);
+  --surface-solid: #FFFFFF;
+  --surface2:      rgba(236, 244, 245, 0.80);
+  --surface3:      rgba(222, 235, 237, 0.85);
+  --border:        rgba(16, 58, 66, 0.11);
+  --border2:       rgba(16, 58, 66, 0.20); /* not in DS §2.2; same hue as --border, stronger */
+  --rim:           rgba(255, 255, 255, 0.75);
+  --text:          #14262E;
+  --text-strong:   #071820;
+  --text2:         #4C6570;
+  --text3:         #6B838E;
+  --mint:          #2E7F72;
+  --accent:        #1668D6;
+  --green:         #047857;
+  --red:           #C62F3B;
+  /* Not in DS §2.2 (it defines no light amber/blue/purple/cyan); darkened to keep text >= 4.5:1 on the
+     light ground, glass and badge tints (WP-7.6, measured in contrastAudit.test.ts). */
+  --amber:         #9A5B0B;
+  --blue:          #1668D6;
+  --purple:        #7C3AED;
+  --cyan:          #0E7490;
+  --red-text:      #B42330;
+  --blue-text:     #1259BD;
+  --cyan-text:     #0B6278;
+  --shadow:        0 8px 32px rgba(12, 40, 48, 0.10);
+  --shadow-lg:     0 24px 64px rgba(12, 40, 48, 0.16); /* not in DS §2.2; scaled from --shadow */
+}
+
+/* No backdrop-filter → opaque surfaces so text never sits on see-through glass (§5.1) */
+@supports not ((backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px))) {
+  :root {
+    --surface:  #0E1926;
+    --surface2: #17242F;
+    --surface3: #1E3044;
+  }
+  :root[data-theme="light"] {
+    --surface:  #FFFFFF;
+    --surface2: #ECF4F5;
+    --surface3: #DEEBED;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+    --dur-instant: 0ms;
+  }
 }

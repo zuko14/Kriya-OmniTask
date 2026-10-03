@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Policy Condition Evaluator Unit Tests
+ * Kriya AI — Policy Condition Evaluator Unit Tests
  * Verifies deterministic condition tree evaluation, nested field resolution, and boolean logic (§14 of CLAUDE.md).
  */
 

@@ -16,13 +16,13 @@
   font-family: var(--font-display);
   font-size: 24px;
   font-weight: 600;
-  color: var(--color-ink);
+  color: var(--text);
   margin: 0 0 var(--space-1) 0;
 }
 
 .subtitle {
   font-size: 13px;
-  color: var(--color-ink-muted);
+  color: var(--text2);
   margin: 0;
 }
 
@@ -33,42 +33,24 @@
 }
 
 .sectionCard {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  box-shadow: inset 0 1px 0 var(--rim), var(--shadow);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(155%);
+  backdrop-filter: blur(var(--blur)) saturate(155%);
 }
 
 .sectionTitle {
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-ink);
+  color: var(--text);
   margin: 0;
-}
-
-.btnPrimary {
-  background: var(--color-signal);
-  color: #ffffff;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-4);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.btnSecondary {
-  background: var(--color-surface-raised);
-  color: var(--color-ink);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-3);
-  font-size: 12px;
-  cursor: pointer;
 }
 
 .badge {
@@ -82,17 +64,17 @@
 
 .badgeHealthy {
   background: rgba(63, 166, 107, 0.15);
-  color: var(--color-verify);
+  color: var(--green);
 }
 
 .badgeDegraded {
   background: rgba(217, 151, 62, 0.15);
-  color: var(--color-caution);
+  color: var(--amber);
 }
 
 .badgeOffline {
   background: rgba(216, 87, 75, 0.15);
-  color: var(--color-critical);
+  color: var(--red);
 }
 
 .modalBackdrop {
@@ -107,8 +89,8 @@
 }
 
 .modal {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
+  background: var(--surface2);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: var(--space-5);
   width: 100%;
@@ -122,7 +104,7 @@
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
-  color: var(--color-ink);
+  color: var(--text);
   margin: 0;
 }
 
@@ -135,14 +117,14 @@
 .formLabel {
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-ink-muted);
+  color: var(--text2);
 }
 
 .input, .select {
-  background: var(--color-surface);
-  color: var(--color-ink);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
   padding: var(--space-2);
   font-size: 13px;
   font-family: var(--font-body);

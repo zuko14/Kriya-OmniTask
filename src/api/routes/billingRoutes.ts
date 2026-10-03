@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Billing & Usage REST Routes
+ * Kriya AI — Billing & Usage REST Routes
  * API endpoints for usage metering, channel subscriptions, invoices, and Stripe payments.
  */
 

@@ -35,7 +35,7 @@ describe('Multilingual System (Indic & Global Languages) REST Integration Tests'
     adminToken = JwtService.sign({
       userId: 'usr_admin_multi',
       tenantId,
-      email: 'multiadmin@xylarc.ai',
+      email: 'multiadmin@kriya.ai',
       roles: ['admin'],
     });
   });

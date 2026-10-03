@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Model Provider Resilience REST API Routes
+ * Kriya AI — Model Provider Resilience REST API Routes
  * Endpoints for model registry, tenant provider policies, dynamic execution, and routing audits (§10–§14).
  */
 
@@ -14,6 +14,7 @@ import {
 import { authenticate } from '../middleware/authMiddleware.js';
 import { requirePermission } from '../middleware/rbacMiddleware.js';
 import { TenantContextManager } from '../../core/context/tenantContext.js';
+import { isSandboxMode } from '../../core/config/runtimeMode.js';
 import { z } from 'zod';
 
 export async function modelResilienceRoutes(fastify: FastifyInstance): Promise<void> {
@@ -83,6 +84,13 @@ export async function modelResilienceRoutes(fastify: FastifyInstance): Promise<v
       return TenantContextManager.withTenant(user.tenantId, user.organizationId || 'default', async () => {
         const body = ExecuteWithResilienceRequestSchema.parse(request.body);
         const { mockFailures } = (request.body as { mockFailures?: string[] }) || {};
+        // Failure injection is a resilience drill tool: sandbox/test only (docs/kriya S22).
+        if (mockFailures && mockFailures.length > 0 && !isSandboxMode()) {
+          return reply.status(400).send({
+            error: 'MOCK_FAILURES_NOT_ALLOWED',
+            message: 'mockFailures is only accepted in sandbox/test mode.',
+          });
+        }
         const response = await service.executeWithResilience(body, { mockFailures });
         return reply.status(200).send(response);
       }, { userId: user.userId, roles: user.roles });

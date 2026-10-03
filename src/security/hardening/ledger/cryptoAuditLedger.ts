@@ -1,9 +1,10 @@
 /**
- * Xylarc AI — Cryptographically Chained Tamper-Evident Audit Ledger
+ * Kriya AI — Cryptographically Chained Tamper-Evident Audit Ledger
  * SHA-256 chained hash log and cryptographic tamper detection (§14, §20 of CLAUDE.md).
  */
 
 import { createHash } from 'node:crypto';
+import { sha256Canonical } from '../../../core/utils/canonicalJson.js';
 import {
   SecurityAuditLedgerRecord,
   AuditLedgerVerificationReport,
@@ -16,8 +17,8 @@ export class CryptoAuditLedger {
    * Computes deterministic SHA-256 hash of a payload object.
    */
   public static computePayloadHash(payload: Record<string, unknown>): string {
-    const canonicalJson = JSON.stringify(payload, Object.keys(payload).sort());
-    return createHash('sha256').update(canonicalJson).digest('hex');
+    // Canonical at every depth (docs/kriya S32): the old key-array replacer dropped nested fields.
+    return sha256Canonical(payload);
   }
 
   /**

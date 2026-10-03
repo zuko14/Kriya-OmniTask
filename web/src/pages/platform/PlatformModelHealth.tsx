@@ -88,8 +88,8 @@ export function PlatformModelHealth() {
     }
   };
 
-  const models = modelsState.status === 'success' ? modelsState.data.models : [];
-  const decisions = decisionsState.status === 'success' ? decisionsState.data.decisions : [];
+  const models = modelsState.status === 'success' ? (modelsState.data?.models ?? []) : [];
+  const decisions = decisionsState.status === 'success' ? (decisionsState.data?.decisions ?? []) : [];
 
   const modelColumns: Column<ModelRegistryRecord>[] = [
     {
@@ -98,7 +98,7 @@ export function PlatformModelHealth() {
       render: (m) => (
         <div>
           <strong>{m.displayName}</strong>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--color-ink-muted)' }}>{m.modelIdentifier}</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text2)' }}>{m.modelIdentifier}</div>
         </div>
       ),
     },
@@ -154,7 +154,7 @@ export function PlatformModelHealth() {
           className={styles.badge}
           style={{
             background: d.fallbackOccurred ? 'rgba(217, 151, 62, 0.15)' : 'rgba(63, 166, 107, 0.15)',
-            color: d.fallbackOccurred ? 'var(--color-caution)' : 'var(--color-verify)',
+            color: d.fallbackOccurred ? 'var(--amber)' : 'var(--green)',
           }}
         >
           {d.fallbackOccurred ? 'Fallback Triggered' : 'Primary Selected'}
@@ -177,14 +177,14 @@ export function PlatformModelHealth() {
           <p className={styles.subtitle}>LLM providers, fallback circuit breakers, capability matching, and dynamic execution telemetry.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnPrimary} onClick={() => setIsRegistering(true)}>
+          <button className="btn btn-accent" onClick={() => setIsRegistering(true)}>
             + Register Approved Model
           </button>
         </div>
       </header>
 
-      {actionError && <div style={{ color: 'var(--color-critical)', background: 'rgba(216,87,75,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>⚠️ {actionError}</div>}
-      {actionSuccess && <div style={{ color: 'var(--color-verify)', background: 'rgba(63,166,107,0.1)', padding: 'var(--space-3)', borderRadius: 'var(--radius-sm)' }}>✓ {actionSuccess}</div>}
+      {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
+      {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}
 
       {/* Model Providers Registry */}
       <div className={styles.sectionCard}>
@@ -295,10 +295,10 @@ export function PlatformModelHealth() {
               </div>
 
               <div className={styles.modalActions}>
-                <button type="button" className={styles.btnSecondary} onClick={() => setIsRegistering(false)} disabled={isSubmitting}>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIsRegistering(false)} disabled={isSubmitting}>
                   Cancel
                 </button>
-                <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
+                <button type="submit" className="btn btn-accent" disabled={isSubmitting}>
                   {isSubmitting ? 'Registering...' : 'Register Model'}
                 </button>
               </div>

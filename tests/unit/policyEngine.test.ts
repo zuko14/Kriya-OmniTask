@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Policy Engine Unit Tests
+ * Kriya AI — Policy Engine Unit Tests
  * Verifies rule evaluations, composite verdicts, and policy audit logs (§14 of CLAUDE.md).
  */
 

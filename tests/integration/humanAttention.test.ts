@@ -29,7 +29,7 @@ describe('Human Attention Center & Live Takeover REST Integration Tests', () => 
     adminToken = JwtService.sign({
       userId: 'usr_admin_att',
       tenantId,
-      email: 'attadmin@xylarc.ai',
+      email: 'attadmin@kriya.ai',
       roles: ['admin'],
     });
   });

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Hierarchical Orchestration Integration Tests
+ * Kriya AI — Hierarchical Orchestration Integration Tests
  * Verifies Fastify REST endpoints for multi-agent dispatch, customer timeline tracking,
  * and Safety Firewall inspection.
  */

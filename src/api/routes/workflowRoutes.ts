@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Workflow DAG Engine REST Routes
+ * Kriya AI — Workflow DAG Engine REST Routes
  * Fastify REST endpoints for managing DAG workflows, dispatching executions, and resolving human approval gates.
  */
 
@@ -9,6 +9,11 @@ import { WorkflowDefinitionSchema } from '../../workflows/types/workflowTypes.js
 import { authenticate } from '../middleware/authMiddleware.js';
 import { requirePermission } from '../middleware/rbacMiddleware.js';
 import { TenantContextManager } from '../../core/context/tenantContext.js';
+import { NotFoundError } from '../../core/errors/errors.js';
+import { GraphRunRepository } from '../../runtime/graph/graphRunRepository.js';
+import { GraphExecutor } from '../../runtime/graph/executor.js';
+import { AttentionService } from '../../attention/service/attentionService.js';
+import { ObservabilityService } from '../../observability/service/observabilityService.js';
 import { z } from 'zod';
 
 const TriggerWorkflowBodySchema = z.object({
@@ -21,6 +26,16 @@ const DecideApprovalBodySchema = z.object({
   stepId: z.string().min(1),
   decision: z.enum(['approved', 'rejected']),
   notes: z.string().optional(),
+});
+
+const DecideRunApprovalBodySchema = z.object({
+  notes: z.string().optional(),
+});
+
+const ResumeRunBodySchema = z.object({
+  decision: z.enum(['approved', 'rejected']).optional(),
+  notes: z.string().optional(),
+  payload: z.record(z.unknown()).optional(),
 });
 
 export async function workflowRoutes(fastify: FastifyInstance): Promise<void> {
@@ -161,6 +176,130 @@ export async function workflowRoutes(fastify: FastifyInstance): Promise<void> {
           notes: body.notes,
         });
         return reply.status(200).send(execution);
+      }, { userId: user.userId, roles: user.roles });
+    }
+  );
+
+  // 10. List Verified Action Graph Runs
+  fastify.get(
+    '/api/v1/workflows/runs',
+    { preHandler: [authenticate, requirePermission('workflow:read')] },
+    async (request, reply) => {
+      const user = request.user!;
+      return TenantContextManager.withTenant(user.tenantId, user.organizationId || 'default', async () => {
+        const { status, limit } = request.query as { status?: any; limit?: string };
+        const repo = new GraphRunRepository();
+        const runs = await repo.listRuns({
+          status,
+          limit: limit ? Number(limit) : 50,
+        });
+        return reply.status(200).send({
+          total: runs.length,
+          runs,
+        });
+      }, { userId: user.userId, roles: user.roles });
+    }
+  );
+
+  // 11. Get Graph Run Details
+  fastify.get(
+    '/api/v1/workflows/runs/:runId',
+    { preHandler: [authenticate, requirePermission('workflow:read')] },
+    async (request, reply) => {
+      const user = request.user!;
+      return TenantContextManager.withTenant(user.tenantId, user.organizationId || 'default', async () => {
+        const { runId } = request.params as { runId: string };
+        const repo = new GraphRunRepository();
+        const run = await repo.getRun(runId);
+        if (!run) throw new NotFoundError(`Workflow run '${runId}' not found.`);
+        const checkpoints = await repo.listCheckpoints(runId);
+        return reply.status(200).send({
+          run,
+          state: JSON.parse(run.state_json),
+          checkpoints,
+        });
+      }, { userId: user.userId, roles: user.roles });
+    }
+  );
+
+  // 12. Approve Parked Graph Run
+  fastify.post(
+    '/api/v1/workflows/runs/:runId/approve',
+    { preHandler: [authenticate, requirePermission('attention:approve')] },
+    async (request, reply) => {
+      const user = request.user!;
+      return TenantContextManager.withTenant(user.tenantId, user.organizationId || 'default', async () => {
+        const { runId } = request.params as { runId: string };
+        const body = DecideRunApprovalBodySchema.parse(request.body || {});
+        const repo = new GraphRunRepository();
+        const attentionService = new AttentionService();
+        const executor = new GraphExecutor({}, repo, undefined, attentionService);
+        const result = await executor.resume(runId, {
+          decision: 'approved',
+          notes: body.notes,
+          humanApproverId: user.userId,
+        });
+        return reply.status(200).send(result);
+      }, { userId: user.userId, roles: user.roles });
+    }
+  );
+
+  // 13. Reject Parked Graph Run
+  fastify.post(
+    '/api/v1/workflows/runs/:runId/reject',
+    { preHandler: [authenticate, requirePermission('attention:approve')] },
+    async (request, reply) => {
+      const user = request.user!;
+      return TenantContextManager.withTenant(user.tenantId, user.organizationId || 'default', async () => {
+        const { runId } = request.params as { runId: string };
+        const body = DecideRunApprovalBodySchema.parse(request.body || {});
+        const repo = new GraphRunRepository();
+        const attentionService = new AttentionService();
+        const executor = new GraphExecutor({}, repo, undefined, attentionService);
+        const result = await executor.resume(runId, {
+          decision: 'rejected',
+          notes: body.notes,
+          humanApproverId: user.userId,
+        });
+        return reply.status(200).send(result);
+      }, { userId: user.userId, roles: user.roles });
+    }
+  );
+
+  // 14. Resume Parked Graph Run with Custom Input
+  fastify.post(
+    '/api/v1/workflows/runs/:runId/resume',
+    { preHandler: [authenticate, requirePermission('attention:approve')] },
+    async (request, reply) => {
+      const user = request.user!;
+      return TenantContextManager.withTenant(user.tenantId, user.organizationId || 'default', async () => {
+        const { runId } = request.params as { runId: string };
+        const body = ResumeRunBodySchema.parse(request.body || {});
+        const repo = new GraphRunRepository();
+        const attentionService = new AttentionService();
+        const executor = new GraphExecutor({}, repo, undefined, attentionService);
+        const result = await executor.resume(runId, {
+          ...(body.payload || {}),
+          decision: body.decision,
+          notes: body.notes,
+          humanApproverId: user.userId,
+        });
+        return reply.status(200).send(result);
+      }, { userId: user.userId, roles: user.roles });
+    }
+  );
+
+  // 15. Get Decision Trace Timeline for Graph Run (WP-2.6)
+  fastify.get(
+    '/api/v1/workflows/runs/:runId/trace',
+    { preHandler: [authenticate, requirePermission('workflow:read')] },
+    async (request, reply) => {
+      const user = request.user!;
+      return TenantContextManager.withTenant(user.tenantId, user.organizationId || 'default', async () => {
+        const { runId } = request.params as { runId: string };
+        const observabilityService = new ObservabilityService();
+        const trace = await observabilityService.getDecisionTrace(runId, user.tenantId);
+        return reply.status(200).send(trace);
       }, { userId: user.userId, roles: user.roles });
     }
   );

@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Business Digital Twin Controller Service
+ * Kriya AI — Business Digital Twin Controller Service
  * High-level orchestration service for organizational graphs, KPI evaluations, and operational bottleneck diagnostics (§13-§15 of CLAUDE.md).
  */
 

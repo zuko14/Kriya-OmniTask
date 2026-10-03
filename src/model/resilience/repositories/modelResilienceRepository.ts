@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Model Provider Resilience Repository
+ * Kriya AI — Model Provider Resilience Repository
  * Persistence for model registry, tenant provider policies, and routing audit decisions.
  */
 

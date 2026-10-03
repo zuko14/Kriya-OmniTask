@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Multilingual System Controller Service
+ * Kriya AI — Multilingual System Controller Service
  * High-level orchestration for language detection, Indic normalization, sentiment, translation, and profiles (§14, §19 of CLAUDE.md).
  */
 

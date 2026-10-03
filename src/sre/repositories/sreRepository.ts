@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Site Reliability Engineering (SRE) Repository
+ * Kriya AI — Site Reliability Engineering (SRE) Repository
  * Database access layer for SLO definitions, evaluations, and alerts.
  */
 

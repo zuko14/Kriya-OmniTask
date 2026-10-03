@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Dynamic Feature Flag Engine
+ * Kriya AI — Dynamic Feature Flag Engine
  * Deterministic multi-tenant and role-targeted feature gating with consistent hash percentage rollouts.
  */
 

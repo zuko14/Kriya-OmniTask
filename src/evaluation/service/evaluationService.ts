@@ -1,5 +1,5 @@
 /**
- * Xylarc AI — Agent Evaluation Benchmark & Golden Test Suite Service
+ * Kriya AI — Agent Evaluation Benchmark & Golden Test Suite Service
  * High-level orchestration for dataset management, benchmark execution, and release decision gating (§14, §18 of CLAUDE.md).
  */
 
