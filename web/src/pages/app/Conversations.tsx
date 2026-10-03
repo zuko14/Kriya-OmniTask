@@ -162,7 +162,7 @@ export function Conversations() {
               Under Kriya AI's sovereign architecture, conversation turns and agent dialogues are anchored directly to individual customer entities.
             </p>
             <p style={{ margin: 0 }}>
-              To view full chronological multi-turn conversations and sentiment analysis, visit the <Link to="/app/customers" style={{ color: 'var(--accent)', fontWeight: 600 }}>Customer 360 Directory</Link>. For live conversation takeovers, visit the <Link to="/app/attention" style={{ color: 'var(--accent)', fontWeight: 600 }}>Human Attention Center</Link>.
+              To view full chronological multi-turn conversations and sentiment analysis, visit the <Link to="/admin/customers" style={{ color: 'var(--accent)', fontWeight: 600 }}>Customer 360 Directory</Link>. For live conversation takeovers, visit the <Link to="/admin/attention" style={{ color: 'var(--accent)', fontWeight: 600 }}>Human Attention Center</Link>.
             </p>
           </div>
         </div>

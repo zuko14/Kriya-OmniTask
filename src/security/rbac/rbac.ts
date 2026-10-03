@@ -51,8 +51,10 @@ export type Permission =
   | 'attention:escalate';
 
 export const ROLE_PERMISSIONS: Record<StandardRole, Permission[]> = {
+  // A tenant's business owner. 'system:admin' (platform/owner-console scope) is reserved for
+  // super_admin/system, which login only honours inside the platform tenant (platformOperator.ts).
   owner: [
-    'tenant:read', 'tenant:write', 'tenant:admin', 'system:admin',
+    'tenant:read', 'tenant:write', 'tenant:admin',
     'org:read', 'org:write',
     'user:read', 'user:write', 'user:invite',
     'customer:read', 'customer:write', 'customer:delete',

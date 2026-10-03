@@ -30,6 +30,9 @@ import { auditLogger } from '../../security/audit/auditLogger.js';
 import { TenantContextManager } from '../../core/context/tenantContext.js';
 import { BusinessDnaService } from '../../governance/dna/businessDnaService.js';
 import { db } from '../../storage/db.js';
+import { ConflictError, NotFoundError } from '../../core/errors/errors.js';
+import { isPlatformTenantSlug } from '../../security/auth/platformOperator.js';
+import { USD_TO_INR_RATE } from '../../context/types/contextTypes.js';
 
 export class AdminService {
   private repo = new AdminRepository();
@@ -42,13 +45,23 @@ export class AdminService {
   public async provisionTenant(
     request: ProvisionTenantRequest,
     operatorId: string
-  ): Promise<{ id: string; name: string; slug: string; status: string; tenant: TenantRecord; organizationId: string; workspaceId: string; adminUserId: string; manifest?: any }> {
+  ): Promise<{ id: string; name: string; slug: string; status: string; tenant: TenantRecord; organizationId: string; workspaceId: string; adminUserId: string; adminEmail: string; generatedAdminPassword?: string; manifest?: any }> {
     const now = new Date().toISOString();
     const tenantId = request.id || `tnt_${CryptoUtils.generateId()}`;
     const orgId = `org_${tenantId}`;
     const wsId = `ws_${tenantId}`;
     const adminUserId = `usr_${CryptoUtils.generateId()}`;
 
+    if (isPlatformTenantSlug(request.slug) || (await this.tenantRepo.findBySlug(request.slug))) {
+      throw new ConflictError(`Workspace slug '${request.slug}' is already taken.`);
+    }
+
+    // Generated when the operator didn't set one; returned exactly once and never stored in clear.
+    const generatedPassword = request.adminPassword ? undefined : CryptoUtils.generateSecureToken(12);
+    const rawPassword = request.adminPassword || generatedPassword!;
+
+    // Steps 1-4 commit together so a failure never leaves a half-provisioned client.
+    const tenant = await db.getClient().transaction(async (client) => {
     // 1. Create Tenant Record
     const tenant = await this.tenantRepo.create({
       id: tenantId,
@@ -66,8 +79,6 @@ export class AdminService {
       autonomy_ceiling: request.autonomyCeiling,
     });
 
-    const client = db.getClient();
-
     // 2. Create Default Organization & Workspace
     await client.execute(
       `INSERT INTO organizations (id, tenant_id, name, slug, created_at, updated_at)
@@ -82,7 +93,6 @@ export class AdminService {
     );
 
     // 3. Create Tenant Admin User
-    const rawPassword = request.adminPassword || 'OmnitaskAdmin@2026';
     const passwordHash = CryptoUtils.hashPassword(rawPassword);
 
     await client.execute(
@@ -105,6 +115,8 @@ export class AdminService {
        VALUES (?, 'role-admin', ?, ?);`,
       [adminUserId, tenantId, now]
     );
+    return tenant;
+    });
 
     // 5. Immutable Cryptographic Audit Ledger Entry (Hard Requirement §2 & M2)
     await TenantContextManager.withTenant(tenantId, orgId, async () => {
@@ -166,6 +178,8 @@ export class AdminService {
       organizationId: orgId,
       workspaceId: wsId,
       adminUserId,
+      adminEmail: request.adminEmail.toLowerCase().trim(),
+      generatedAdminPassword: generatedPassword,
       manifest,
     };
   }
@@ -288,14 +302,14 @@ export class AdminService {
     operatorId: string
   ): Promise<void> {
     const target = await this.tenantRepo.findById(tenantId);
-    if (!target) {
-      throw new Error(`Tenant '${tenantId}' not found.`);
+    if (!target || isPlatformTenantSlug(target.slug)) {
+      throw new NotFoundError(`Tenant '${tenantId}' not found.`);
     }
 
     const currentStatus = target.status as TenantLifecycleStatus;
     const isValid = TenantLifecycleEngine.validateTransition(currentStatus, request.status as any);
     if (!isValid) {
-      throw new Error(`Invalid tenant status transition from '${currentStatus}' to '${request.status}'.`);
+      throw new ConflictError(`Invalid tenant status transition from '${currentStatus}' to '${request.status}'.`);
     }
 
     await this.tenantRepo.updateStatus(tenantId, request.status);
@@ -330,46 +344,20 @@ export class AdminService {
    * Lists Organizations Roster sorted worst-first (§17.1).
    */
   public async listOrganizationsRoster(): Promise<OrganizationRosterItem[]> {
-    const tenants = await this.tenantRepo.listAll();
-    const client = db.getClient();
-
+    const tenants = (await this.tenantRepo.listAll()).filter((t) => !isPlatformTenantSlug(t.slug));
     const items: OrganizationRosterItem[] = [];
-
+    // ponytail: a handful of count queries per tenant; switch to grouped queries past a few hundred tenants.
     for (const t of tenants) {
-      // Query stats
-      const agentCountRow = await client.queryOne<{ count: number }>(
-        'SELECT count(*) as count FROM agents WHERE tenant_id = ?;',
-        [t.id]
-      ).catch(() => ({ count: 0 }));
+      const stats = await this.tenantStats(t.id);
+      const quotaBudgetInr = Number(parseQuotas(t.quotas_json).monthly_budget_inr ?? 0);
+      const spendRatioPct = quotaBudgetInr > 0 ? Math.round((stats.spendInrMonth / quotaBudgetInr) * 100) : 0;
 
-      const attentionRow = await client.queryOne<{ count: number }>(
-        "SELECT count(*) as count FROM attention_items WHERE tenant_id = ? AND status = 'pending';",
-        [t.id]
-      ).catch(() => ({ count: 0 }));
-
-      let parsedQuotas = { monthly_budget_inr: 10000 };
-      try {
-        if (t.quotas_json) parsedQuotas = JSON.parse(t.quotas_json);
-      } catch {
-        // use default
-      }
-
-      const activeElevation = await this.tenantRepo.getActiveElevationSession(t.id);
-
-      const agentCount = agentCountRow?.count || 4;
-      const attentionCount = attentionRow?.count || (t.status === 'suspended' ? 0 : 2);
-      const executions24h = t.status === 'suspended' ? 0 : 1420;
-      const errorRatePct = t.status === 'suspended' ? 0.0 : (attentionCount > 5 ? 6.2 : 0.4);
-      const spendInr = t.status === 'suspended' ? 820 : 4850;
-      const quotaBudgetInr = parsedQuotas.monthly_budget_inr || 10000;
-      const spendRatioPct = Math.round((spendInr / quotaBudgetInr) * 100);
-
-      // Determine operational state
-      let computedStatus: 'active' | 'suspended' | 'degraded' | 'disabled' = t.status;
-      if (t.status === 'active' && (errorRatePct > 5.0 || attentionCount > 5)) {
+      let computedStatus = t.status as OrganizationRosterItem['status'];
+      if (t.status === 'active' && ((stats.errorRatePct ?? 0) > 5.0 || stats.attentionCount > 5)) {
         computedStatus = 'degraded';
       }
 
+      const activeElevation = await this.tenantRepo.getActiveElevationSession(t.id);
       items.push({
         id: t.id,
         name: t.name,
@@ -378,13 +366,15 @@ export class AdminService {
         planTier: t.plan_tier,
         channelPlan: t.channel_plan,
         brainSupplyMode: (t.brain_supply_mode as any) || 'byo',
-        agentCount,
-        executions24h,
-        errorRatePct,
-        spendInr,
+        agentCount: stats.agentCount,
+        userCount: stats.userCount,
+        executions24h: stats.runs24h,
+        errorRatePct: stats.errorRatePct,
+        spendInr: stats.spendInrMonth,
         quotaBudgetInr,
         spendRatioPct,
-        attentionCount,
+        attentionCount: stats.attentionCount,
+        lastActivityAt: stats.lastActivityAt,
         activeElevation: activeElevation
           ? {
               operatorId: activeElevation.operator_id,
@@ -398,20 +388,121 @@ export class AdminService {
       });
     }
 
-    // Sort: worst first (§17.1: Degraded (0) -> Attention / Degraded -> Suspended (1) -> Live (2))
-    const statusPriority: Record<string, number> = {
-      degraded: 0,
-      suspended: 1,
-      active: 2,
-      disabled: 3,
-    };
-
+    // Sort: worst first (§17.1): degraded -> suspended -> live -> deleted (disabled)
+    const statusPriority: Record<string, number> = { degraded: 0, suspended: 1, active: 2, disabled: 3 };
     return items.sort((a, b) => {
       const pA = statusPriority[a.status] ?? 2;
       const pB = statusPriority[b.status] ?? 2;
       if (pA !== pB) return pA - pB;
       return b.attentionCount - a.attentionCount;
     });
+  }
+
+  /**
+   * Measured per-tenant activity. Every figure is a count/sum over the tenant's own rows;
+   * errorRatePct is null when there were no runs (no fabricated baseline, S53).
+   */
+  private async tenantStats(tenantId: string) {
+    const client = db.getClient();
+    const now = new Date();
+    const since24h = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+    const num = async (sql: string, params: unknown[]) =>
+      Number((await client.queryOne<{ n: number | string | null }>(sql, params))?.n ?? 0);
+
+    const runs24h = await num('SELECT count(*) AS n FROM graph_runs WHERE tenant_id = ? AND created_at >= ?;', [tenantId, since24h]);
+    const failed24h = await num(
+      "SELECT count(*) AS n FROM graph_runs WHERE tenant_id = ? AND created_at >= ? AND status = 'failed';",
+      [tenantId, since24h]
+    );
+    const spendUsdMonth = await num(
+      'SELECT coalesce(sum(total_cost_usd), 0) AS n FROM cost_attribution_records WHERE tenant_id = ? AND created_at >= ?;',
+      [tenantId, monthStart]
+    );
+    const last = await client.queryOne<{ at: string | null }>(
+      'SELECT max(created_at) AS at FROM audit_logs WHERE tenant_id = ?;',
+      [tenantId]
+    );
+
+    return {
+      agentCount: await num('SELECT count(*) AS n FROM agents WHERE tenant_id = ?;', [tenantId]),
+      userCount: await num('SELECT count(*) AS n FROM users WHERE tenant_id = ?;', [tenantId]),
+      attentionCount: await num(
+        "SELECT count(*) AS n FROM attention_items WHERE tenant_id = ? AND status = 'pending';",
+        [tenantId]
+      ),
+      runs24h,
+      failed24h,
+      errorRatePct: runs24h > 0 ? Math.round((failed24h / runs24h) * 1000) / 10 : null,
+      spendUsdMonth,
+      spendInrMonth: Math.round(spendUsdMonth * USD_TO_INR_RATE * 100) / 100,
+      lastActivityAt: last?.at ?? null,
+    };
+  }
+
+  /**
+   * Owner-console drill-down for one client: profile, users (no credentials), measured stats,
+   * recent runs, and the tenant's own audit trail — i.e. "what is this client doing".
+   */
+  public async getTenantActivity(tenantId: string, limit = 50) {
+    const tenant = await this.tenantRepo.findById(tenantId);
+    if (!tenant || isPlatformTenantSlug(tenant.slug)) {
+      throw new NotFoundError(`Tenant '${tenantId}' not found.`);
+    }
+    const client = db.getClient();
+    const cap = Math.min(Math.max(Number.isFinite(limit) ? limit : 50, 1), 200);
+
+    const users = await client.query<Record<string, unknown>>(
+      `SELECT u.id, u.email, u.full_name AS "fullName", u.status, u.created_at AS "createdAt",
+              (SELECT max(a.created_at) FROM audit_logs a
+                 WHERE a.tenant_id = u.tenant_id AND a.user_id = u.id AND a.action = 'user.login') AS "lastLoginAt"
+         FROM users u WHERE u.tenant_id = ? ORDER BY u.created_at ASC;`,
+      [tenantId]
+    );
+    for (const u of users) {
+      const roles = await client.query<{ name: string }>(
+        'SELECT r.name FROM roles r INNER JOIN user_roles ur ON ur.role_id = r.id WHERE ur.user_id = ? AND ur.tenant_id = ?;',
+        [u.id, tenantId]
+      );
+      u.roles = roles.map((r) => r.name);
+    }
+
+    const recentRuns = await client.query(
+      `SELECT id, graph_id AS "graphId", status, outcome, park_reason AS "parkReason",
+              error_message AS "errorMessage", step_count AS "stepCount", created_at AS "createdAt", updated_at AS "updatedAt"
+         FROM graph_runs WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 20;`,
+      [tenantId]
+    );
+    const auditTrail = await client.query<Record<string, unknown>>(
+      `SELECT id, action, resource_type AS "resourceType", resource_id AS "resourceId", user_id AS "userId",
+              details_json AS "detailsJson", created_at AS "createdAt"
+         FROM audit_logs WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ?;`,
+      [tenantId, cap]
+    );
+
+    return {
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        slug: tenant.slug,
+        status: tenant.status,
+        planTier: tenant.plan_tier,
+        channelPlan: tenant.channel_plan,
+        industry: tenant.industry,
+        region: tenant.region,
+        timezone: tenant.timezone,
+        quotas: parseQuotas(tenant.quotas_json),
+        createdAt: tenant.created_at,
+        updatedAt: tenant.updated_at,
+      },
+      stats: await this.tenantStats(tenantId),
+      users,
+      recentRuns,
+      auditTrail: auditTrail.map(({ detailsJson, ...row }) => ({ ...row, details: safeJson(detailsJson) })),
+      operatorActions: (await this.repo.listOperatorLogs(500))
+        .filter((l: { targetTenantId?: string }) => l.targetTenantId === tenantId)
+        .slice(0, 50),
+    };
   }
 
   public async listAllTenants(): Promise<TenantRecord[]> {
@@ -535,5 +626,22 @@ export class AdminService {
 
   public async listOperatorLogs(limit = 100): Promise<OperatorAuditLog[]> {
     return this.repo.listOperatorLogs(limit);
+  }
+}
+
+function parseQuotas(json: string | null | undefined): { monthly_budget_inr?: number; [k: string]: unknown } {
+  try {
+    return json ? JSON.parse(json) : {};
+  } catch {
+    return {};
+  }
+}
+
+function safeJson(value: unknown): unknown {
+  if (typeof value !== 'string') return value ?? {};
+  try {
+    return JSON.parse(value);
+  } catch {
+    return {};
   }
 }

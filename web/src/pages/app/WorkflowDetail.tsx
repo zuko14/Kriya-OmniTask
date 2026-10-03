@@ -85,7 +85,7 @@ export function WorkflowDetail() {
       setIsDeleting(true);
       setActionError(null);
       await apiFetch(`/api/v1/workflows/${slug}`, { method: 'DELETE' });
-      navigate('/app/workflows');
+      navigate('/admin/workflows');
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : 'Failed to delete workflow');
       setIsDeleting(false);
@@ -96,7 +96,7 @@ export function WorkflowDetail() {
   if (workflowState.status !== 'success') {
     return (
       <div className={styles.container}>
-        <Link to="/app/workflows" className={styles.backLink}>← Back to Workflows</Link>
+        <Link to="/admin/workflows" className={styles.backLink}>← Back to Workflows</Link>
         <AsyncState status={workflowState.status === 'loading' ? 'loading' : 'error'} error={workflowState.error} />
       </div>
     );
@@ -152,7 +152,7 @@ export function WorkflowDetail() {
 
   return (
     <div className={styles.container}>
-      <Link to="/app/workflows" className={styles.backLink}>← Back to Workflows</Link>
+      <Link to="/admin/workflows" className={styles.backLink}>← Back to Workflows</Link>
 
       {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
       {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}

@@ -31,3 +31,9 @@ services:
         value: ap-south-1
       - key: OPENROUTER_API_KEY
         sync: false
+      # /owner console login. Set both in the Render dashboard (password >= 12 chars).
+      # Changing the password and redeploying resets it (break-glass recovery).
+      - key: PLATFORM_OWNER_EMAIL
+        sync: false
+      - key: PLATFORM_OWNER_PASSWORD
+        sync: false

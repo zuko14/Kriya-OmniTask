@@ -39,7 +39,11 @@ export type AnnouncementSeverity = z.infer<typeof AnnouncementSeveritySchema>;
 export const ProvisionTenantRequestSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Business name is required'),
-  slug: z.string().min(1, 'Unique slug is required'),
+  slug: z
+    .string()
+    .min(2, 'Workspace slug must be at least 2 characters')
+    .max(48)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase letters, numbers and single hyphens'),
   industry: z.string().default('general'),
   region: z.string().default('ap-south-1'),
   languages: z.array(z.string()).default(['en', 'hi']),
@@ -50,7 +54,8 @@ export const ProvisionTenantRequestSchema = z.object({
   brainSupplyMode: z.enum(['byo', 'managed']).default('byo'),
   adminEmail: z.string().email(),
   adminFullName: z.string().optional(),
-  adminPassword: z.string().optional(),
+  /** Omit to have the server generate one (returned once in the response). */
+  adminPassword: z.string().min(12, 'Admin password must be at least 12 characters').optional(),
   quotas: z
     .object({
       max_concurrent_tasks: z.number().int().positive().default(10),
@@ -123,12 +128,16 @@ export interface OrganizationRosterItem {
   channelPlan: 'whatsapp_only' | 'voice_only' | 'combined';
   brainSupplyMode: 'byo' | 'managed';
   agentCount: number;
+  userCount: number;
   executions24h: number;
-  errorRatePct: number;
+  /** null when the tenant had no runs in the window — unmeasured, not 0%. */
+  errorRatePct: number | null;
+  /** Month-to-date attributed model/tool spend, converted at USD_TO_INR_RATE. */
   spendInr: number;
   quotaBudgetInr: number;
   spendRatioPct: number;
   attentionCount: number;
+  lastActivityAt: string | null;
   activeElevation?: {
     operatorId: string;
     operatorName?: string;

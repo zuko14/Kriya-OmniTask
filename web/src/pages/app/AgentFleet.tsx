@@ -136,7 +136,7 @@ export function AgentFleet() {
       header: 'Agent Name',
       render: (a) => (
         <div>
-          <Link to={`/app/agents/${a.id}`} style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
+          <Link to={`/admin/agents/${a.id}`} style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
             {a.name}
           </Link>
           <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{a.description}</div>
@@ -217,7 +217,7 @@ export function AgentFleet() {
               Resume
             </button>
           )}
-          <Link to={`/app/agents/${a.id}`} className="btn btn-ghost btn-sm">
+          <Link to={`/admin/agents/${a.id}`} className="btn btn-ghost btn-sm">
             Details →
           </Link>
         </div>

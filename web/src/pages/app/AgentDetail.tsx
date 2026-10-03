@@ -78,7 +78,7 @@ export function AgentDetail() {
       setIsDeleting(true);
       setActionError(null);
       await apiFetch(`/api/v1/agents/${id}`, { method: 'DELETE' });
-      navigate('/app/agents');
+      navigate('/admin/agents');
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : 'Failed to delete agent');
       setIsDeleting(false);
@@ -89,7 +89,7 @@ export function AgentDetail() {
   if (agentState.status !== 'success') {
     return (
       <div className={styles.container}>
-        <Link to="/app/agents" className={styles.backLink}>← Back to Fleet Directory</Link>
+        <Link to="/admin/agents" className={styles.backLink}>← Back to Fleet Directory</Link>
         <AsyncState status={agentState.status === 'loading' ? 'loading' : 'error'} error={agentState.error} />
       </div>
     );
@@ -154,7 +154,7 @@ export function AgentDetail() {
 
   return (
     <div className={styles.container}>
-      <Link to="/app/agents" className={styles.backLink}>← Back to Fleet Directory</Link>
+      <Link to="/admin/agents" className={styles.backLink}>← Back to Fleet Directory</Link>
 
       {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
       {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}

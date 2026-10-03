@@ -1,31 +1,30 @@
-import { Navigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 import type { ReactNode } from 'react';
 import { useAuth } from '../lib/authContext';
 
 /**
- * Mirrors which roles hold `system:admin` in src/security/rbac/rbac.ts (owner, super_admin,
- * admin, system). This is navigation convenience only, not authorization — every /platform/*
- * page still hits the real API and renders a live 403 if the backend disagrees.
+ * Navigation convenience only, not authorization — every page still hits the real API, which
+ * enforces tenant scope and `system:admin` server-side.
+ *  - plane="admin": client admin portal. Signed-out → /admin login; platform operators → /owner.
+ *  - plane="owner": platform owner console. Anyone who isn't a platform operator → /owner login.
  */
-const PLATFORM_ROLES = ['owner', 'super_admin', 'admin', 'system'];
-
-export function RouteGuard({ children, requirePlatformRole = false }: { children: ReactNode; requirePlatformRole?: boolean }) {
+export function RouteGuard({ children, plane }: { children: ReactNode; plane: 'admin' | 'owner' }) {
   const { auth, status } = useAuth();
+  const location = useLocation();
 
   if (status === 'checking') {
     return <div style={{ padding: 'var(--space-5)', color: 'var(--text2)' }}>Loading session…</div>;
   }
 
   if (status === 'unauthenticated' || !auth) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={`/${plane}`} replace state={{ from: location.pathname }} />;
   }
 
-  if (requirePlatformRole && !auth.user.roles.some((r) => PLATFORM_ROLES.includes(r))) {
-    return (
-      <div style={{ padding: 'var(--space-5)', color: 'var(--amber)' }}>
-        Access denied — you don't have permission to view this.
-      </div>
-    );
+  if (plane === 'owner' && !auth.isPlatformOperator) {
+    return <Navigate to="/owner" replace />;
+  }
+  if (plane === 'admin' && auth.isPlatformOperator) {
+    return <Navigate to="/owner/overview" replace />;
   }
 
   return <>{children}</>;

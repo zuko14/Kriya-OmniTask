@@ -79,7 +79,7 @@ export function CustomerList() {
       header: 'Customer',
       render: (c) => (
         <div>
-          <Link to={`/app/customers/${c.id}`} style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
+          <Link to={`/admin/customers/${c.id}`} style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
             {c.full_name || c.name || c.id}
           </Link>
           <div style={{ fontSize: '11px', color: 'var(--text2)', fontFamily: 'var(--font-mono)' }}>
@@ -142,7 +142,7 @@ export function CustomerList() {
       header: 'Actions',
       width: '100px',
       render: (c) => (
-        <Link to={`/app/customers/${c.id}`} className="btn btn-ghost btn-sm">
+        <Link to={`/admin/customers/${c.id}`} className="btn btn-ghost btn-sm">
           View 360 →
         </Link>
       ),

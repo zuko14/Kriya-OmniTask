@@ -25,10 +25,10 @@ const ATTN = { pendingCount: 4, claimedCount: 2, slaBreachCount: 1 };
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/app/overview']}>
+    <MemoryRouter initialEntries={['/admin/overview']}>
       <Routes>
-        <Route path="/app/overview" element={<ExecutiveOverview />} />
-        <Route path="/app/attention" element={<div>attention page</div>} />
+        <Route path="/admin/overview" element={<ExecutiveOverview />} />
+        <Route path="/admin/attention" element={<div>attention page</div>} />
       </Routes>
     </MemoryRouter>
   );

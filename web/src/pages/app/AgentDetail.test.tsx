@@ -60,9 +60,9 @@ describe('AgentDetail Page', () => {
     );
 
     render(
-      <MemoryRouter initialEntries={['/app/agents/agent_support_triage']}>
+      <MemoryRouter initialEntries={['/admin/agents/agent_support_triage']}>
         <Routes>
-          <Route path="/app/agents/:id" element={<AgentDetail />} />
+          <Route path="/admin/agents/:id" element={<AgentDetail />} />
         </Routes>
       </MemoryRouter>
     );
@@ -97,9 +97,9 @@ describe('AgentDetail Page', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     render(
-      <MemoryRouter initialEntries={['/app/agents/agent_support_triage']}>
+      <MemoryRouter initialEntries={['/admin/agents/agent_support_triage']}>
         <Routes>
-          <Route path="/app/agents/:id" element={<AgentDetail />} />
+          <Route path="/admin/agents/:id" element={<AgentDetail />} />
         </Routes>
       </MemoryRouter>
     );

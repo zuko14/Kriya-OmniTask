@@ -15,3 +15,5 @@ tmp
 .DS_Store
 .vscode
 .idea
+web/.env
+web/.env.*

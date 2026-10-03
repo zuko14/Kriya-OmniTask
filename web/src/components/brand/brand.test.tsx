@@ -118,7 +118,21 @@ describe('Login screen (DS §6.1, §1.1)', () => {
     const b = getBranding();
     expect(container.querySelector('svg[viewBox="0 0 32 32"]')).toBeInTheDocument();
     expect(screen.getByText(b.companyName)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: `Sign in to ${b.companyName}` })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Admin Portal' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Workspace')).toBeInTheDocument();
+  });
+
+  it('owner variant asks only for email and password (platform workspace is implied server-side)', () => {
+    render(
+      <AuthProvider>
+        <MemoryRouter>
+          <Login variant="owner" />
+        </MemoryRouter>
+      </AuthProvider>
+    );
+    expect(screen.getByRole('heading', { name: 'Owner Console' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Workspace')).toBeNull();
+    expect(screen.getByLabelText('Email')).toBeInTheDocument();
   });
 
   it('password reveal toggles the field type and its own pressed state', () => {

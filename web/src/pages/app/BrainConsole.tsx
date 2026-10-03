@@ -471,7 +471,7 @@ export function BrainConsole() {
         {!coverage?.allCovered && (
           <span
             className={styles.coverageLink}
-            onClick={() => navigate('/app/agents')}
+            onClick={() => navigate('/admin/agents')}
             data-testid="see-workforce-link"
           >
             → see Workforce

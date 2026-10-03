@@ -149,3 +149,11 @@
   20%, 60% { transform: translateX(-4px); }
   40%, 80% { transform: translateX(4px); }
 }
+
+.subtitle {
+  margin: calc(-1 * var(--space-2)) 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--text2);
+}

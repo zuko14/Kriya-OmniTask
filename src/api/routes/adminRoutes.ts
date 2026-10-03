@@ -98,6 +98,18 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     }
   );
 
+  // 6b. Client drill-down: profile, users, measured stats, recent runs, audit trail
+  fastify.get(
+    '/api/v1/admin/tenants/:id/activity',
+    { preHandler: [authenticate, requirePermission('system:admin')] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const { limit } = request.query as { limit?: string };
+      const activity = await service.getTenantActivity(id, limit ? parseInt(limit, 10) : 50);
+      return reply.status(200).send(activity);
+    }
+  );
+
   // 7. List All Tenants (raw)
   fastify.get(
     '/api/v1/admin/tenants',

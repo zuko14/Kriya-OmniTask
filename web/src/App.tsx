@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router';
 import { AuthProvider } from './lib/authContext';
 import { RouteGuard } from './shell/RouteGuard';
 import { AppShell } from './shell/AppShell';
@@ -30,6 +30,7 @@ const CostPerOutcome = lazy(() => import('./pages/app/CostPerOutcome').then((m) 
 const BrainConsole = lazy(() => import('./pages/app/BrainConsole').then((m) => ({ default: m.BrainConsole })));
 
 const PlatformOverview = lazy(() => import('./pages/platform/PlatformOverview').then((m) => ({ default: m.PlatformOverview })));
+const PlatformTenantDetail = lazy(() => import('./pages/platform/PlatformTenantDetail').then((m) => ({ default: m.PlatformTenantDetail })));
 const PlatformTenants = lazy(() => import('./pages/platform/PlatformTenants').then((m) => ({ default: m.PlatformTenants })));
 const PlatformFleet = lazy(() => import('./pages/platform/PlatformFleet').then((m) => ({ default: m.PlatformFleet })));
 const PlatformModelHealth = lazy(() => import('./pages/platform/PlatformModelHealth').then((m) => ({ default: m.PlatformModelHealth })));
@@ -38,6 +39,12 @@ const PlatformSkills = lazy(() => import('./pages/platform/PlatformSkills').then
 const PlatformSecurity = lazy(() => import('./pages/platform/PlatformSecurity').then((m) => ({ default: m.PlatformSecurity })));
 const PlatformBilling = lazy(() => import('./pages/platform/PlatformBilling').then((m) => ({ default: m.PlatformBilling })));
 const PlatformAudit = lazy(() => import('./pages/platform/PlatformAudit').then((m) => ({ default: m.PlatformAudit })));
+
+/** Keeps old bookmarks working: /app/x → /admin/x, /platform/x → /owner/x. */
+function RePrefix({ from, to }: { from: string; to: string }) {
+  const { pathname, search } = useLocation();
+  return <Navigate to={`${to}${pathname.slice(from.length)}${search}`} replace />;
+}
 
 function PageSuspense({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<AsyncState status="loading" />}>{children}</Suspense>;
@@ -48,14 +55,11 @@ export function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route
-            path="/login"
-            element={
-              <PageSuspense>
-                <Login />
-              </PageSuspense>
-            }
-          />
+          {/* Legacy URLs → the two portals */}
+          <Route path="/" element={<Navigate to="/admin" replace />} />
+          <Route path="/login" element={<Navigate to="/admin" replace />} />
+          <Route path="/app/*" element={<RePrefix from="/app" to="/admin" />} />
+          <Route path="/platform/*" element={<RePrefix from="/platform" to="/owner" />} />
 
           <Route
             path="/styleguide"
@@ -66,10 +70,12 @@ export function App() {
             }
           />
 
+          {/* Client admin portal: /admin = sign-in, /admin/* = the client's panel */}
+          <Route path="/admin">
+            <Route index element={<PageSuspense><Login variant="admin" /></PageSuspense>} />
           <Route
-            path="/app"
             element={
-              <RouteGuard>
+              <RouteGuard plane="admin">
                 <AppShell plane="client" />
               </RouteGuard>
             }
@@ -95,17 +101,21 @@ export function App() {
             <Route path="verification" element={<PageSuspense><VerificationQueue /></PageSuspense>} />
             <Route path="settings" element={<PageSuspense><TenantSettings /></PageSuspense>} />
           </Route>
+          </Route>
 
+          {/* Platform owner console: /owner = sign-in, /owner/* = create, monitor, suspend, delete clients */}
+          <Route path="/owner">
+            <Route index element={<PageSuspense><Login variant="owner" /></PageSuspense>} />
           <Route
-            path="/platform"
             element={
-              <RouteGuard requirePlatformRole>
+              <RouteGuard plane="owner">
                 <AppShell plane="platform" />
               </RouteGuard>
             }
           >
             <Route path="overview" element={<PageSuspense><PlatformOverview /></PageSuspense>} />
             <Route path="tenants" element={<PageSuspense><PlatformTenants /></PageSuspense>} />
+            <Route path="tenants/:id" element={<PageSuspense><PlatformTenantDetail /></PageSuspense>} />
             <Route path="fleet" element={<PageSuspense><PlatformFleet /></PageSuspense>} />
             <Route path="models" element={<PageSuspense><PlatformModelHealth /></PageSuspense>} />
             <Route path="models/registry" element={<PageSuspense><PlatformModelRegistry /></PageSuspense>} />
@@ -114,8 +124,9 @@ export function App() {
             <Route path="billing" element={<PageSuspense><PlatformBilling /></PageSuspense>} />
             <Route path="audit" element={<PageSuspense><PlatformAudit /></PageSuspense>} />
           </Route>
+          </Route>
 
-          <Route path="*" element={<Navigate to="/app/overview" replace />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -138,7 +138,7 @@ export function WorkflowList() {
       header: 'Workflow Name',
       render: (w) => (
         <div>
-          <Link to={`/app/workflows/${w.slug}`} style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
+          <Link to={`/admin/workflows/${w.slug}`} style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
             {w.name}
           </Link>
           <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{w.description}</div>
@@ -185,7 +185,7 @@ export function WorkflowList() {
           <button className="btn btn-ghost btn-sm" onClick={() => handleTrigger(w)}>
             Trigger
           </button>
-          <Link to={`/app/workflows/${w.slug}`} className="btn btn-ghost btn-sm">
+          <Link to={`/admin/workflows/${w.slug}`} className="btn btn-ghost btn-sm">
             Details →
           </Link>
         </div>

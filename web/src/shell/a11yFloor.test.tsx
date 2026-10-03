@@ -12,11 +12,11 @@ import { App } from '../App';
 const css = (p: string) => readFileSync(resolve(__dirname, p), 'utf8');
 
 const ROUTES = [
-  '/app/overview', '/app/attention', '/app/customers', '/app/conversations', '/app/agents', '/app/workflows',
-  '/app/analytics', '/app/bi', '/app/knowledge', '/app/billing', '/app/brain', '/app/settings',
-  '/app/traces', '/app/proof', '/app/mandates', '/app/cost', '/app/verification',
-  '/platform/overview', '/platform/tenants', '/platform/fleet', '/platform/models', '/platform/models/registry',
-  '/platform/skills', '/platform/security',
+  '/admin/overview', '/admin/attention', '/admin/customers', '/admin/conversations', '/admin/agents', '/admin/workflows',
+  '/admin/analytics', '/admin/bi', '/admin/knowledge', '/admin/billing', '/admin/brain', '/admin/settings',
+  '/admin/traces', '/admin/proof', '/admin/mandates', '/admin/cost', '/admin/verification',
+  '/owner/overview', '/owner/tenants', '/owner/fleet', '/owner/models', '/owner/models/registry',
+  '/owner/skills', '/owner/security',
 ];
 const ROLES = ['button', 'link', 'textbox', 'combobox', 'checkbox', 'searchbox'] as const;
 
@@ -25,7 +25,7 @@ describe('Accessibility floor across the console (WP-7.6)', () => {
     sessionStorage.setItem('kriya_access_token', 'a11y');
     vi.stubGlobal('fetch', vi.fn((url: string) => {
       const body = String(url).includes('/auth/me')
-        ? { user: { id: 'u1', email: 'o@acme.test', fullName: 'Asha Owner', roles: ['owner'] }, tenant: { id: 't1', name: 'Acme', slug: 'acme', planTier: 'enterprise', channelPlan: 'combined' } }
+        ? { user: { id: 'u1', email: 'o@acme.test', fullName: 'Asha Owner', roles: ['owner'] }, tenant: { id: 't1', name: 'Acme', slug: 'acme', planTier: 'enterprise', channelPlan: 'combined' }, isPlatformOperator: window.location.pathname.startsWith('/owner') }
         : {};
       return Promise.resolve({ ok: true, status: 200, json: async () => body });
     }));
@@ -52,7 +52,7 @@ describe('Accessibility floor across the console (WP-7.6)', () => {
   });
 
   it('the skip link is the first focusable element and targets a focusable main', async () => {
-    window.history.pushState({}, '', '/app/overview');
+    window.history.pushState({}, '', '/admin/overview');
     const { container } = render(<App />);
     const main = await screen.findByRole('main');
     const first = container.querySelector('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])');

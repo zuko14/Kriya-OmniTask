@@ -90,6 +90,10 @@ describe('PlatformTenants Page (§17.1 Organizations Roster)', () => {
         return Promise.resolve(
           jsonResponse(
             {
+              id: 'tenant_anand_789',
+              slug: 'anand-textiles',
+              adminEmail: 'admin@anand.test',
+              generatedAdminPassword: '0123456789abcdef01234567',
               tenant: {
                 id: 'tenant_anand_789',
                 name: 'Anand Textiles',
@@ -161,7 +165,14 @@ describe('PlatformTenants Page (§17.1 Organizations Roster)', () => {
       );
     });
 
-    expect(await screen.findByText(/Tenant 'Anand Textiles' provisioned and audit entry committed/i)).toBeInTheDocument();
+    // One-time credential hand-off: login URL, workspace, email and the generated password.
+    const creds = await screen.findByTestId('credentials-block');
+    expect(creds.textContent).toContain('/admin');
+    expect(creds.textContent).toContain('Workspace: anand-textiles');
+    expect(creds.textContent).toContain('Email: admin@anand.test');
+    expect(creds.textContent).toContain('Password: 0123456789abcdef01234567');
+    const body = JSON.parse(String(fetchMock.mock.calls.find((c) => String(c[0]).includes('/provision'))![1]!.body));
+    expect(body.adminPassword).toBeUndefined(); // no hardcoded default password is ever sent
   });
 
   it('allows temporary operator elevation into tenant (§17.6)', async () => {
@@ -205,5 +216,34 @@ describe('PlatformTenants Page (§17.1 Organizations Roster)', () => {
     });
 
     expect(await screen.findByText(/Successfully elevated into tenant 'Kaveri Motors'/i)).toBeInTheDocument();
+  });
+
+  it('deletes a client only after typing its workspace slug and a reason, then sends status=disabled', async () => {
+    const fetchMock = vi.fn((url: string, _opts?: RequestInit) => {
+      if (url.includes('/status')) return Promise.resolve(jsonResponse({ message: 'ok' }));
+      return Promise.resolve(jsonResponse(mockRoster));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    render(
+      <BrowserRouter>
+        <PlatformTenants />
+      </BrowserRouter>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete client Meridian Retail' }));
+    const confirm = screen.getByRole('button', { name: 'Delete client' });
+    expect(confirm).toBeDisabled();
+    fireEvent.change(screen.getByLabelText(/Reason/), { target: { value: 'Contract ended' } });
+    fireEvent.change(screen.getByLabelText(/to confirm/), { target: { value: 'meridian-wrong' } });
+    expect(confirm).toBeDisabled();
+    fireEvent.change(screen.getByLabelText(/to confirm/), { target: { value: 'meridian-retail' } });
+    expect(confirm).toBeEnabled();
+    fireEvent.click(confirm);
+
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find((c) => String(c[0]).includes('/tenants/tenant_meridian_123/status'));
+      expect(call).toBeDefined();
+      expect(JSON.parse(String(call![1]!.body))).toMatchObject({ status: 'disabled' });
+    });
   });
 });

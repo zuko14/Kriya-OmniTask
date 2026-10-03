@@ -58,6 +58,7 @@ import { mcpRoutes } from './routes/mcpRoutes.js';
 import { outcomeRoutes } from './routes/outcomeRoutes.js';
 import { autonomyRoutes } from './routes/autonomyRoutes.js';
 import { dpdpRoutes } from './routes/dpdpRoutes.js';
+import { registerWebUi } from './routes/webUiRoutes.js';
 
 export async function buildServer(): Promise<FastifyInstance> {
   const fastify = Fastify({
@@ -234,6 +235,9 @@ export async function buildServer(): Promise<FastifyInstance> {
   await fastify.register(outcomeRoutes);
   await fastify.register(autonomyRoutes);
   await fastify.register(dpdpRoutes);
+
+  // 6. Web console (/admin, /owner) — same origin as the API; no-op when web/dist isn't built.
+  registerWebUi(fastify);
 
   return fastify;
 }

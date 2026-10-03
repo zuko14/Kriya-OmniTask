@@ -13,23 +13,23 @@ export interface CommandItem {
 }
 
 const STATIC_NAV_COMMANDS: CommandItem[] = [
-  { id: 'nav_overview', title: 'Executive Overview', category: 'Navigation', subtitle: 'Live telemetry & workforce health', path: '/app/overview' },
-  { id: 'nav_attention', title: 'Human Attention Center', category: 'Navigation', subtitle: 'Escalations, claims & intervention', path: '/app/attention' },
-  { id: 'nav_customers', title: 'Customer 360', category: 'Navigation', subtitle: 'Customer profiles & audit', path: '/app/customers' },
-  { id: 'nav_conversations', title: 'Conversations & Omnichannel', category: 'Navigation', subtitle: 'Live customer chat & messaging', path: '/app/conversations' },
-  { id: 'nav_agents', title: 'Agent Command Center', category: 'Navigation', subtitle: 'Workforce catalog & dispatch', path: '/app/agents' },
-  { id: 'nav_workflows', title: 'Workflows & Orchestration', category: 'Navigation', subtitle: 'Pipeline execution & DAGs', path: '/app/workflows' },
-  { id: 'nav_bi', title: 'Business Intelligence', category: 'Navigation', subtitle: 'ROI, cost reduction & revenue attribution', path: '/app/bi' },
-  { id: 'nav_knowledge', title: 'Knowledge Center & RAG', category: 'Navigation', subtitle: 'Enterprise documents & grounding', path: '/app/knowledge' },
-  { id: 'nav_billing', title: 'Billing & Subscriptions', category: 'Navigation', subtitle: 'Plan tiers & invoices', path: '/app/billing' },
-  { id: 'nav_settings', title: 'Tenant Settings', category: 'Navigation', subtitle: 'Team management & limits', path: '/app/settings' },
-  { id: 'nav_plat_overview', title: 'Platform Control Plane', category: 'Navigation', subtitle: 'Cross-tenant diagnostics', path: '/platform/overview' },
-  { id: 'nav_plat_tenants', title: 'Tenant Organizations Registry', category: 'Navigation', subtitle: 'Provisioning & status controls', path: '/platform/tenants' },
-  { id: 'nav_plat_fleet', title: 'Agent Fleet Diagnostics', category: 'Navigation', subtitle: 'Node heartbeats & cluster capacity', path: '/platform/fleet' },
-  { id: 'nav_plat_models', title: 'Model Provider Resilience', category: 'Navigation', subtitle: 'Model registry & fallback routing', path: '/platform/models' },
-  { id: 'nav_plat_security', title: 'Platform Security Center', category: 'Navigation', subtitle: 'Zero-trust scan & hash ledger', path: '/platform/security' },
-  { id: 'nav_plat_billing', title: 'Platform Revenue & Monetization', category: 'Navigation', subtitle: 'Cross-tenant MRR & billing', path: '/platform/billing' },
-  { id: 'nav_plat_audit', title: 'Platform Operator Audit Ledger', category: 'Navigation', subtitle: 'Operator activity log stream', path: '/platform/audit' },
+  { id: 'nav_overview', title: 'Executive Overview', category: 'Navigation', subtitle: 'Live telemetry & workforce health', path: '/admin/overview' },
+  { id: 'nav_attention', title: 'Human Attention Center', category: 'Navigation', subtitle: 'Escalations, claims & intervention', path: '/admin/attention' },
+  { id: 'nav_customers', title: 'Customer 360', category: 'Navigation', subtitle: 'Customer profiles & audit', path: '/admin/customers' },
+  { id: 'nav_conversations', title: 'Conversations & Omnichannel', category: 'Navigation', subtitle: 'Live customer chat & messaging', path: '/admin/conversations' },
+  { id: 'nav_agents', title: 'Agent Command Center', category: 'Navigation', subtitle: 'Workforce catalog & dispatch', path: '/admin/agents' },
+  { id: 'nav_workflows', title: 'Workflows & Orchestration', category: 'Navigation', subtitle: 'Pipeline execution & DAGs', path: '/admin/workflows' },
+  { id: 'nav_bi', title: 'Business Intelligence', category: 'Navigation', subtitle: 'ROI, cost reduction & revenue attribution', path: '/admin/bi' },
+  { id: 'nav_knowledge', title: 'Knowledge Center & RAG', category: 'Navigation', subtitle: 'Enterprise documents & grounding', path: '/admin/knowledge' },
+  { id: 'nav_billing', title: 'Billing & Subscriptions', category: 'Navigation', subtitle: 'Plan tiers & invoices', path: '/admin/billing' },
+  { id: 'nav_settings', title: 'Tenant Settings', category: 'Navigation', subtitle: 'Team management & limits', path: '/admin/settings' },
+  { id: 'nav_plat_overview', title: 'Platform Control Plane', category: 'Navigation', subtitle: 'Cross-tenant diagnostics', path: '/owner/overview' },
+  { id: 'nav_plat_tenants', title: 'Tenant Organizations Registry', category: 'Navigation', subtitle: 'Provisioning & status controls', path: '/owner/tenants' },
+  { id: 'nav_plat_fleet', title: 'Agent Fleet Diagnostics', category: 'Navigation', subtitle: 'Node heartbeats & cluster capacity', path: '/owner/fleet' },
+  { id: 'nav_plat_models', title: 'Model Provider Resilience', category: 'Navigation', subtitle: 'Model registry & fallback routing', path: '/owner/models' },
+  { id: 'nav_plat_security', title: 'Platform Security Center', category: 'Navigation', subtitle: 'Zero-trust scan & hash ledger', path: '/owner/security' },
+  { id: 'nav_plat_billing', title: 'Platform Revenue & Monetization', category: 'Navigation', subtitle: 'Cross-tenant MRR & billing', path: '/owner/billing' },
+  { id: 'nav_plat_audit', title: 'Platform Operator Audit Ledger', category: 'Navigation', subtitle: 'Operator activity log stream', path: '/owner/audit' },
 ];
 
 export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -87,7 +87,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
                 title: c.name || c.id,
                 category: 'Customers',
                 subtitle: c.email || c.id,
-                path: `/app/customers/${c.id}`,
+                path: `/admin/customers/${c.id}`,
               });
             }
           });
@@ -106,7 +106,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
                 title: a.name,
                 category: 'Agents',
                 subtitle: a.role,
-                path: `/app/agents/${a.id}`,
+                path: `/admin/agents/${a.id}`,
               });
             }
           });
@@ -125,7 +125,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
                 title: w.name,
                 category: 'Workflows',
                 subtitle: `/${w.slug}`,
-                path: `/app/workflows/${w.slug}`,
+                path: `/admin/workflows/${w.slug}`,
               });
             }
           });

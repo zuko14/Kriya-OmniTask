@@ -73,9 +73,9 @@ describe('WorkflowDetail Page', () => {
     );
 
     render(
-      <MemoryRouter initialEntries={['/app/workflows/kyc-verification-pipeline']}>
+      <MemoryRouter initialEntries={['/admin/workflows/kyc-verification-pipeline']}>
         <Routes>
-          <Route path="/app/workflows/:slug" element={<WorkflowDetail />} />
+          <Route path="/admin/workflows/:slug" element={<WorkflowDetail />} />
         </Routes>
       </MemoryRouter>
     );
@@ -103,9 +103,9 @@ describe('WorkflowDetail Page', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     render(
-      <MemoryRouter initialEntries={['/app/workflows/kyc-verification-pipeline']}>
+      <MemoryRouter initialEntries={['/admin/workflows/kyc-verification-pipeline']}>
         <Routes>
-          <Route path="/app/workflows/:slug" element={<WorkflowDetail />} />
+          <Route path="/admin/workflows/:slug" element={<WorkflowDetail />} />
         </Routes>
       </MemoryRouter>
     );

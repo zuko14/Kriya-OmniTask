@@ -9,6 +9,7 @@ import { assertRuntimeReadiness, getAppMode } from './core/config/runtimeMode.js
 import { logger } from './core/logger/logger.js';
 import { db } from './storage/db.js';
 import { SchemaMigrator } from './storage/migrations/migrator.js';
+import { ensurePlatformOwner } from './security/auth/platformOperator.js';
 import { buildServer } from './api/server.js';
 
 export * from './core/config/config.js';
@@ -265,6 +266,8 @@ export class KriyaPlatform {
       const applied = await migrator.applyMigrations();
       logger.info(`Schema migrations checked. Applied: ${applied.length} new migrations.`);
 
+      await ensurePlatformOwner();
+
       logger.info('Kriya AI Platform Foundation successfully initialized.');
     } catch (err) {
       logger.fatal('Fatal error during platform bootstrap', err);
@@ -310,7 +313,7 @@ export class KriyaPlatform {
     const listenPort = Number(config.get('PORT') || port);
     await server.listen({ port: listenPort, host: '0.0.0.0' });
     logger.info(`🚀 Kriya AI Autonomous Business Workforce Server running at http://localhost:${listenPort}`);
-    logger.info(`📊 Operator Control Plane UI available at http://localhost:${listenPort}/admin`);
+    logger.info(`Client admin portal: /admin · Platform owner console: /owner`);
   }
 }
 

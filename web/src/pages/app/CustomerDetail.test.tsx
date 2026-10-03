@@ -80,9 +80,9 @@ describe('CustomerDetail Page', () => {
     );
 
     render(
-      <MemoryRouter initialEntries={['/app/customers/cust_abc_123']}>
+      <MemoryRouter initialEntries={['/admin/customers/cust_abc_123']}>
         <Routes>
-          <Route path="/app/customers/:id" element={<CustomerDetail />} />
+          <Route path="/admin/customers/:id" element={<CustomerDetail />} />
         </Routes>
       </MemoryRouter>
     );
@@ -107,9 +107,9 @@ describe('CustomerDetail Page', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     render(
-      <MemoryRouter initialEntries={['/app/customers/cust_abc_123']}>
+      <MemoryRouter initialEntries={['/admin/customers/cust_abc_123']}>
         <Routes>
-          <Route path="/app/customers/:id" element={<CustomerDetail />} />
+          <Route path="/admin/customers/:id" element={<CustomerDetail />} />
         </Routes>
       </MemoryRouter>
     );

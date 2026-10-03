@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { Link } from 'react-router';
 import { apiFetch, ApiError } from '../../lib/apiClient';
 import { useAsync } from '../../lib/useAsync';
 import { AsyncState } from '../../components/AsyncState';
@@ -9,7 +10,7 @@ import {
   SignalState,
   ConfirmDialog,
 } from '../../components/primitives';
-import { ProvisionTenantModal } from './ProvisionTenantModal';
+import { ProvisionTenantModal, type ProvisionedCredentials } from './ProvisionTenantModal';
 import { ElevationModal } from './ElevationModal';
 import { Icon } from '../../components/brand/Icon';
 
@@ -22,8 +23,11 @@ export interface OrganizationRosterItem {
   channelPlan: 'whatsapp_only' | 'voice_only' | 'combined';
   brainSupplyMode: 'byo' | 'managed';
   agentCount: number;
+  userCount: number;
   executions24h: number;
-  errorRatePct: number;
+  /** null = no runs in the window (unmeasured), not 0%. */
+  errorRatePct: number | null;
+  lastActivityAt: string | null;
   spendInr: number;
   quotaBudgetInr: number;
   spendRatioPct: number;
@@ -47,6 +51,8 @@ export function PlatformTenants() {
   const [isProvisionOpen, setIsProvisionOpen] = useState(false);
   const [elevateTenant, setElevateTenant] = useState<{ id: string; name: string } | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<OrganizationRosterItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<OrganizationRosterItem | null>(null);
+  const [credentials, setCredentials] = useState<ProvisionedCredentials | null>(null);
 
   // Filter & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,6 +86,25 @@ export function PlatformTenants() {
     }
   };
 
+  const changeStatus = async (org: OrganizationRosterItem, status: 'active' | 'disabled', reason: string) => {
+    try {
+      setActionError(null);
+      await apiFetch(`/api/v1/admin/tenants/${org.id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status, reason }),
+      });
+      setActionSuccess(
+        status === 'disabled'
+          ? `Client '${org.name}' deleted. Logins and agent execution are blocked; data and audit trail are retained.`
+          : `Client '${org.name}' restored.`
+      );
+      setDeleteTarget(null);
+      setRefreshTrigger((p) => p + 1);
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : 'Failed to update client status.');
+    }
+  };
+
   const handleElevatedSession = (data: { token: string; tenant: any }) => {
     setActionSuccess(`Successfully elevated into tenant '${data.tenant?.name}'. Elevation banner is active.`);
     if (data.token) {
@@ -99,7 +124,9 @@ export function PlatformTenants() {
       statusFilter === 'ALL' ||
       (statusFilter === 'DEGRADED' && org.status === 'degraded') ||
       (statusFilter === 'SUSPENDED' && org.status === 'suspended') ||
-      (statusFilter === 'LIVE' && org.status === 'active');
+      (statusFilter === 'LIVE' && org.status === 'active') ||
+      (statusFilter === 'DELETED' && org.status === 'disabled');
+    if (statusFilter === 'ALL' && org.status === 'disabled') return false; // deleted clients only under DELETED
     return matchesSearch && matchesStatus;
   });
 
@@ -242,7 +269,7 @@ export function PlatformTenants() {
           />
 
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-            {(['ALL', 'DEGRADED', 'LIVE', 'SUSPENDED'] as const).map((filter) => (
+            {(['ALL', 'DEGRADED', 'LIVE', 'SUSPENDED', 'DELETED'] as const).map((filter) => (
               <button
                 key={filter}
                 onClick={() => setStatusFilter(filter)}
@@ -300,7 +327,7 @@ export function PlatformTenants() {
                         ? 'degraded'
                         : org.status === 'active'
                           ? 'live'
-                          : 'disabled';
+                          : 'deleted';
 
                   return (
                     <tr
@@ -312,7 +339,13 @@ export function PlatformTenants() {
                       }}
                     >
                       <td style={{ padding: 'var(--space-2) var(--space-3)' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--text)' }}>{org.name}</div>
+                        <Link
+                          to={`/owner/tenants/${org.id}`}
+                          style={{ fontWeight: 600, color: 'var(--text)', textDecoration: 'none' }}
+                          title="Open client activity"
+                        >
+                          {org.name}
+                        </Link>
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xs)', color: 'var(--text3)' }}>
                           {org.slug}
                         </div>
@@ -330,8 +363,8 @@ export function PlatformTenants() {
                         {org.executions24h.toLocaleString()}
                       </td>
 
-                      <td style={{ padding: 'var(--space-2) var(--space-3)', textAlign: 'right', fontFamily: 'var(--font-mono)', color: org.errorRatePct > 5.0 ? 'var(--red)' : 'var(--text)' }}>
-                        {org.status === 'suspended' ? '—' : `${org.errorRatePct.toFixed(1)}%`}
+                      <td style={{ padding: 'var(--space-2) var(--space-3)', textAlign: 'right', fontFamily: 'var(--font-mono)', color: (org.errorRatePct ?? 0) > 5.0 ? 'var(--red)' : 'var(--text)' }}>
+                        {org.errorRatePct === null || org.status === 'suspended' ? '—' : `${org.errorRatePct.toFixed(1)}%`}
                       </td>
 
                       <td style={{ padding: 'var(--space-2) var(--space-3)', minWidth: '160px' }}>
@@ -379,6 +412,23 @@ export function PlatformTenants() {
 
                       <td style={{ padding: 'var(--space-2) var(--space-3)', textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: 'var(--space-2)' }}>
+                          {org.status === 'disabled' ? (
+                            <button
+                              onClick={() => changeStatus(org, 'active', 'Owner restored deleted client')}
+                              style={{
+                                background: 'none',
+                                border: 'var(--border-width) solid var(--border)',
+                                color: 'var(--green)',
+                                borderRadius: 'var(--radius-sm)',
+                                padding: '2px var(--space-2)',
+                                fontSize: 'var(--text-2xs)',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Restore
+                            </button>
+                          ) : (
+                          <>
                           <button
                             onClick={() => setElevateTenant({ id: org.id, name: org.name })}
                             style={{
@@ -410,6 +460,24 @@ export function PlatformTenants() {
                           >
                             {org.status === 'suspended' ? 'Reactivate' : 'Suspend'}
                           </button>
+
+                          <button
+                            onClick={() => setDeleteTarget(org)}
+                            aria-label={`Delete client ${org.name}`}
+                            style={{
+                              background: 'none',
+                              border: 'var(--border-width) solid var(--red)',
+                              color: 'var(--red)',
+                              borderRadius: 'var(--radius-sm)',
+                              padding: '2px var(--space-2)',
+                              fontSize: 'var(--text-2xs)',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Delete
+                          </button>
+                          </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -422,14 +490,26 @@ export function PlatformTenants() {
       </Panel>
 
       {/* Provisioning Guided Flow Modal */}
-      <ProvisionTenantModal
-        isOpen={isProvisionOpen}
-        onClose={() => setIsProvisionOpen(false)}
-        onSuccess={(tenantName) => {
-          setActionSuccess(`Tenant '${tenantName}' provisioned and audit entry committed.`);
-          setRefreshTrigger((p) => p + 1);
-        }}
-      />
+      {isProvisionOpen && (
+        <ProvisionTenantModal
+          isOpen
+          onClose={() => setIsProvisionOpen(false)}
+          onSuccess={(creds) => {
+            setCredentials(creds);
+            setRefreshTrigger((p) => p + 1);
+          }}
+        />
+      )}
+
+      {credentials && <CredentialsDialog credentials={credentials} onClose={() => setCredentials(null)} />}
+
+      {deleteTarget && (
+        <DeleteClientDialog
+          org={deleteTarget}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={(reason) => changeStatus(deleteTarget, 'disabled', reason)}
+        />
+      )}
 
       {/* Elevation Modal */}
       <ElevationModal
@@ -454,6 +534,146 @@ export function PlatformTenants() {
         onConfirm={handleToggleSuspend}
         onCancel={() => setSuspendTarget(null)}
       />
+    </div>
+  );
+}
+
+const dialogBackdrop: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(4, 10, 17, 0.8)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 1000,
+  padding: 'var(--space-4)',
+};
+const dialogCard: React.CSSProperties = {
+  width: '100%',
+  maxWidth: 520,
+  background: 'var(--surface)',
+  border: 'var(--border-width) solid var(--border2)',
+  borderRadius: 'var(--radius-lg)',
+  padding: 'var(--space-5)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 'var(--space-3)',
+};
+const fieldInput: React.CSSProperties = {
+  width: '100%',
+  background: 'var(--surface3)',
+  border: 'var(--border-width) solid var(--border)',
+  padding: 'var(--space-2)',
+  color: 'var(--text)',
+  borderRadius: 'var(--radius-sm)',
+  fontFamily: 'var(--font-mono)',
+};
+
+/** One-time credential hand-off: the password is not stored in clear and cannot be shown again. */
+export function CredentialsDialog({ credentials, onClose }: { credentials: ProvisionedCredentials; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const loginUrl = `${window.location.origin}/admin`;
+  const text = [
+    `Kriya Omnitask: admin access for ${credentials.tenantName}`,
+    `Login: ${loginUrl}`,
+    `Workspace: ${credentials.workspace}`,
+    `Email: ${credentials.adminEmail}`,
+    `Password: ${credentials.password}`,
+  ].join('\n');
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <div style={dialogBackdrop} role="dialog" aria-modal="true" aria-labelledby="creds-title">
+      <div style={dialogCard}>
+        <div className="eyebrow">Client provisioned</div>
+        <h2 id="creds-title" style={{ margin: 0, fontSize: 'var(--text-xl)' }}>
+          Admin credentials for {credentials.tenantName}
+        </h2>
+        <p style={{ margin: 0, color: 'var(--amber)', fontSize: 'var(--text-sm)' }}>
+          Copy these now and send them to the client securely. The password is shown only once.
+        </p>
+        <pre
+          data-testid="credentials-block"
+          style={{ ...fieldInput, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 'var(--text-sm)' }}
+        >
+          {text}
+        </pre>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
+          <button className="btn" type="button" onClick={copy}>
+            {copied ? 'Copied' : 'Copy credentials'}
+          </button>
+          <button className="btn btn-accent" type="button" onClick={onClose}>
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Delete = soft delete (status 'disabled'): logins and execution stop, data and audit trail stay, restorable. */
+function DeleteClientDialog({
+  org,
+  onCancel,
+  onConfirm,
+}: {
+  org: OrganizationRosterItem;
+  onCancel: () => void;
+  onConfirm: (reason: string) => void;
+}) {
+  const [typed, setTyped] = useState('');
+  const [reason, setReason] = useState('');
+  const ready = typed === org.slug && reason.trim().length >= 3;
+
+  return (
+    <div style={dialogBackdrop} role="dialog" aria-modal="true" aria-labelledby="delete-title">
+      <div style={{ ...dialogCard, borderColor: 'var(--red)' }}>
+        <div className="eyebrow" style={{ color: 'var(--red)' }}>
+          High-risk action
+        </div>
+        <h2 id="delete-title" style={{ margin: 0, fontSize: 'var(--text-xl)' }}>
+          Delete client {org.name}?
+        </h2>
+        <p style={{ margin: 0, color: 'var(--text2)', fontSize: 'var(--text-sm)' }}>
+          All of this client&apos;s users are signed out and blocked, and every agent stops. Their data and audit
+          trail are retained, and you can restore the client from the Deleted filter.
+        </p>
+        <label htmlFor="delete-reason" style={{ fontSize: 'var(--text-xs)', color: 'var(--text2)' }}>
+          Reason (recorded in the audit log)
+        </label>
+        <input id="delete-reason" style={fieldInput} value={reason} onChange={(e) => setReason(e.target.value)} />
+        <label htmlFor="delete-confirm" style={{ fontSize: 'var(--text-xs)', color: 'var(--text2)' }}>
+          Type <strong style={{ fontFamily: 'var(--font-mono)' }}>{org.slug}</strong> to confirm
+        </label>
+        <input
+          id="delete-confirm"
+          style={fieldInput}
+          autoComplete="off"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+        />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
+          <button className="btn" type="button" onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            className="btn btn-danger"
+            type="button"
+            disabled={!ready}
+            onClick={() => onConfirm(`Owner deleted client: ${reason.trim()}`)}
+          >
+            Delete client
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -2,10 +2,21 @@ import { useState } from 'react';
 import { apiFetch, ApiError } from '../../lib/apiClient';
 import { Icon } from '../../components/brand/Icon';
 
+/** Shown to the operator exactly once after provisioning — the password is never retrievable again. */
+export interface ProvisionedCredentials {
+  tenantId: string;
+  tenantName: string;
+  workspace: string;
+  adminEmail: string;
+  password: string;
+}
+
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 export interface ProvisionTenantModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (tenantName: string) => void;
+  onSuccess: (credentials: ProvisionedCredentials) => void;
 }
 
 export function ProvisionTenantModal({ isOpen, onClose, onSuccess }: ProvisionTenantModalProps) {
@@ -37,15 +48,15 @@ export function ProvisionTenantModal({ isOpen, onClose, onSuccess }: ProvisionTe
   // Step 5: Admin User Credentials
   const [adminEmail, setAdminEmail] = useState('');
   const [adminFullName, setAdminFullName] = useState('');
-  const [adminPassword, setAdminPassword] = useState('OmnitaskAdmin@2026');
+  const [adminPassword, setAdminPassword] = useState('');
 
   if (!isOpen) return null;
 
+  // Keep auto-filling the slug until the operator edits it by hand.
+  const toSlug = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const handleNameChange = (val: string) => {
+    if (!slug || slug === toSlug(name)) setSlug(toSlug(val));
     setName(val);
-    if (!slug || slug === name.toLowerCase().replace(/[^a-z0-9]/g, '-')) {
-      setSlug(val.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''));
-    }
   };
 
   const handleLanguageToggle = (lang: string) => {
@@ -60,7 +71,7 @@ export function ProvisionTenantModal({ isOpen, onClose, onSuccess }: ProvisionTe
     try {
       setIsSubmitting(true);
       setError(null);
-      await apiFetch('/api/v1/admin/tenants/provision', {
+      const result = await apiFetch<{ id: string; slug: string; adminEmail: string; generatedAdminPassword?: string }>('/api/v1/admin/tenants/provision', {
         method: 'POST',
         body: JSON.stringify({
           name: name.trim(),
@@ -75,7 +86,7 @@ export function ProvisionTenantModal({ isOpen, onClose, onSuccess }: ProvisionTe
           brainSupplyMode,
           adminEmail: adminEmail.trim(),
           adminFullName: adminFullName.trim() || `${name} Admin`,
-          adminPassword,
+          adminPassword: adminPassword || undefined,
           quotas: {
             max_concurrent_tasks: maxConcurrentTasks,
             monthly_budget_inr: monthlyBudgetInr,
@@ -84,7 +95,13 @@ export function ProvisionTenantModal({ isOpen, onClose, onSuccess }: ProvisionTe
           autonomyCeiling,
         }),
       });
-      onSuccess(name);
+      onSuccess({
+        tenantId: result.id,
+        tenantName: name.trim(),
+        workspace: result.slug,
+        adminEmail: result.adminEmail,
+        password: result.generatedAdminPassword ?? adminPassword,
+      });
       onClose();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to provision tenant.');
@@ -445,9 +462,15 @@ export function ProvisionTenantModal({ isOpen, onClose, onSuccess }: ProvisionTe
               />
             </div>
             <div>
-              <label style={{ fontSize: 'var(--text-xs)', color: 'var(--text2)' }}>Temporary Password</label>
+              <label htmlFor="adminPassword" style={{ fontSize: 'var(--text-xs)', color: 'var(--text2)' }}>
+                Initial Password (optional, 12+ characters; leave blank to auto-generate a strong one)
+              </label>
               <input
+                id="adminPassword"
                 type="text"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder="Auto-generate"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
                 style={{ width: '100%', background: 'var(--surface3)', border: 'var(--border-width) solid var(--border)', padding: 'var(--space-2)', color: 'var(--text)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-mono)' }}
@@ -515,8 +538,16 @@ export function ProvisionTenantModal({ isOpen, onClose, onSuccess }: ProvisionTe
                   setError('Please fill in business name and slug.');
                   return;
                 }
+                if (step === 1 && !SLUG_RE.test(slug)) {
+                  setError('Workspace slug: lowercase letters, numbers and single hyphens only (e.g. sunrise-clinic).');
+                  return;
+                }
                 if (step === 5 && !adminEmail) {
                   setError('Please specify admin email.');
+                  return;
+                }
+                if (step === 5 && adminPassword && adminPassword.length < 12) {
+                  setError('Initial password must be at least 12 characters, or leave it blank to auto-generate.');
                   return;
                 }
                 setError(null);

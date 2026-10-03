@@ -20,6 +20,7 @@ describe('Golden Paths Integration & E2E Validation', () => {
             jsonResponse({
               user: { id: 'usr_e2e', email: 'owner@enterprise.com', fullName: 'Elena Enterprise', roles: ['owner', 'system:admin'] },
               tenant: { id: 't_ent', name: 'Global Enterprise Ltd', slug: 'global-ent', planTier: 'enterprise', channelPlan: 'combined' },
+              isPlatformOperator: window.location.pathname.startsWith('/owner'),
             })
           );
         }
@@ -292,7 +293,7 @@ describe('Golden Paths Integration & E2E Validation', () => {
   });
 
   it('executes client plane navigation and validates real telemetry and entity loading', async () => {
-    window.history.pushState({}, '', '/app/overview');
+    window.history.pushState({}, '', '/admin/overview');
     render(<App />);
 
     // Renders Executive Overview
@@ -318,7 +319,7 @@ describe('Golden Paths Integration & E2E Validation', () => {
   });
 
   it('executes platform owner plane navigation and verifies zero-trust posture & fleet health', async () => {
-    window.history.pushState({}, '', '/platform/overview');
+    window.history.pushState({}, '', '/owner/overview');
     render(<App />);
 
     expect(await screen.findByText('Platform Overview')).toBeInTheDocument();

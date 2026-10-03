@@ -10,15 +10,15 @@ interface NavItem {
 }
 
 const PLATFORM_NAV = [
-  { label: 'Overview', to: '/platform/overview' },
-  { label: 'Tenants', to: '/platform/tenants' },
-  { label: 'Agent Fleet', to: '/platform/fleet' },
-  { label: 'Model Health', to: '/platform/models' },
-  { label: 'Model Registry', to: '/platform/models/registry' },
-  { label: 'Skills', to: '/platform/skills' },
-  { label: 'Security', to: '/platform/security' },
-  { label: 'Billing', to: '/platform/billing' },
-  { label: 'Audit', to: '/platform/audit' },
+  { label: 'Overview', to: '/owner/overview' },
+  { label: 'Tenants', to: '/owner/tenants' },
+  { label: 'Agent Fleet', to: '/owner/fleet' },
+  { label: 'Model Health', to: '/owner/models' },
+  { label: 'Model Registry', to: '/owner/models/registry' },
+  { label: 'Skills', to: '/owner/skills' },
+  { label: 'Security', to: '/owner/security' },
+  { label: 'Billing', to: '/owner/billing' },
+  { label: 'Audit', to: '/owner/audit' },
 ];
 
 export interface SidebarProps {
@@ -32,22 +32,22 @@ export function Sidebar({ plane, isOpen = false, onClose }: SidebarProps) {
 
   // Dynamic 10-item client navigation rail (§18)
   const clientNav: NavItem[] = [
-    { label: 'Today', to: '/app/overview' },
-    { label: 'Workforce', to: '/app/agents' },
-    { label: vocabulary.customer_plural || 'Customers', to: '/app/customers', capability: 'lead_qualification' },
-    { label: 'Conversations', to: '/app/conversations' },
-    { label: 'Human Attention', to: '/app/attention' },
-    { label: 'Automation', to: '/app/workflows' },
-    { label: 'Run Traces', to: '/app/traces' },
-    { label: 'Proof Receipts', to: '/app/proof' },
-    { label: 'Verification Queue', to: '/app/verification' },
-    { label: 'Mandates', to: '/app/mandates' },
-    { label: 'Cost per Outcome', to: '/app/cost' },
-    { label: 'Analytics', to: '/app/analytics' },
-    { label: 'Insights', to: '/app/bi' },
-    { label: 'Knowledge', to: '/app/knowledge' },
-    { label: 'Brain', to: '/app/brain' },
-    { label: 'Settings', to: '/app/settings' },
+    { label: 'Today', to: '/admin/overview' },
+    { label: 'Workforce', to: '/admin/agents' },
+    { label: vocabulary.customer_plural || 'Customers', to: '/admin/customers', capability: 'lead_qualification' },
+    { label: 'Conversations', to: '/admin/conversations' },
+    { label: 'Human Attention', to: '/admin/attention' },
+    { label: 'Automation', to: '/admin/workflows' },
+    { label: 'Run Traces', to: '/admin/traces' },
+    { label: 'Proof Receipts', to: '/admin/proof' },
+    { label: 'Verification Queue', to: '/admin/verification' },
+    { label: 'Mandates', to: '/admin/mandates' },
+    { label: 'Cost per Outcome', to: '/admin/cost' },
+    { label: 'Analytics', to: '/admin/analytics' },
+    { label: 'Insights', to: '/admin/bi' },
+    { label: 'Knowledge', to: '/admin/knowledge' },
+    { label: 'Brain', to: '/admin/brain' },
+    { label: 'Settings', to: '/admin/settings' },
   ];
 
   // "Everything the DNA profile doesn't activate is absent, not greyed out." (§3, §18)

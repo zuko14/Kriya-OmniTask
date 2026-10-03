@@ -130,7 +130,7 @@ export function CustomerDetail() {
       setIsDeleting(true);
       setActionError(null);
       await apiFetch(`/api/v1/customers/${id}`, { method: 'DELETE' });
-      navigate('/app/customers');
+      navigate('/admin/customers');
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : 'Failed to anonymize/delete customer');
       setIsDeleting(false);
@@ -141,7 +141,7 @@ export function CustomerDetail() {
   if (state.status !== 'success') {
     return (
       <div className={styles.container}>
-        <Link to="/app/customers" className={styles.backLink}>← Back to Customer Directory</Link>
+        <Link to="/admin/customers" className={styles.backLink}>← Back to Customer Directory</Link>
         <AsyncState status={state.status === 'loading' ? 'loading' : 'error'} error={state.error} />
       </div>
     );
@@ -151,7 +151,7 @@ export function CustomerDetail() {
 
   return (
     <div className={styles.container}>
-      <Link to="/app/customers" className={styles.backLink}>← Back to Customer Directory</Link>
+      <Link to="/admin/customers" className={styles.backLink}>← Back to Customer Directory</Link>
 
       {actionError && <div className="alert alert-err" role="alert">{actionError}</div>}
       {actionSuccess && <div className="alert alert-ok" role="status">{actionSuccess}</div>}

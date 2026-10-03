@@ -84,14 +84,14 @@ export function ExecutiveOverview() {
               value={fmt(attention.data.pendingCount)}
               source={`attention_items · pending · ${fmt(attention.data.claimedCount)} claimed`}
               timestamp={`read ${new Date(attention.readAt).toLocaleTimeString()}`}
-              onDrill={() => navigate('/app/attention')}
+              onDrill={() => navigate('/admin/attention')}
             />
             <MetricBlock
               label="SLA breaches"
               value={fmt(attention.data.slaBreachCount)}
               source="attention_items · past SLA · all time"
               timestamp={`read ${new Date(attention.readAt).toLocaleTimeString()}`}
-              onDrill={() => navigate('/app/attention')}
+              onDrill={() => navigate('/admin/attention')}
             />
           </>
         ) : (

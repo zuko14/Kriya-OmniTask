@@ -9,10 +9,20 @@ import { TenantRepository } from '../../storage/repositories/tenantRepository.js
 import { OrganizationRepository } from '../../storage/repositories/orgRepository.js';
 import { CryptoUtils } from '../../core/utils/crypto.js';
 import { JwtService } from '../../security/auth/jwt.js';
-import { ValidationError, UnauthorizedError, ConflictError } from '../../core/errors/errors.js';
+import { ValidationError, UnauthorizedError, ConflictError, ForbiddenError } from '../../core/errors/errors.js';
 import { TenantContextManager } from '../../core/context/tenantContext.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { auditLogger } from '../../security/audit/auditLogger.js';
+import { isSandboxMode } from '../../core/config/runtimeMode.js';
+import {
+  PLATFORM_ROLES,
+  isPlatformTenantSlug,
+  platformTenantSlug,
+  scopeRolesToTenant,
+} from '../../security/auth/platformOperator.js';
+
+/** Credential endpoints get a tight per-IP budget on top of the global limiter (brute-force guard). */
+const LOGIN_RATE_LIMIT = { rateLimit: { max: 10, timeWindow: '1 minute' } };
 
 const userRepo = new UserRepository();
 const tenantRepo = new TenantRepository();
@@ -35,15 +45,84 @@ const LoginSchema = z.object({
   password: z.string().min(1),
 });
 
+const PlatformLoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+async function signIn(tenantSlug: string, email: string, password: string) {
+  const tenant = await tenantRepo.findBySlug(tenantSlug);
+  if (!tenant || tenant.status !== 'active') {
+    throw new UnauthorizedError('Invalid workspace, email or password, or the workspace is inactive');
+  }
+
+  return TenantContextManager.withTenant(tenant.id, 'auth-lookup', async () => {
+    const user = await userRepo.findByEmail(email);
+    if (!user || user.status !== 'active' || !CryptoUtils.verifyPassword(password, user.password_hash)) {
+      await auditLogger.logEvent({
+        action: 'user.login_failed',
+        resourceType: 'user',
+        resourceId: user?.id,
+        details: { email: email.toLowerCase().trim() },
+      });
+      throw new UnauthorizedError('Invalid workspace, email or password, or the workspace is inactive');
+    }
+
+    const roles = scopeRolesToTenant((await userRepo.getUserRoles(user.id)).map((r) => r.name), tenant.slug);
+    const effectiveRoles = roles.length > 0 ? roles : ['read_only'];
+
+    const token = JwtService.sign({
+      userId: user.id,
+      tenantId: tenant.id,
+      roles: effectiveRoles,
+      email: user.email,
+    });
+
+    // Attribute the login to the user (the lookup itself runs before a user is in context).
+    await TenantContextManager.withTenant(
+      tenant.id,
+      'auth-lookup',
+      () =>
+        auditLogger.logEvent({
+          action: 'user.login',
+          resourceType: 'user',
+          resourceId: user.id,
+          details: { email: user.email },
+        }),
+      { userId: user.id, roles: effectiveRoles }
+    );
+
+    return {
+      accessToken: token,
+      user: { id: user.id, email: user.email, fullName: user.full_name, roles: effectiveRoles },
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        slug: tenant.slug,
+        planTier: tenant.plan_tier,
+        channelPlan: tenant.channel_plan,
+      },
+      isPlatformOperator: isPlatformTenantSlug(tenant.slug),
+    };
+  });
+}
+
 export async function authRoutes(fastify: FastifyInstance): Promise<void> {
-  // 1. Initial Tenant & Owner Registration
-  fastify.post('/api/v1/auth/register', async (request, reply) => {
+  // 1. Initial Tenant & Owner Registration — clients are provisioned from the /owner console;
+  // public self-signup is off outside sandbox/test unless explicitly enabled.
+  fastify.post('/api/v1/auth/register', { config: LOGIN_RATE_LIMIT }, async (request, reply) => {
+    if (!isSandboxMode() && process.env.ALLOW_PUBLIC_SIGNUP !== 'true') {
+      throw new ForbiddenError('Self-registration is disabled. Contact your platform operator for a workspace.');
+    }
     const parseResult = RegisterSchema.safeParse(request.body);
     if (!parseResult.success) {
       throw new ValidationError('Registration validation failed', { issues: parseResult.error.issues });
     }
 
     const body = parseResult.data;
+    if (isPlatformTenantSlug(body.tenantSlug)) {
+      throw new ConflictError(`Tenant slug '${body.tenantSlug}' is already registered.`);
+    }
 
     // Check slug availability
     const existingTenant = await tenantRepo.findBySlug(body.tenantSlug);
@@ -105,66 +184,28 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
     return reply.status(201).send(result);
   });
 
-  // 2. User Login
-  fastify.post('/api/v1/auth/login', async (request, reply) => {
+  // 2. Client Login (/admin portal)
+  fastify.post('/api/v1/auth/login', { config: LOGIN_RATE_LIMIT }, async (request, reply) => {
     const parseResult = LoginSchema.safeParse(request.body);
     if (!parseResult.success) {
       throw new ValidationError('Login validation failed', { issues: parseResult.error.issues });
     }
-
     const body = parseResult.data;
-    const tenant = await tenantRepo.findBySlug(body.tenantSlug);
-    if (!tenant || tenant.status !== 'active') {
-      throw new UnauthorizedError('Invalid tenant or account is inactive');
+    return reply.send(await signIn(body.tenantSlug, body.email, body.password));
+  });
+
+  // 2b. Platform Owner Login (/owner console) — the platform tenant is implied, never typed.
+  fastify.post('/api/v1/auth/platform-login', { config: LOGIN_RATE_LIMIT }, async (request, reply) => {
+    const parseResult = PlatformLoginSchema.safeParse(request.body);
+    if (!parseResult.success) {
+      throw new ValidationError('Login validation failed', { issues: parseResult.error.issues });
     }
-
-    const authResult = await TenantContextManager.withTenant(tenant.id, 'auth-lookup', async () => {
-      const user = await userRepo.findByEmail(body.email);
-      if (!user || user.status !== 'active') {
-        throw new UnauthorizedError('Invalid email or password');
-      }
-
-      const isValid = CryptoUtils.verifyPassword(body.password, user.password_hash);
-      if (!isValid) {
-        throw new UnauthorizedError('Invalid email or password');
-      }
-
-      const roles = (await userRepo.getUserRoles(user.id)).map((r) => r.name);
-      const effectiveRoles = roles.length > 0 ? roles : ['read_only'];
-
-      const token = JwtService.sign({
-        userId: user.id,
-        tenantId: tenant.id,
-        roles: effectiveRoles,
-        email: user.email,
-      });
-
-      await auditLogger.logEvent({
-        action: 'user.login',
-        resourceType: 'user',
-        resourceId: user.id,
-        details: { email: user.email },
-      });
-
-      return {
-        accessToken: token,
-        user: {
-          id: user.id,
-          email: user.email,
-          fullName: user.full_name,
-          roles: effectiveRoles,
-        },
-        tenant: {
-          id: tenant.id,
-          name: tenant.name,
-          slug: tenant.slug,
-          planTier: tenant.plan_tier,
-          channelPlan: tenant.channel_plan,
-        },
-      };
-    });
-
-    return reply.send(authResult);
+    const body = parseResult.data;
+    const result = await signIn(platformTenantSlug(), body.email, body.password);
+    if (!result.user.roles.some((r) => PLATFORM_ROLES.includes(r))) {
+      throw new UnauthorizedError('Invalid email or password');
+    }
+    return reply.send(result);
   });
 
   // 3. Current Authenticated Profile
@@ -192,6 +233,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
           planTier: tenant?.plan_tier,
           channelPlan: tenant?.channel_plan,
         },
+        isPlatformOperator: isPlatformTenantSlug(tenant?.slug),
       });
     }, { userId: userPayload.userId, roles: userPayload.roles });
   });

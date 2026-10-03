@@ -21,7 +21,8 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
+// Same origin by default: production serves the console and the API from one host (/admin, /owner, /api).
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 let onUnauthorized: (() => void) | null = null;
 
