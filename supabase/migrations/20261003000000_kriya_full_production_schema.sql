@@ -146,7 +146,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action);
 
 -- 9. Seed Default System Roles
-INSERT OR IGNORE INTO roles (id, tenant_id, name, description, permissions_json, is_system, created_at, updated_at) VALUES
+INSERT INTO roles (id, tenant_id, name, description, permissions_json, is_system, created_at, updated_at) VALUES
 ('role-owner', 'system', 'owner', 'Tenant Owner with full administrative authority', '["*"]', 1, '2026-08-15T00:00:00.000Z', '2026-08-15T00:00:00.000Z'),
 ('role-admin', 'system', 'admin', 'Tenant Administrator', '[]', 1, '2026-08-15T00:00:00.000Z', '2026-08-15T00:00:00.000Z'),
 ('role-operations_manager', 'system', 'operations_manager', 'Operations Manager', '[]', 1, '2026-08-15T00:00:00.000Z', '2026-08-15T00:00:00.000Z'),
@@ -155,7 +155,7 @@ INSERT OR IGNORE INTO roles (id, tenant_id, name, description, permissions_json,
 ('role-agent_operator', 'system', 'agent_operator', 'Agent Fleet Operator', '[]', 1, '2026-08-15T00:00:00.000Z', '2026-08-15T00:00:00.000Z'),
 ('role-analyst', 'system', 'analyst', 'Business & Operational Analyst', '[]', 1, '2026-08-15T00:00:00.000Z', '2026-08-15T00:00:00.000Z'),
 ('role-finance', 'system', 'finance', 'Finance & Billing Manager', '[]', 1, '2026-08-15T00:00:00.000Z', '2026-08-15T00:00:00.000Z'),
-('role-read_only', 'system', 'read_only', 'Read-Only Viewer', '[]', 1, '2026-08-15T00:00:00.000Z', '2026-08-15T00:00:00.000Z');
+('role-read_only', 'system', 'read_only', 'Read-Only Viewer', '[]', 1, '2026-08-15T00:00:00.000Z', '2026-08-15T00:00:00.000Z') ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO _schema_migrations (version, name, applied_at)
 VALUES ('001', 'initial_schema', CURRENT_TIMESTAMP)
@@ -856,7 +856,7 @@ CREATE TABLE IF NOT EXISTS execution_traces (
     total_tokens_output INTEGER NOT NULL DEFAULT 0,
     total_cost_usd REAL NOT NULL DEFAULT 0.0,
     grounding_score REAL NOT NULL DEFAULT 1.0, -- 0.0 to 1.0
-    drift_detected BOOLEAN NOT NULL DEFAULT 0,
+    drift_detected BOOLEAN NOT NULL DEFAULT false,
     drift_reasons_json TEXT NOT NULL DEFAULT '[]',
     started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     completed_at TIMESTAMP
@@ -1834,7 +1834,7 @@ CREATE TABLE IF NOT EXISTS feature_flags (
     flag_key VARCHAR(100) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    is_enabled BOOLEAN NOT NULL DEFAULT 0,
+    is_enabled BOOLEAN NOT NULL DEFAULT false,
     allowed_tenants_json TEXT NOT NULL DEFAULT '[]',
     allowed_roles_json TEXT NOT NULL DEFAULT '[]',
     rollout_pct INTEGER NOT NULL DEFAULT 0, -- 0 to 100
@@ -1886,7 +1886,7 @@ CREATE TABLE IF NOT EXISTS hardening_stress_runs (
     p50_latency_ms REAL NOT NULL,
     p95_latency_ms REAL NOT NULL,
     p99_latency_ms REAL NOT NULL,
-    cross_tenant_leakage_detected BOOLEAN NOT NULL DEFAULT 0,
+    cross_tenant_leakage_detected BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -1966,14 +1966,14 @@ CREATE INDEX IF NOT EXISTS idx_elevation_operator ON tenant_elevation_sessions(o
 
 -- Add extended fields to tenants table safely if not already present
 -- SQLite allows adding columns with ALTER TABLE
-ALTER TABLE tenants ADD COLUMN industry TEXT DEFAULT 'general';
-ALTER TABLE tenants ADD COLUMN region TEXT DEFAULT 'ap-south-1';
-ALTER TABLE tenants ADD COLUMN languages_json TEXT DEFAULT '["en", "hi"]';
-ALTER TABLE tenants ADD COLUMN timezone TEXT DEFAULT 'Asia/Kolkata';
-ALTER TABLE tenants ADD COLUMN dna_profile_id TEXT DEFAULT 'dna_general_service';
-ALTER TABLE tenants ADD COLUMN brain_supply_mode TEXT DEFAULT 'byo'; -- 'byo' or 'managed' (§9.5)
-ALTER TABLE tenants ADD COLUMN quotas_json TEXT DEFAULT '{"max_concurrent_tasks":10,"monthly_budget_inr":10000}';
-ALTER TABLE tenants ADD COLUMN autonomy_ceiling TEXT DEFAULT 'L2'; -- 'L1', 'L2', 'L3', 'L4'
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS industry TEXT DEFAULT 'general';
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS region TEXT DEFAULT 'ap-south-1';
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS languages_json TEXT DEFAULT '["en", "hi"]';
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Asia/Kolkata';
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS dna_profile_id TEXT DEFAULT 'dna_general_service';
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS brain_supply_mode TEXT DEFAULT 'byo'; -- 'byo' or 'managed' (§9.5)
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS quotas_json TEXT DEFAULT '{"max_concurrent_tasks":10,"monthly_budget_inr":10000}';
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS autonomy_ceiling TEXT DEFAULT 'L2'; -- 'L1', 'L2', 'L3', 'L4'
 
 INSERT INTO _schema_migrations (version, name, applied_at)
 VALUES ('028', 'tenant_elevation_schema', CURRENT_TIMESTAMP)
@@ -2035,7 +2035,7 @@ CREATE INDEX IF NOT EXISTS idx_manifests_tenant_ver ON tenant_roster_manifests(t
 CREATE INDEX IF NOT EXISTS idx_manifests_tenant_active ON tenant_roster_manifests(tenant_id, status);
 
 -- Seed Profile 1: Retail & Digital Commerce (Meridian Retail Pilot)
-INSERT OR REPLACE INTO dna_profiles (
+INSERT INTO dna_profiles (
     id, version, business_type, display_name, description,
     lifecycle_model_json, entity_vocabulary_json, capabilities_json,
     required_agents_json, optional_agents_json, forbidden_actions_json,
@@ -2064,10 +2064,10 @@ INSERT OR REPLACE INTO dna_profiles (
     1,
     '2026-08-20T00:00:00.000Z',
     '2026-08-20T00:00:00.000Z'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 -- Seed Profile 2: Automotive Dealership & Service (Kaveri Motors Pilot)
-INSERT OR REPLACE INTO dna_profiles (
+INSERT INTO dna_profiles (
     id, version, business_type, display_name, description,
     lifecycle_model_json, entity_vocabulary_json, capabilities_json,
     required_agents_json, optional_agents_json, forbidden_actions_json,
@@ -2096,7 +2096,7 @@ INSERT OR REPLACE INTO dna_profiles (
     1,
     '2026-08-20T00:00:00.000Z',
     '2026-08-20T00:00:00.000Z'
-);
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO _schema_migrations (version, name, applied_at)
 VALUES ('029', 'business_dna_roster_schema', CURRENT_TIMESTAMP)
@@ -2476,7 +2476,7 @@ CREATE INDEX IF NOT EXISTS idx_catalogue_provider ON brain_catalogue(provider);
 CREATE INDEX IF NOT EXISTS idx_catalogue_suitability ON brain_catalogue(suitability_state);
 
 -- Seed Initial Model Catalogue with Diverse Suitability Classes (§9.6, §18.6.2)
-INSERT OR REPLACE INTO brain_catalogue (
+INSERT INTO brain_catalogue (
     id, provider, model_id, display_name, context_window, indicative_cost_per_million_inr,
     structured_output_support, tool_calling_support, min_context_window_met, region_compliant,
     suitability_state, named_limitation, failed_hard_requirement, created_at, updated_at
@@ -2505,7 +2505,7 @@ INSERT OR REPLACE INTO brain_catalogue (
     'cat_llama_3_8b_legacy', 'openrouter', 'meta-llama/llama-3-8b-instruct:free', 'Llama 3 8B Legacy', 8000, 0.0,
     0, 0, 0, 1, 'UNSUITABLE', NULL, 'Fails hard requirements: structured output and minimum 32k context window (has 8k)',
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-);
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO _schema_migrations (version, name, applied_at)
 VALUES ('033', 'brain_supply_schema', CURRENT_TIMESTAMP)
@@ -2972,12 +2972,12 @@ ON CONFLICT (version) DO NOTHING;
 -- Verification jobs for async read-back checks by the Verification agent.
 
 -- 1. Extend attention_items with routing & branch fields
-ALTER TABLE attention_items ADD COLUMN assigned_role TEXT;
-ALTER TABLE attention_items ADD COLUMN branch_id TEXT;
-ALTER TABLE attention_items ADD COLUMN routed_at TEXT;
-ALTER TABLE attention_items ADD COLUMN routing_rule_id TEXT;
-ALTER TABLE attention_items ADD COLUMN after_hours INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE attention_items ADD COLUMN next_available_at TEXT;
+ALTER TABLE attention_items ADD COLUMN IF NOT EXISTS assigned_role TEXT;
+ALTER TABLE attention_items ADD COLUMN IF NOT EXISTS branch_id TEXT;
+ALTER TABLE attention_items ADD COLUMN IF NOT EXISTS routed_at TEXT;
+ALTER TABLE attention_items ADD COLUMN IF NOT EXISTS routing_rule_id TEXT;
+ALTER TABLE attention_items ADD COLUMN IF NOT EXISTS after_hours INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE attention_items ADD COLUMN IF NOT EXISTS next_available_at TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_attention_items_tenant_role ON attention_items(tenant_id, assigned_role, status);
 CREATE INDEX IF NOT EXISTS idx_attention_items_tenant_branch ON attention_items(tenant_id, branch_id);
@@ -3082,8 +3082,8 @@ ON CONFLICT (version) DO NOTHING;
 -- Migration 045: Refunds and Doctor Emergency Leave Reference Workflow Schema (docs/kriya WP-4.7)
 -- Subsystem: Payment Refunds, Resource Emergency Leaves, and Settlement Verification
 
-ALTER TABLE appointments ADD COLUMN fee_amount REAL DEFAULT 500.0;
-ALTER TABLE appointments ADD COLUMN is_prepaid INTEGER DEFAULT 1;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS fee_amount REAL DEFAULT 500.0;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS is_prepaid INTEGER DEFAULT 1;
 
 CREATE TABLE IF NOT EXISTS payment_refunds (
   id TEXT PRIMARY KEY,
@@ -3133,12 +3133,12 @@ ON CONFLICT (version) DO NOTHING;
 -- Migration 046: Durable Job Queue & Scheduling Engine Extensions (docs/kriya WP-5.9)
 -- Subsystem: Priority Queues, Dead Letter Queue (DLQ), Concurrency Locks, and Timezone/Quiet Hours Governance
 
-ALTER TABLE async_job_queue ADD COLUMN correlation_id TEXT;
-ALTER TABLE async_job_queue ADD COLUMN idempotency_key TEXT;
-ALTER TABLE async_job_queue ADD COLUMN timezone TEXT DEFAULT 'UTC';
-ALTER TABLE async_job_queue ADD COLUMN quiet_hours_policy TEXT DEFAULT 'none';
-ALTER TABLE async_job_queue ADD COLUMN last_heartbeat_at TEXT;
-ALTER TABLE async_job_queue ADD COLUMN execution_duration_ms INTEGER DEFAULT 0;
+ALTER TABLE async_job_queue ADD COLUMN IF NOT EXISTS correlation_id TEXT;
+ALTER TABLE async_job_queue ADD COLUMN IF NOT EXISTS idempotency_key TEXT;
+ALTER TABLE async_job_queue ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'UTC';
+ALTER TABLE async_job_queue ADD COLUMN IF NOT EXISTS quiet_hours_policy TEXT DEFAULT 'none';
+ALTER TABLE async_job_queue ADD COLUMN IF NOT EXISTS last_heartbeat_at TEXT;
+ALTER TABLE async_job_queue ADD COLUMN IF NOT EXISTS execution_duration_ms INTEGER DEFAULT 0;
 
 CREATE INDEX IF NOT EXISTS idx_async_job_queue_claim ON async_job_queue(queue_name, status, run_at, priority DESC);
 CREATE INDEX IF NOT EXISTS idx_async_job_queue_locked ON async_job_queue(status, locked_until);
@@ -3259,8 +3259,8 @@ CREATE INDEX IF NOT EXISTS idx_tenant_connectors_category
 ON tenant_connectors (tenant_id, category);
 
 -- Optional external event binding on appointments and slot holds
-ALTER TABLE appointments ADD COLUMN external_event_id TEXT;
-ALTER TABLE slot_holds ADD COLUMN external_hold_ref TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS external_event_id TEXT;
+ALTER TABLE slot_holds ADD COLUMN IF NOT EXISTS external_hold_ref TEXT;
 
 INSERT INTO _schema_migrations (version, name, applied_at)
 VALUES ('048', 'connectors_schema', CURRENT_TIMESTAMP)
@@ -3276,8 +3276,8 @@ ON CONFLICT (version) DO NOTHING;
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Add model and dimension metadata columns to knowledge_chunks
-ALTER TABLE knowledge_chunks ADD COLUMN embedding_model TEXT DEFAULT 'text-embedding-3-small';
-ALTER TABLE knowledge_chunks ADD COLUMN embedding_dimensions INTEGER DEFAULT 1536;
+ALTER TABLE knowledge_chunks ADD COLUMN IF NOT EXISTS embedding_model TEXT DEFAULT 'text-embedding-3-small';
+ALTER TABLE knowledge_chunks ADD COLUMN IF NOT EXISTS embedding_dimensions INTEGER DEFAULT 1536;
 
 ALTER TABLE knowledge_chunks ADD COLUMN IF NOT EXISTS embedding_vector vector(1536);
 CREATE INDEX IF NOT EXISTS idx_kchunks_vector ON knowledge_chunks USING hnsw (embedding_vector vector_cosine_ops);
@@ -3770,8 +3770,8 @@ CREATE TABLE IF NOT EXISTS data_residency_configs (
     jurisdiction VARCHAR(30) NOT NULL DEFAULT 'IN_DPDP_2023', -- 'IN_DPDP_2023', 'EU_GDPR', 'US_HIPAA', 'GLOBAL'
     primary_region VARCHAR(30) NOT NULL DEFAULT 'ap-south-1', -- 'ap-south-1', 'ap-south-2', 'in-central1'
     allowed_regions_json TEXT NOT NULL DEFAULT '["ap-south-1"]',
-    strict_data_localization BOOLEAN NOT NULL DEFAULT 1,
-    cross_border_transfer_permitted BOOLEAN NOT NULL DEFAULT 0,
+    strict_data_localization BOOLEAN NOT NULL DEFAULT true,
+    cross_border_transfer_permitted BOOLEAN NOT NULL DEFAULT false,
     approved_llm_inference_regions_json TEXT NOT NULL DEFAULT '["ap-south-1"]',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

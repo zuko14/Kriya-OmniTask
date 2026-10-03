@@ -4,7 +4,27 @@ import path from 'node:path';
 function translateDdlForPostgres(sql) {
   let translated = sql
     .replace(/\bINTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT\b/gi, 'SERIAL PRIMARY KEY')
-    .replace(/\bdatetime\s*\(\s*['"]now['"]\s*\)/gi, 'CURRENT_TIMESTAMP');
+    .replace(/\bdatetime\s*\(\s*['"]now['"]\s*\)/gi, 'CURRENT_TIMESTAMP')
+    .replace(/\bBOOLEAN\s+NOT\s+NULL\s+DEFAULT\s+0\b/gi, 'BOOLEAN NOT NULL DEFAULT false')
+    .replace(/\bBOOLEAN\s+NOT\s+NULL\s+DEFAULT\s+1\b/gi, 'BOOLEAN NOT NULL DEFAULT true')
+    .replace(/\bBOOLEAN\s+DEFAULT\s+0\b/gi, 'BOOLEAN DEFAULT false')
+    .replace(/\bBOOLEAN\s+DEFAULT\s+1\b/gi, 'BOOLEAN DEFAULT true')
+    .replace(/\bALTER\s+TABLE\s+([a-zA-Z0-9_]+)\s+ADD\s+COLUMN\s+(?!IF\s+NOT\s+EXISTS\b)/gi, 'ALTER TABLE $1 ADD COLUMN IF NOT EXISTS ')
+    .replace(/\bINSERT\s+OR\s+REPLACE\s+INTO\s+/gi, 'INSERT INTO ')
+    .replace(/\bINSERT\s+OR\s+IGNORE\s+INTO\s+/gi, 'INSERT INTO ');
+
+  translated = translated.replace(
+    /(INSERT\s+INTO\s+dna_profiles\s*\([^)]+\)\s*VALUES\s*\([\s\S]+?\))\s*;/gi,
+    (match, p1) => match.includes('ON CONFLICT') ? match : `${p1} ON CONFLICT (id) DO NOTHING;`
+  );
+  translated = translated.replace(
+    /(INSERT\s+INTO\s+brain_catalogue\s*\([^)]+\)\s*VALUES\s*[\s\S]+?\))\s*;/gi,
+    (match, p1) => match.includes('ON CONFLICT') ? match : `${p1} ON CONFLICT (id) DO NOTHING;`
+  );
+  translated = translated.replace(
+    /(INSERT\s+INTO\s+roles\s*\([^)]+\)\s*VALUES\s*[\s\S]+?\))\s*;/gi,
+    (match, p1) => match.includes('ON CONFLICT') ? match : `${p1} ON CONFLICT (id) DO NOTHING;`
+  );
 
   // Uncomment lines prefixed with -- PG: or -- POSTGRES:
   translated = translated.replace(/^[ \t]*--\s*(?:PG|POSTGRES):\s*(.+)$/gim, '$1');
